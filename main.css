@@ -188,17 +188,3 @@ section{
   }
 }
 
-/* TELAS GRANDES e ULTRAWIDE (≥1440px) */
-@media (min-width: 1440px) {
-  .container {
-    max-width: 1400px;
-  }
-
-  .container-sobre-pessoa h1 {
-    font-size: 3.5em;
-  }
-
-  .sobre p {
-    font-size: 1.2rem;
-  }
-}
