@@ -103,7 +103,7 @@ header li a {
 }
 
 header li a:hover {
-    color: #00aaff;
+    color: #a3a3a3;
 }
 section.inicio {
   background: url('./image/2.png') no-repeat center;
@@ -115,7 +115,13 @@ section.inicio {
 
 
 section.inicio h1{
-    font-size: 5em;
+    font-size: 4em;
+    text-align: center;
+    margin-top: 2em;
+}
+
+section.inicio h3{
+   font-size: 2em;
     text-align: center;
     margin-top: 2em;
 }
@@ -126,10 +132,8 @@ section.inicio h1{
 
 
 
-
-
 section.sobre {
-  background: url('./image/2.png') no-repeat center;
+  background: url('') no-repeat center;
   background-size: cover;
   min-height: 100vh;
   display: flex;
@@ -139,8 +143,8 @@ section.sobre {
 
 
 section.sobre img{
-    height: 30em;
-    margin-left: 20em;
+    height: 25em;
+    margin-left: 15em;
 }
 
 section.sobre H1{
@@ -174,10 +178,70 @@ section.sobre p{
 
 
 section.trabalho {
-  background: url('./image/3.png') no-repeat center;
+  background: url('./image//Projetos\(5\).png') no-repeat center;
   background-size: cover;
   min-height: 100vh;
 }
+
+
+.trabalho {
+  padding: 4em 0;
+  background-color: #f8f8f8;
+}
+
+.trabalho-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 2em;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.item {
+  text-align: center;
+  margin-top: 15em;
+}
+
+.icon-box {
+  width: 100px;
+  height: 100px;
+  background-color: #1f1f1f; /* cor do quadrado */
+  border-radius: 10px;
+  margin-bottom: 0.5em;
+}
+
+.item p {
+  font-size: 1.1em;
+  font-weight: bold;
+  color: #333;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 footer{
