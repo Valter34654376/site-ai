@@ -83,7 +83,7 @@ const navMeta={
  dashboard:["Painel","◫"],clientes:["Clientes","◎"],agenda:["Agenda","▦"],contratos:["Contratos","▤"],receber:["A receber","↙"],recebimentos:["Recebimentos","✓"],despesas:["Despesas","↗"],nfse:["NFS-e","N"],usuarios:["Usuários","♙"],auditoria:["Auditoria","⌁"]
 };
 function nav(){return Object.entries(navMeta).map(([x,m])=>`<button data-route="${x}" class="${route===x?"active":""}"><span class="nav-icon">${m[1]}</span><span>${m[0]}</span></button>`).join("")}
-function shell(body){return `<div class="layout"><aside class="side"><div class="brand"><img src="/favicon.svg" alt=""><div class="brand-copy"><strong>Solar Opará</strong><span>Gestão de Eventos</span></div></div>${nav()}<button id="logout" class="logout"><span class="nav-icon">↪</span><span>Sair</span></button></aside><main class="main">${body}</main></div>`}<hr style="border-color:#333"><button id="logout">Sair</button></aside><main class="main">${body}</main></div>`}
+function shell(body){return `<div class="layout"><aside class="side"><div class="brand"><img src="/favicon.svg" alt=""><div class="brand-copy"><strong>Solar Opará</strong><span>Gestão de Eventos</span></div></div>${nav()}<button id="logout" class="logout"><span class="nav-icon">↪</span><span>Sair</span></button></aside><main class="main">${body}</main></div>`}
 function bindNav(){document.querySelectorAll("[data-route]").forEach(b=>b.onclick=()=>{route=b.dataset.route;render()});$("#logout").onclick=async()=>{await sb.auth.signOut();location.reload()}}
 function setApp(h){$("#app").innerHTML=h}
 async function loginView(){
