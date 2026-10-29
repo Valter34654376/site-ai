@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Solar Opará Gestão</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>☀</text></svg>">
+<style>
+:root{--gold:#c58a2c;--dark:#171717;--bg:#f6f3ed;--card:#fff;--muted:#777;--line:#e7e0d4;--ok:#dff2e4;--warn:#fff1c8;--danger:#a74444}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:#222}
+#app{min-height:100vh}.layout{display:flex;min-height:100vh}.side{width:230px;background:var(--dark);color:white;padding:20px;position:fixed;inset:0 auto 0 0;overflow:auto}
+.brand{font-size:22px;font-weight:800;color:#dda642;margin-bottom:22px}.side button{display:block;width:100%;text-align:left;background:none;border:0;color:#ddd;padding:10px;border-radius:8px;cursor:pointer;font-size:14px}.side button:hover,.side button.active{background:#2a2a2a;color:#fff}
+.main{margin-left:230px;padding:26px;width:calc(100% - 230px)}.top{display:flex;justify-content:space-between;align-items:center;gap:12px}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0;box-shadow:0 2px 14px rgba(0,0,0,.04)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.metric b{display:block;font-size:24px;margin-top:6px}.btn{display:inline-block;border:0;border-radius:8px;padding:10px 13px;background:var(--gold);color:white;text-decoration:none;cursor:pointer}.btn.gray{background:#555}.btn.danger{background:var(--danger)}.btn.small{padding:6px 9px;font-size:12px}
+table{width:100%;border-collapse:collapse;background:white;border-radius:10px;overflow:hidden}th,td{padding:10px;border-bottom:1px solid #eee;text-align:left;font-size:13px;vertical-align:top}th{background:#faf8f3}
+label{display:block;font-size:12px;font-weight:700;margin-bottom:8px}input,select,textarea{width:100%;padding:9px;border:1px solid #ccc;border-radius:8px;margin-top:4px;background:white}.form{display:grid;grid-template-columns:1fr 1fr;gap:12px}.full{grid-column:1/-1}.badge{display:inline-block;padding:4px 8px;border-radius:16px;background:var(--warn);font-size:11px}.paid{background:var(--ok)}.muted{color:var(--muted)}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.login{max-width:420px;margin:10vh auto;padding:0 16px}.login .card{padding:24px}.code{font-family:monospace;word-break:break-all;background:#eee;padding:10px;border-radius:8px;font-size:12px}.toast{position:fixed;right:18px;top:18px;background:#222;color:#fff;padding:12px 15px;border-radius:9px;z-index:9999}.warnbox{background:var(--warn);padding:12px;border-radius:8px}.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.day{min-height:85px;background:#fff;border:1px solid var(--line);border-radius:9px;padding:7px}.day b{font-size:12px}.evt{font-size:10px;background:#f5e7c8;padding:3px 5px;border-radius:5px;margin-top:4px}
+@media(max-width:850px){.layout{display:block}.side{position:static;width:100%}.main{margin:0;width:100%;padding:16px}.grid,.form{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.grid,.form{grid-template-columns:1fr}.calendar{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body><div id="app"></div>
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
+import QRCode from "https://cdn.jsdelivr.net/npm/qrcode@1.5.4/+esm";
+
+const SUPABASE_URL="https://dmjpuqaqtwjqbwspwtug.supabase.co";
+const SUPABASE_KEY="sb_publishable_74tDUWuKvZJMusbyscM19g_5YqFkC3V";
+const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+const PIX="33.958.617/0001-73";
+let me=null, profile=null, route="dashboard";
+const $=s=>document.querySelector(s);
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const dateBR=v=>v?new Date(v+"T12:00:00").toLocaleDateString("pt-BR"):"—";
+const dtBR=v=>v?new Date(v).toLocaleString("pt-BR"):"—";
+const toast=t=>{let x=document.createElement("div");x.className="toast";x.textContent=t;document.body.appendChild(x);setTimeout(()=>x.remove(),2500)};
+const id=()=>crypto.randomUUID();
+const audit=async(action,entity,entity_id,details={})=>{await sb.from("so_audit").insert({action,entity,entity_id:String(entity_id||""),details})};
+async function ensureProfile(){
+  const {data}=await sb.from("so_profiles").select("*").eq("user_id",me.id).maybeSingle();
+  if(data){profile=data;return}
+  const username=(me.email||"usuario").split("@")[0];
+  const name=me.user_metadata?.name||username;
+  const {data:r,error}=await sb.rpc("so_bootstrap_profile",{p_username:username,p_name:name});
+  if(error) throw error; profile=r;
+}
+function nav(){return ["dashboard","clientes","agenda","contratos","receber","recebimentos","despesas","nfse","usuarios","auditoria"].map(x=>`<button data-route="${x}" class="${route===x?"active":""}">${({dashboard:"Painel",clientes:"Clientes",agenda:"Agenda",contratos:"Contratos",receber:"A receber",recebimentos:"Recebimentos",despesas:"Despesas",nfse:"NFS-e",usuarios:"Usuários",auditoria:"Auditoria"})[x]}</button>`).join("")}
+function shell(body){return `<div class="layout"><aside class="side"><div class="brand">☀ Solar Opará</div>${nav()}<hr style="border-color:#333"><button id="logout">Sair</button></aside><main class="main">${body}</main></div>`}
+function bindNav(){document.querySelectorAll("[data-route]").forEach(b=>b.onclick=()=>{route=b.dataset.route;render()});$("#logout").onclick=async()=>{await sb.auth.signOut();location.reload()}}
+function setApp(h){$("#app").innerHTML=h}
+async function loginView(){
+ setApp(`<div class="login"><div class="card"><h1>Solar Opará Gestão</h1><p class="muted">Acesso interno</p><div id="authmsg"></div><label>E-mail<input id="email" type="email"></label><label>Senha<input id="pass" type="password"></label><label>Nome (cadastro inicial)<input id="name"></label><div class="row"><button class="btn" id="loginBtn">Entrar</button><button class="btn gray" id="signupBtn">Criar acesso</button></div></div></div>`);
+ $("#loginBtn").onclick=async()=>{const {error}=await sb.auth.signInWithPassword({email:$("#email").value,password:$("#pass").value});if(error)return $("#authmsg").innerHTML='<p style="color:#a74444">'+esc(error.message)+'</p>';location.reload()};
+ $("#signupBtn").onclick=async()=>{const {error}=await sb.auth.signUp({email:$("#email").value,password:$("#pass").value,options:{data:{name:$("#name").value}}});if(error)return $("#authmsg").innerHTML='<p style="color:#a74444">'+esc(error.message)+'</p>';$("#authmsg").innerHTML='<p>Cadastro criado. Se o Supabase pedir confirmação, confirme pelo e-mail e depois entre.</p>'};
+}
+async function load(){
+ const {data:{session}}=await sb.auth.getSession(); if(!session)return loginView(); me=session.user; await ensureProfile(); render();
+}
+async function render(){
+ let body=""; try{
+ if(route==="dashboard")body=await dashboard();
+ if(route==="clientes")body=await clientes();
+ if(route==="agenda")body=await agenda();
+ if(route==="contratos")body=await contratos();
+ if(route==="receber")body=await receber();
+ if(route==="recebimentos")body=await recebimentos();
+ if(route==="despesas")body=await despesas();
+ if(route==="nfse")body=await nfse();
+ if(route==="usuarios")body=await usuarios();
+ if(route==="auditoria")body=await auditoria();
+ setApp(shell(body));bindNav();bindPage();
+ }catch(e){console.error(e);setApp(shell(`<div class=card><h2>Erro</h2><pre>${esc(e.message)}</pre></div>`));bindNav()}
+}
+async function dashboard(){
+ const [{data:c},{data:r},{data:p},{data:e}]=await Promise.all([sb.from("so_contracts").select("*"),sb.from("so_receivables").select("*"),sb.from("so_payments").select("*").eq("reversed",false),sb.from("so_expenses").select("*")]);
+ const total=(r||[]).reduce((a,x)=>a+Number(x.amount),0),paid=(p||[]).reduce((a,x)=>a+Number(x.amount),0),exp=(e||[]).reduce((a,x)=>a+Number(x.amount),0);
+ return `<div class=top><h1>Painel</h1><button class=btn data-route="contratos">+ Novo contrato</button></div><div class=grid>
+ <div class="card metric">Contratos<b>${(c||[]).length}</b></div><div class="card metric">A receber<b>${money(total-paid)}</b></div><div class="card metric">Recebido<b>${money(paid)}</b></div><div class="card metric">Despesas<b>${money(exp)}</b></div></div>`;
+}
+async function clientes(){
+ const {data}=await sb.from("so_clients").select("*").order("created_at",{ascending:false});
+ return `<div class=top><h1>Clientes</h1><button class=btn id="newClient">+ Novo cliente</button></div><div id="clientForm"></div><table><tr><th>Nome</th><th>CPF/CNPJ</th><th>Telefone</th><th>E-mail</th><th></th></tr>${(data||[]).map(x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.document)}</td><td>${esc(x.phone)}</td><td>${esc(x.email)}</td><td><a class="btn small gray" href="mailto:${encodeURIComponent(x.email||"")}?subject=${encodeURIComponent("Solar Opará")}" target="_blank">E-mail</a></td></tr>`).join("")}</table>`;
+}
+function clientForm(){return `<div class=card><form id=cf class=form><label>Nome/Razão social<input name=name required></label><label>CPF/CNPJ<input name=document></label><label>Telefone<input name=phone></label><label>E-mail<input type=email name=email></label><label class=full>Endereço<input name=address></label><label class=full>Observações<textarea name=notes></textarea></label><div class=full><button class=btn>Salvar</button></div></form></div>`}
+async function agenda(){
+ const {data:c}=await sb.from("so_contracts").select("*,so_clients(name)").neq("status","cancelled").order("event_date");
+ return `<h1>Agenda</h1><table><tr><th>Data</th><th>Evento</th><th>Cliente</th><th>Status</th></tr>${(c||[]).map(x=>`<tr><td>${dateBR(x.event_date)}</td><td>${esc(x.event_name)}</td><td>${esc(x.so_clients?.name)}</td><td>${esc(x.status)}</td></tr>`).join("")}</table>`;
+}
+async function contratos(){
+ const [{data:c},{data:cl}]=await Promise.all([sb.from("so_contracts").select("*,so_clients(name,email,document,address)").order("created_at",{ascending:false}),sb.from("so_clients").select("id,name").order("name")]);
+ return `<div class=top><h1>Contratos</h1><button class=btn id="newContract">+ Novo contrato</button></div><div id=contractForm></div><table><tr><th>Evento</th><th>Cliente</th><th>Data</th><th>Total</th><th></th></tr>${(c||[]).map(x=>`<tr><td>${esc(x.event_name)}</td><td>${esc(x.so_clients?.name)}</td><td>${dateBR(x.event_date)}</td><td>${money(Number(x.rental_value)+Number(x.cleaning_fee)+Number(x.additional_value))}</td><td class=row><button class="btn small" data-doc="${x.id}">Contrato</button><button class="btn small gray" data-manual="${x.id}">Manual</button></td></tr>`).join("")}</table><template id=clientOpts>${(cl||[]).map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join("")}</template>`;
+}
+function contractForm(){
+ const opts=$("#clientOpts")?.innerHTML||"";
+ return `<div class=card><form id=ctf class=form><label>Cliente<select name=client_id required>${opts}</select></label><label>Evento<input name=event_name required></label><label>Data do evento<input type=date name=event_date required></label><label>Capacidade<input type=number name=capacity></label><label>Montagem/entrega<input type=datetime-local name=setup_at></label><label>Início<input type=datetime-local name=start_at></label><label>Término<input type=datetime-local name=end_at></label><label>Desmontagem/devolução<input type=datetime-local name=teardown_at></label><label>Valor locação<input type=number step=.01 name=rental_value required></label><label>Taxa limpeza<input type=number step=.01 name=cleaning_fee value=0></label><label>Valor adicional<input type=number step=.01 name=additional_value value=0></label><label>Vencimento da cobrança<input type=date name=due_date></label><label class=full>Serviços adicionais<input name=additional_services></label><label class=full>Caução/garantia<input name=guarantee_text></label><label class=full>Forma de pagamento<input name=payment_terms></label><label class=full>Observações<textarea name=observations></textarea></label><div class=full><button class=btn>Salvar contrato e gerar cobrança</button></div></form></div>`}
+async function receber(){
+ const [{data:r},{data:p}]=await Promise.all([sb.from("so_receivables").select("*,so_contracts(event_name,client_id,so_clients(name,email))").order("due_date"),sb.from("so_payments").select("*").eq("reversed",false)]);
+ return `<h1>A receber</h1><table><tr><th>Cliente / evento</th><th>Venc.</th><th>Valor</th><th>Status</th><th></th></tr>${(r||[]).map(x=>{let paid=(p||[]).filter(y=>y.receivable_id===x.id).reduce((a,y)=>a+Number(y.amount),0),st=paid>=Number(x.amount)?"PAGO":paid>0?"PARCIAL":"PENDENTE";return `<tr><td>${esc(x.so_contracts?.so_clients?.name)}<br><span class=muted>${esc(x.so_contracts?.event_name)}</span></td><td>${dateBR(x.due_date)}</td><td>${money(x.amount)}</td><td><span class="badge ${st==="PAGO"?"paid":""}">${st}</span></td><td><button class="btn small" data-pix="${x.id}">Pix / confirmar</button></td></tr>`}).join("")}</table><div id=pixModal></div>`;
+}
+async function recebimentos(){
+ const {data}=await sb.from("so_payments").select("*,so_receivables(amount,so_contracts(event_name,so_clients(name,email)))").eq("reversed",false).order("paid_at",{ascending:false});
+ return `<div class=top><h1>Recebimentos</h1><button class="btn gray" id=csvPay>Exportar CSV</button></div><table><tr><th>Data</th><th>Cliente</th><th>Evento</th><th>Valor</th><th>Referência</th><th></th></tr>${(data||[]).map(x=>{let cl=x.so_receivables?.so_contracts?.so_clients;let ev=x.so_receivables?.so_contracts?.event_name;let subj=`Solar Opará – Pagamento confirmado – ${ev||""}`;let body=`Olá ${cl?.name||""},%0D%0A%0D%0AConfirmamos o recebimento de ${money(x.amount)} referente ao evento ${ev||""}.%0D%0AData: ${dtBR(x.paid_at)}.%0D%0A%0D%0AAtenciosamente,%0D%0ASolar Opará`;return `<tr><td>${dtBR(x.paid_at)}</td><td>${esc(cl?.name)}</td><td>${esc(ev)}</td><td>${money(x.amount)}</td><td>${esc(x.reference)}</td><td><a class="btn small" target=_blank href="mailto:${encodeURIComponent(cl?.email||"")}?subject=${encodeURIComponent(subj)}&body=${body}">Enviar e-mail</a></td></tr>`}).join("")}</table>`;
+}
+async function despesas(){
+ const {data}=await sb.from("so_expenses").select("*").order("expense_date",{ascending:false});
+ return `<div class=top><h1>Despesas</h1><button class=btn id=newExpense>+ Nova despesa</button></div><div id=expenseForm></div><table><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th></tr>${(data||[]).map(x=>`<tr><td>${dateBR(x.expense_date)}</td><td>${esc(x.description)}</td><td>${esc(x.category)}</td><td>${money(x.amount)}</td></tr>`).join("")}</table>`;
+}
+function expenseForm(){return `<div class=card><form id=ef class=form><label>Descrição<input name=description required></label><label>Categoria<input name=category></label><label>Valor<input type=number step=.01 name=amount required></label><label>Data<input type=date name=expense_date required></label><label class=full>Observações<textarea name=notes></textarea></label><div class=full><button class=btn>Salvar</button></div></form></div>`}
+async function nfse(){
+ const {data}=await sb.from("so_nfse").select("*,so_contracts(event_name,client_id,so_clients(name,email))").order("created_at",{ascending:false});
+ return `<h1>NFS-e</h1><div class=warnbox><b>Controle fiscal manual.</b> A transmissão automática só deve ser ativada com certificado A1 e parâmetros fiscais válidos.</div><table><tr><th>Evento</th><th>Cliente</th><th>Status</th><th>Número/chave</th><th></th></tr>${(data||[]).map(x=>`<tr><td>${esc(x.so_contracts?.event_name)}</td><td>${esc(x.so_contracts?.so_clients?.name)}</td><td>${esc(x.status)}</td><td>${esc(x.number_key||"—")}</td><td><button class="btn small" data-nf="${x.id}">Registrar emitida</button></td></tr>`).join("")}</table><div id=nfForm></div>`;
+}
+async function usuarios(){
+ const {data}=await sb.from("so_profiles").select("*").order("created_at");
+ return `<h1>Usuários</h1><p class=muted>Primeiro usuário é administrador. Novos usuários criam acesso pela tela de login.</p><table><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Ativo</th></tr>${(data||[]).map(x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.username)}</td><td>${esc(x.role)}</td><td>${x.active?"Sim":"Não"}</td></tr>`).join("")}</table>`;
+}
+async function auditoria(){
+ if(profile.role!=="admin")return `<h1>Auditoria</h1><div class=warnbox>Apenas administradores.</div>`;
+ const {data}=await sb.from("so_audit").select("*").order("created_at",{ascending:false}).limit(200);
+ return `<h1>Auditoria</h1><table><tr><th>Data</th><th>Ação</th><th>Entidade</th><th>Detalhes</th></tr>${(data||[]).map(x=>`<tr><td>${dtBR(x.created_at)}</td><td>${esc(x.action)}</td><td>${esc(x.entity)}</td><td><code>${esc(JSON.stringify(x.details))}</code></td></tr>`).join("")}</table>`;
+}
+function emv(i,v){return i+String(v.length).padStart(2,"0")+v}function crc(s){let c=65535;for(const h of s){c^=h.charCodeAt(0)<<8;for(let i=0;i<8;i++)c=(c&32768)?((c<<1)^4129)&65535:(c<<1)&65535}return c.toString(16).toUpperCase().padStart(4,"0")}
+function pixPayload(amount,tx){const ma=emv("00","br.gov.bcb.pix")+emv("01",PIX);let p=emv("00","01")+emv("26",ma)+emv("52","0000")+emv("53","986")+emv("54",Number(amount).toFixed(2))+emv("58","BR")+emv("59","SOLAR OPARA")+emv("60","PIRAPORA")+emv("62",emv("05",tx.slice(0,25)))+"6304";return p+crc(p)}
+async function openPix(rid){
+ const [{data:r},{data:p}]=await Promise.all([sb.from("so_receivables").select("*,so_contracts(event_name,so_clients(name,email))").eq("id",rid).single(),sb.from("so_payments").select("*").eq("receivable_id",rid).eq("reversed",false)]);
+ const paid=(p||[]).reduce((a,x)=>a+Number(x.amount),0),balance=Math.max(0,Number(r.amount)-paid),payload=pixPayload(balance,r.txid),qr=await QRCode.toDataURL(payload);
+ $("#pixModal").innerHTML=`<div class=card><h2>Cobrança Pix</h2><div class=form><div><p><b>Cliente:</b> ${esc(r.so_contracts?.so_clients?.name)}</p><p><b>Evento:</b> ${esc(r.so_contracts?.event_name)}</p><p><b>Valor restante:</b> ${money(balance)}</p><p><b>Chave:</b> ${PIX}</p><p><b>TXID:</b> ${esc(r.txid)}</p><img src="${qr}" style="max-width:280px;width:100%"><div class=code>${esc(payload)}</div></div><form id=pf><input type=hidden name=rid value="${rid}"><label>Valor recebido<input type=number step=.01 name=amount value="${balance.toFixed(2)}" required></label><label>Data/hora<input type=datetime-local name=paid_at value="${new Date().toISOString().slice(0,16)}"></label><label>Referência/comprovante<input name=reference></label><label>Observação<textarea name=notes></textarea></label><button class=btn>Confirmar pagamento</button></form></div></div>`;
+ $("#pf").onsubmit=async e=>{e.preventDefault();let f=new FormData(e.target);await sb.from("so_payments").insert({receivable_id:rid,amount:Number(f.get("amount")),reference:String(f.get("reference")||""),notes:String(f.get("notes")||""),paid_at:new Date(String(f.get("paid_at"))).toISOString()});let {data:all}=await sb.from("so_payments").select("*").eq("receivable_id",rid).eq("reversed",false);let sum=(all||[]).reduce((a,x)=>a+Number(x.amount),0);await sb.from("so_receivables").update({status:sum>=Number(r.amount)?"paid":sum>0?"partial":"pending"}).eq("id",rid);await audit("confirm_payment","payment",rid,{amount:Number(f.get("amount"))});toast("Pagamento confirmado");render()}
+}
+async function showDoc(cid,manual=false){
+ const {data:c}=await sb.from("so_contracts").select("*,so_clients(*)").eq("id",cid).single();const cl=c.so_clients,total=Number(c.rental_value)+Number(c.cleaning_fee)+Number(c.additional_value);
+ const w=open("","_blank");if(manual)w.document.write(`<meta charset=utf-8><title>Manual Solar Opará</title><style>body{font-family:Arial;max-width:900px;margin:30px auto;line-height:1.55}</style><button onclick=print()>Imprimir / Salvar PDF</button><h1>ORIENTAÇÕES PARA USO – SOLAR OPARÁ</h1><p><b>Locatário:</b> ${esc(cl.name)} — <b>CPF/CNPJ:</b> ${esc(cl.document)}</p><p><b>Evento:</b> ${esc(c.event_name)} — <b>Data:</b> ${dateBR(c.event_date)}</p><h2>Checklist operacional</h2><p>Montagem, fornecedores, horários, capacidade, limpeza, segurança e devolução do espaço devem seguir as condições combinadas para o evento.</p><h2>Declaração de ciência</h2><p>O locatário declara que recebeu as orientações de uso do Solar Opará e se compromete a observá-las durante montagem, realização e desmontagem.</p><br>____________________________________<br>Assinatura do locatário`);
+ else w.document.write(`<meta charset=utf-8><title>Contrato Solar Opará</title><style>body{font-family:Arial;max-width:900px;margin:30px auto;line-height:1.5}table{width:100%;border-collapse:collapse}td{border:1px solid #aaa;padding:8px}</style><button onclick=print()>Imprimir / Salvar PDF</button><h1>CONTRATO DE LOCAÇÃO DE ESPAÇO PARA EVENTOS – SOLAR OPARÁ</h1><table><tr><td>LOCADOR</td><td>SOLAR OPARÁ TURISMO E HOTEIS — CNPJ 33.958.617/0001-73</td></tr><tr><td>REPRESENTANTE</td><td>FLAVIA TATIANA RIBEIRO DE OLIVEIRA</td></tr><tr><td>LOCATÁRIO</td><td>${esc(cl.name)}</td></tr><tr><td>CPF/CNPJ</td><td>${esc(cl.document)}</td></tr><tr><td>EVENTO</td><td>${esc(c.event_name)}</td></tr><tr><td>DATA</td><td>${dateBR(c.event_date)}</td></tr><tr><td>CAPACIDADE</td><td>${esc(c.capacity)}</td></tr><tr><td>LOCAÇÃO</td><td>${money(c.rental_value)}</td></tr><tr><td>LIMPEZA</td><td>${money(c.cleaning_fee)}</td></tr><tr><td>ADICIONAIS</td><td>${money(c.additional_value)} — ${esc(c.additional_services)}</td></tr><tr><td>TOTAL</td><td>${money(total)}</td></tr><tr><td>CAUÇÃO/GARANTIA</td><td>${esc(c.guarantee_text)}</td></tr><tr><td>PAGAMENTO</td><td>${esc(c.payment_terms)}</td></tr><tr><td>OBSERVAÇÕES</td><td>${esc(c.observations)}</td></tr></table><h2>Vistoria e checklist</h2><p>As condições do espaço, montagem, uso e devolução devem ser conferidas pelas partes conforme o evento.</p><h2>Disposições gerais</h2><p>Este documento registra as condições operacionais e financeiras informadas no cadastro do evento.</p><p>Chave Pix: ${PIX}</p>`);w.document.close()
+}
+function bindPage(){
+ if($("#newClient"))$("#newClient").onclick=()=>{$("#clientForm").innerHTML=clientForm();$("#cf").onsubmit=async e=>{e.preventDefault();let o=Object.fromEntries(new FormData(e.target));let {data,error}=await sb.from("so_clients").insert(o).select().single();if(error)return toast(error.message);await audit("create","client",data.id,{name:data.name});toast("Cliente salvo");render()}};
+ if($("#newContract"))$("#newContract").onclick=()=>{$("#contractForm").innerHTML=contractForm();$("#ctf").onsubmit=async e=>{e.preventDefault();let f=new FormData(e.target),o=Object.fromEntries(f);delete o.due_date;["capacity"].forEach(k=>o[k]=o[k]?Number(o[k]):null);["rental_value","cleaning_fee","additional_value"].forEach(k=>o[k]=Number(o[k]||0));let {data:conflict}=await sb.from("so_contracts").select("id").eq("event_date",o.event_date).eq("status","active");if(conflict?.length&&!confirm("Já existe evento ativo nesta data. Deseja continuar?"))return;let {data:c,error}=await sb.from("so_contracts").insert({...o,status:"active"}).select().single();if(error)return toast(error.message);let total=Number(o.rental_value)+Number(o.cleaning_fee)+Number(o.additional_value),tx=("SO"+Date.now().toString(36)+id().replaceAll("-","").slice(0,6)).toUpperCase().slice(0,25);await sb.from("so_receivables").insert({contract_id:c.id,description:"Contrato - "+o.event_name,amount:total,due_date:String(f.get("due_date")||o.event_date),txid:tx});await sb.from("so_nfse").insert({contract_id:c.id,status:"draft",amount:total});await audit("create","contract",c.id,{event:o.event_name,total});toast("Contrato criado");render()}};
+ document.querySelectorAll("[data-doc]").forEach(b=>b.onclick=()=>showDoc(b.dataset.doc,false));document.querySelectorAll("[data-manual]").forEach(b=>b.onclick=()=>showDoc(b.dataset.manual,true));document.querySelectorAll("[data-pix]").forEach(b=>b.onclick=()=>openPix(b.dataset.pix));
+ if($("#newExpense"))$("#newExpense").onclick=()=>{$("#expenseForm").innerHTML=expenseForm();$("#ef").onsubmit=async e=>{e.preventDefault();let o=Object.fromEntries(new FormData(e.target));o.amount=Number(o.amount);let {data,error}=await sb.from("so_expenses").insert(o).select().single();if(error)return toast(error.message);await audit("create","expense",data.id,{amount:data.amount});toast("Despesa salva");render()}};
+ document.querySelectorAll("[data-nf]").forEach(b=>b.onclick=()=>{$("#nfForm").innerHTML=`<div class=card><form id=nff class=form><input type=hidden name=id value="${b.dataset.nf}"><label>Número/chave<input name=number_key required></label><label>Data de emissão<input type=date name=issue_date required></label><label>Valor<input type=number step=.01 name=amount></label><label class=full>Observações<textarea name=notes></textarea></label><div class=full><button class=btn>Registrar NFS-e emitida</button></div></form></div>`;$("#nff").onsubmit=async e=>{e.preventDefault();let f=new FormData(e.target),nid=f.get("id");await sb.from("so_nfse").update({status:"issued",number_key:f.get("number_key"),issue_date:f.get("issue_date"),amount:Number(f.get("amount")||0),notes:f.get("notes")}).eq("id",nid);await audit("issue","nfse",nid,{number_key:f.get("number_key")});toast("NFS-e registrada");render()}});if($("#csvPay"))$("#csvPay").onclick=async()=>{const {data}=await sb.from("so_payments").select("*").eq("reversed",false);let csv="data,valor,metodo,referencia\n"+(data||[]).map(x=>[x.paid_at,x.amount,x.method,x.reference].map(v=>'"'+String(v??"").replaceAll('"','""')+'"').join(",")).join("\n");let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="recebimentos.csv";a.click()}
+}
+load();
+</script></body></html>
