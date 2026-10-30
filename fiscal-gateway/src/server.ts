@@ -20,6 +20,8 @@ const DEFAULT_NFSE_ENV=process.env.NFSE_ENV==="producao"?"producao":"restrita";
 // Certificado desbloqueado apenas em memória e vinculado ao token de sessão admin.
 // Não existe prazo arbitrário; sessão inválida, reinício do processo ou vencimento do A1 interrompem o uso.
 const certCache=new Map<string,{mat:any}>();
+// Desbloqueio temporário apenas na memória do processo fiscal.
+let activeFiscalCertificate:any=null;
 const SUPABASE_URL=process.env.SUPABASE_URL||"https://bdfojankowlfuezdhdjl.supabase.co";
 const SUPABASE_KEY=process.env.SUPABASE_ANON_KEY||"sb_publishable_mHNwZ6rrplQy9P-0o3wfnQ_iRC_AvYY";
 const ALLOWED_ORIGIN=process.env.ALLOWED_ORIGIN||"https://solar-opara-gestao-v4.onrender.com";
@@ -54,7 +56,8 @@ async function session(req:express.Request){
   if(!r.ok){certCache.delete(token);throw new Error("Sessão inválida.");}
   const data:any=await r.json();
   const user=data?.user;
-  if(!data?.ok||!user?.id||user?.role!=="admin"){certCache.delete(token);throw new Error("Somente administrador pode operar a emissão fiscal.");}
+  if(!data?.ok||!user?.id){certCache.delete(token);throw new Error("Sessão inválida.");}
+  if(user.role!=="admin"&&!(user.role==="operator"&&user.can_issue_nfse===true)) throw new Error("Usuário sem permissão fiscal.");
   return {token,data,user};
 }
 
@@ -77,6 +80,8 @@ async function sb(req:express.Request,path:string,init:RequestInit={}){
 
 async function certMaterial(req:express.Request){
   const {token}=await session(req);
+  const {user}=await session(req);
+  if(user.role!=="admin") throw new Error("Somente administrador ativa o A1.");
   const material=await sb(req,"rpc/so_nfse_material",{
     method:"POST",
     body:JSON.stringify({p_token:token})
@@ -87,21 +92,24 @@ async function certMaterial(req:express.Request){
 
 async function certificate(req:express.Request,password?:string){
   const {token}=await session(req);
-  const cached=certCache.get(token);
+  const cached=activeFiscalCertificate;
   if(cached){
     // A expiração real do certificado continua obrigatória, mesmo sem limite de sessão fiscal.
     try{
       assertCertificateValidity(cached.mat);
       assertCertificateForProvider(cached.mat,"33958617000173");
       return cached.mat;
-    }catch(e){certCache.delete(token);throw e;}
+    }catch(e){certCache.delete(token);activeFiscalCertificate=null;throw e;}
   }
-  if(!password) throw new Error("Informe a senha do certificado A1.");
+  if(!password) throw new Error("O administrador precisa ativar o certificado A1.");
+  const {user}=await session(req);
+  if(user.role!=="admin") throw new Error("Somente administrador ativa o certificado.");
   const material=await certMaterial(req);
   const mat=loadPfxFromBuffer(Buffer.from(material.pfx_base64,"base64"),password);
   assertCertificateValidity(mat);
   assertCertificateForProvider(mat,"33958617000173");
   certCache.set(token,{mat});
+  activeFiscalCertificate={mat};
   return mat;
 }
 
@@ -220,6 +228,8 @@ app.get("/health",async(_req,res)=>{
 
 app.post("/v1/certificate/test",async(req,res)=>{
   try{
+    const {user}=await session(req);
+    if(user.role!=="admin") throw new Error("Somente administrador ativa o certificado A1.");
     const body=z.object({password:z.string().min(1)}).parse(req.body);
     await certificate(req,body.password);
     res.json({ok:true,valid:true,cacheMinutes:null,mode:"while-admin-session-and-service-active"});
@@ -231,12 +241,12 @@ app.post("/v1/certificate/test",async(req,res)=>{
 app.get("/v1/certificate/status",async(req,res)=>{
   try{
     const {token}=await session(req);
-    const cached=certCache.get(token);
+    const cached=activeFiscalCertificate;
     if(cached){
       try{
         assertCertificateValidity(cached.mat);
         assertCertificateForProvider(cached.mat,"33958617000173");
-      }catch(e){certCache.delete(token);throw e;}
+      }catch(e){activeFiscalCertificate=null;throw e;}
     }
     res.json({ok:true,active:!!cached,passwordRequired:!cached,cacheMinutes:null});
   }catch(e:any){
@@ -249,7 +259,7 @@ app.get("/v1/nfse/:id/status",async(req,res)=>{
     const {token}=await session(req);
     const {nf,fs}=await getContext(req,idSchema.parse(req.params.id));
     const missing=fiscalErrors(nf,fs);
-    const cached=certCache.get(token);
+    const cached=activeFiscalCertificate;
     const sessionActive=!!cached;
     res.json({
       ok:true,
