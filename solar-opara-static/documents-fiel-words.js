@@ -28,3 +28,4 @@ F.generate=async function(id,tab){
  try{return await oldGenerate(id,tab)}finally{F.drawTop=oldDraw}
 };
 })();
+(()=>{if(document.querySelector('script[data-nfse-auto]'))return;const x=document.createElement('script');x.src='/nfse-auto.js';x.dataset.nfseAuto='1';x.defer=true;document.head.appendChild(x)})();
