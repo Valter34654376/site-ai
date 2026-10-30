@@ -17,7 +17,9 @@ app.use(express.json({limit:"1mb"}));
 
 const PORT=Number(process.env.PORT||8788);
 const DEFAULT_NFSE_ENV=process.env.NFSE_ENV==="producao"?"producao":"restrita";
-const certCache=new Map<string,{mat:any,expires:number}>();
+// Certificado desbloqueado apenas em memória e vinculado ao token de sessão admin.
+// Não existe prazo arbitrário; sessão inválida, reinício do processo ou vencimento do A1 interrompem o uso.
+const certCache=new Map<string,{mat:any}>();
 const SUPABASE_URL=process.env.SUPABASE_URL||"https://bdfojankowlfuezdhdjl.supabase.co";
 const SUPABASE_KEY=process.env.SUPABASE_ANON_KEY||"sb_publishable_mHNwZ6rrplQy9P-0o3wfnQ_iRC_AvYY";
 const ALLOWED_ORIGIN=process.env.ALLOWED_ORIGIN||"https://solar-opara-gestao-v4.onrender.com";
@@ -49,10 +51,10 @@ async function session(req:express.Request){
     headers:{apikey:SUPABASE_KEY,authorization:`Bearer ${SUPABASE_KEY}`,"content-type":"application/json"},
     body:JSON.stringify({p_token:token})
   });
-  if(!r.ok) throw new Error("Sessão inválida.");
+  if(!r.ok){certCache.delete(token);throw new Error("Sessão inválida.");}
   const data:any=await r.json();
   const user=data?.user;
-  if(!data?.ok||!user?.id||user?.role!=="admin") throw new Error("Somente administrador pode operar a emissão fiscal.");
+  if(!data?.ok||!user?.id||user?.role!=="admin"){certCache.delete(token);throw new Error("Somente administrador pode operar a emissão fiscal.");}
   return {token,data,user};
 }
 
@@ -86,13 +88,20 @@ async function certMaterial(req:express.Request){
 async function certificate(req:express.Request,password?:string){
   const {token}=await session(req);
   const cached=certCache.get(token);
-  if(cached&&cached.expires>Date.now()) return cached.mat;
+  if(cached){
+    // A expiração real do certificado continua obrigatória, mesmo sem limite de sessão fiscal.
+    try{
+      assertCertificateValidity(cached.mat);
+      assertCertificateForProvider(cached.mat,"33958617000173");
+      return cached.mat;
+    }catch(e){certCache.delete(token);throw e;}
+  }
   if(!password) throw new Error("Informe a senha do certificado A1.");
   const material=await certMaterial(req);
   const mat=loadPfxFromBuffer(Buffer.from(material.pfx_base64,"base64"),password);
   assertCertificateValidity(mat);
   assertCertificateForProvider(mat,"33958617000173");
-  certCache.set(token,{mat,expires:Date.now()+20*60*1000});
+  certCache.set(token,{mat});
   return mat;
 }
 
@@ -213,9 +222,25 @@ app.post("/v1/certificate/test",async(req,res)=>{
   try{
     const body=z.object({password:z.string().min(1)}).parse(req.body);
     await certificate(req,body.password);
-    res.json({ok:true,valid:true,cacheMinutes:20});
+    res.json({ok:true,valid:true,cacheMinutes:null,mode:"while-admin-session-and-service-active"});
   }catch(e:any){
     res.status(422).json({ok:false,valid:false,error:e?.message||String(e)});
+  }
+});
+
+app.get("/v1/certificate/status",async(req,res)=>{
+  try{
+    const {token}=await session(req);
+    const cached=certCache.get(token);
+    if(cached){
+      try{
+        assertCertificateValidity(cached.mat);
+        assertCertificateForProvider(cached.mat,"33958617000173");
+      }catch(e){certCache.delete(token);throw e;}
+    }
+    res.json({ok:true,active:!!cached,passwordRequired:!cached,cacheMinutes:null});
+  }catch(e:any){
+    res.status(401).json({ok:false,active:false,error:e?.message||String(e)});
   }
 });
 
@@ -225,7 +250,7 @@ app.get("/v1/nfse/:id/status",async(req,res)=>{
     const {nf,fs}=await getContext(req,idSchema.parse(req.params.id));
     const missing=fiscalErrors(nf,fs);
     const cached=certCache.get(token);
-    const sessionActive=!!(cached&&cached.expires>Date.now());
+    const sessionActive=!!cached;
     res.json({
       ok:true,
       environment:fiscalEnvironment(fs),
