@@ -978,9 +978,8 @@ app.listen(PORT, "0.0.0.0", () => {
       .then(() => {
         console.log("A1 restaurado automaticamente.");
       })
-      .catch(() => {
-        console.error(
-          "Falha na restauração automática do A1."
+      .catch((e) => {
+        console.error("Falha na restauração automática do A1:", e?.message || String(e));
         );
       });
   }
