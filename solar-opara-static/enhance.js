@@ -5,7 +5,7 @@ const FONT_KEY="solar_font_size";
 let busy=false;
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const brDate=v=>{if(!v)return "—";const [y,m,d]=String(v).split("-");return d+"/"+m+"/"+y};
-const token=()=>localStorage.getItem("solar_session")||"";
+const token=()=>sessionStorage.getItem("solar_session")||"";
 async function getTable(table,order){
   const headers={apikey:KEY,"x-solar-session":token()};
   let url=SB+"/rest/v1/"+table+"?select=*";
