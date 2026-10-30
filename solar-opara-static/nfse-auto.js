@@ -5,7 +5,7 @@ const G="https://solar-opara-nfse-api7.onrender.com";
 let busy=false,certOk=false;
 const $=s=>document.querySelector(s);
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const token=()=>localStorage.getItem("solar_session")||"";
+const token=()=>sessionStorage.getItem("solar_session")||"";
 const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const dateBR=v=>v?new Date(String(v).slice(0,10)+"T12:00:00").toLocaleDateString("pt-BR"):"—";
 async function rest(path,opt={}){
