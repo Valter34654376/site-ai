@@ -61,7 +61,9 @@ import QRCode from "https://cdn.jsdelivr.net/npm/qrcode@1.5.4/+esm";
 const SUPABASE_URL="https://bdfojankowlfuezdhdjl.supabase.co";
 const SUPABASE_KEY="sb_publishable_mHNwZ6rrplQy9P-0o3wfnQ_iRC_AvYY";
 const publicClient=createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
-let sessionToken=localStorage.getItem("solar_session")||"";
+let sessionToken=sessionStorage.getItem("solar_session")||"";
+// Elimina tokens persistentes legados do navegador.
+localStorage.removeItem("solar_session");
 const sessionClient=t=>createClient(SUPABASE_URL,SUPABASE_KEY,{global:{headers:{"x-solar-session":t}},auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
 let sb=sessionToken?sessionClient(sessionToken):publicClient;
 const PIX="33.958.617/0001-73";
@@ -95,10 +97,10 @@ const navMeta={
 };
 function nav(){return Object.entries(navMeta).map(([x,m])=>`<button data-route="${x}" class="${route===x?"active":""}"><span class="nav-icon">${m[1]}</span><span>${m[0]}</span></button>`).join("")}
 function shell(body){return `<div class="layout"><aside class="side"><div class="brand"><img src="/favicon.svg" alt=""><div class="brand-copy"><strong>Solar Opará</strong><span>Gestão de Eventos</span></div></div>${nav()}<button id="logout" class="logout"><span class="nav-icon">↪</span><span>Sair</span></button></aside><main class="main">${body}</main></div>`}
-function bindNav(){document.querySelectorAll("[data-route]").forEach(b=>b.onclick=()=>{route=b.dataset.route;render()});$("#logout").onclick=async()=>{if(sessionToken)await publicClient.rpc("so_local_logout",{p_token:sessionToken});localStorage.removeItem("solar_session");sessionToken="";me=null;profile=null;location.reload()}}
+function bindNav(){document.querySelectorAll("[data-route]").forEach(b=>b.onclick=()=>{route=b.dataset.route;render()});$("#logout").onclick=async()=>{if(sessionToken)await publicClient.rpc("so_local_logout",{p_token:sessionToken});sessionStorage.removeItem("solar_session");sessionToken="";me=null;profile=null;location.reload()}}
 function setApp(h){$("#app").innerHTML=h}
 async function loginView(){
- setApp(`<div class="login-page"><section class="login-art"><h2>Gestão simples para momentos importantes.</h2><p>Clientes, agenda, contratos, financeiro, Pix, documentos e NFS-e organizados em um único lugar.</p></section><section class="login"><div class="card"><div class="login-logo"><img src="/favicon.svg" alt=""><div><strong>Solar Opará</strong><div class="muted">Gestão de Eventos</div></div></div><h1 style="font-size:28px">Acesso interno</h1><p class="muted">Entre com usuário e senha.</p><div id="authmsg"></div><label>Usuário<input id="username" value="valter" autocomplete="username"></label><label>Senha<input id="pass" type="password" placeholder="••••••••" autocomplete="current-password"></label><button class="btn" style="width:100%" id="loginBtn">Entrar</button></div></section></div>`);
+ setApp(`<div class="login-page"><section class="login-art"><h2>Gestão simples para momentos importantes.</h2><p>Clientes, agenda, contratos, financeiro, Pix, documentos e NFS-e organizados em um único lugar.</p></section><section class="login"><div class="card"><div class="login-logo"><img src="/favicon.svg" alt=""><div><strong>Solar Opará</strong><div class="muted">Gestão de Eventos</div></div></div><h1 style="font-size:28px">Acesso interno</h1><p class="muted">Entre com usuário e senha.</p><div id="authmsg"></div><label>Usuário<input id="username" autocomplete="username"></label><label>Senha<input id="pass" type="password" placeholder="••••••••" autocomplete="current-password"></label><button class="btn" style="width:100%" id="loginBtn">Entrar</button></div></section></div>`);
  $("#loginBtn").onclick=async()=>{
    const username=$("#username").value.trim().toLowerCase(),password=$("#pass").value;
    if(!username||!password)return $("#authmsg").innerHTML='<p style="color:#a74444">Informe usuário e senha.</p>';
@@ -107,7 +109,7 @@ async function loginView(){
      const digest=await passwordDigest(username,password);
      const {data,error}=await publicClient.rpc("so_local_login",{p_username:username,p_digest:digest});
      if(error||!data?.ok)return $("#authmsg").innerHTML='<p style="color:#a74444">Usuário ou senha inválidos.</p>';
-     sessionToken=data.token;localStorage.setItem("solar_session",sessionToken);
+     sessionToken=data.token;sessionStorage.setItem("solar_session",sessionToken);
      sb=sessionClient(sessionToken);me=data.user;profile=data.user;render();
    }finally{$("#loginBtn")&&($("#loginBtn").disabled=false)}
  };
@@ -116,7 +118,7 @@ async function loginView(){
 async function load(){
  if(!sessionToken)return loginView();
  const {data,error}=await publicClient.rpc("so_local_session",{p_token:sessionToken});
- if(error||!data?.ok){localStorage.removeItem("solar_session");sessionToken="";return loginView()}
+ if(error||!data?.ok){sessionStorage.removeItem("solar_session");sessionToken="";return loginView()}
  me=data.user;profile=data.user;sb=sessionClient(sessionToken);render();
 }
 async function render(){
@@ -419,7 +421,7 @@ async function usuarios(){
  <div class="card"><h2>Novo usuário</h2><form id="localUserForm" class="form">
  <label>Nome<input name="name" required></label>
  <label>Usuário<input name="username" required autocomplete="off"></label>
- <label>Senha inicial<input name="password" type="password" minlength="8" required autocomplete="new-password"></label>
+ <label>Senha inicial<input name="password" type="password" minlength="12" required autocomplete="new-password"></label>
  <label>Perfil<select name="role"><option value="operator">Operador</option><option value="viewer">Consulta</option><option value="admin">Administrador</option></select></label>
  <div class="full"><button class="btn">Criar usuário</button></div></form></div>
  <div class="card"><h2>Usuários cadastrados</h2><table><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Status</th><th>Emitir NFS-e</th><th></th></tr>
