@@ -139,7 +139,7 @@ function fiscalErrors(nf:any,fs:any){
   }else if(fs.op_simp_nac==="2"){
     // MEI usa indTotTrib=0.
   }else if(fs.op_simp_nac==="3"){
-    if(fs.tot_trib_sn==null)e.push("percentual total do Simples Nacional");
+    if(fs.tot_trib_sn==null&&fiscalEnvironment(fs)==="producao")e.push("percentual total do Simples Nacional");
   }else if(fs.op_simp_nac)e.push("opção Simples Nacional válida (1, 2 ou 3)");
   return e;
 }
@@ -195,7 +195,7 @@ function buildNota(nf:any,fs:any,nDps:number){
     pTotTribMun:Number(fs.tot_trib_mun).toFixed(2)
   };
   else if(fs.op_simp_nac==="2")emissao.totTrib={indTotTrib:"0"};
-  else if(fs.op_simp_nac==="3")emissao.totTrib={pTotTribSN:Number(fs.tot_trib_sn).toFixed(2)};
+  else if(fs.op_simp_nac==="3")emissao.totTrib={pTotTribSN:Number(fs.tot_trib_sn??0).toFixed(2)};
   return {ambiente:fiscalEnvironment(fs),prestador,servico,emissao};
 }
 
