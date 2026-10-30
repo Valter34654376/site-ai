@@ -72,6 +72,33 @@ async function sb(req:express.Request,path:string,init:RequestInit={}){
   return txt?JSON.parse(txt):null;
 }
 
+async function certMaterial(req:express.Request){
+  const {token}=await session(req);
+  const material=await sb(req,"rpc/so_nfse_material",{
+    method:"POST",
+    body:JSON.stringify({p_token:token})
+  });
+  if(!material?.pfx_base64) throw new Error("Certificado A1 não encontrado no backend seguro.");
+  return material;
+}
+
+async function certificate(req:express.Request,password?:string){
+  const {token}=await session(req);
+  const cached=certCache.get(token);
+  if(cached&&cached.expires>Date.now()) return cached.mat;
+  if(!password) throw new Error("Informe a senha do certificado A1.");
+  const material=await certMaterial(req);
+  const mat=loadPfxFromBuffer(Buffer.from(material.pfx_base64,"base64"),password);
+  assertCertificateValidity(mat);
+  assertCertificateForProvider(mat,"33958617000173");
+  certCache.set(token,{mat,expires:Date.now()+20*60*1000});
+  return mat;
+}
+
+function fiscalEnvironment(fs:any){
+  return fs?.environment==="producao"?"producao":DEFAULT_NFSE_ENV;
+}
+
 async function getContext(req:express.Request,nfseId:string){
   const [nfRows,fsRows]=await Promise.all([
     sb(req,`so_nfse?id=eq.${encodeURIComponent(nfseId)}&select=*,so_contracts(*,so_clients(*))`),
@@ -168,7 +195,7 @@ function buildNota(nf:any,fs:any,nDps:number){
   };
   else if(fs.op_simp_nac==="2")emissao.totTrib={indTotTrib:"0"};
   else if(fs.op_simp_nac==="3")emissao.totTrib={pTotTribSN:Number(fs.tot_trib_sn).toFixed(2)};
-  return {ambiente:NFSE_ENV,prestador,servico,emissao};
+  return {ambiente:fiscalEnvironment(fs),prestador,servico,emissao};
 }
 
 const idSchema=z.string().uuid();
