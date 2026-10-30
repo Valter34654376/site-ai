@@ -316,9 +316,57 @@ async function despesas(){
  return `<div class=top><h1>Despesas</h1><button class=btn id=newExpense>+ Nova despesa</button></div><div id=expenseForm></div><table><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th></tr>${(data||[]).map(x=>`<tr><td>${dateBR(x.expense_date)}</td><td>${esc(x.description)}</td><td>${esc(x.category)}</td><td>${money(x.amount)}</td></tr>`).join("")}</table>`;
 }
 function expenseForm(){return `<div class=card><form id=ef class=form><label>Descrição<input name=description required></label><label>Categoria<input name=category></label><label>Valor<input type=number step=.01 name=amount required></label><label>Data<input type=date name=expense_date required></label><label class=full>Observações<textarea name=notes></textarea></label><div class=full><button class=btn>Salvar</button></div></form></div>`}
+function nfStatusLabel(v){
+ return ({draft:"RASCUNHO",ready:"PRONTA",issued:"EMITIDA",cancelled:"CANCELADA",error:"ERRO"})[v]||String(v||"").toUpperCase();
+}
+function nfStatusClass(v){
+ return v==="issued"?"paid":v==="ready"?"ready":v==="error"?"late":"";
+}
+function nfContractTotal(c){
+ return Number(c?.rental_value||0)+Number(c?.cleaning_fee||0)+Number(c?.additional_value||0);
+}
+function nfDraftForm(n){
+ const c=n.so_contracts||{},cl=c.so_clients||{},amount=n.amount??nfContractTotal(c),competence=n.competence_date||c.event_date||"";
+ return `<div class="card nf-editor"><div class="top"><div><div class="page-kicker">Preparação fiscal</div><h2>Preparar NFS-e</h2><p class="muted">Revise os dados antes de abrir o Emissor Nacional.</p></div><button type="button" class="btn gray" id="nfCancel">Fechar</button></div>
+ <div class="nf-party"><div><span>Tomador</span><b>${esc(cl.name||"—")}</b></div><div><span>CPF/CNPJ</span><b>${esc(cl.document||"NÃO INFORMADO")}</b></div><div><span>E-mail</span><b>${esc(cl.email||"—")}</b></div><div><span>Evento</span><b>${esc(c.event_name||"—")}</b></div></div>
+ <form id="nfDraftForm" class="form">
+ <input type="hidden" name="id" value="${n.id}">
+ <label>Data de competência<input type="date" name="competence_date" required value="${esc(competence)}"></label>
+ <label>Valor da NFS-e<input type="number" step="0.01" min="0.01" name="amount" required value="${Number(amount||0).toFixed(2)}"></label>
+ <label class="full">Descrição do serviço<textarea name="service_description" required placeholder="Descreva exatamente o serviço que será informado na NFS-e.">${esc(n.service_description||"")}</textarea></label>
+ <label class="full">Código do serviço (conforme cadastro fiscal)<input name="service_code" value="${esc(n.service_code||"")}" placeholder="Não preencher no chute"></label>
+ <label class="full">Observações internas<textarea name="notes">${esc(n.notes||"")}</textarea></label>
+ <div class="full row"><button class="btn gray" type="submit" name="intent" value="draft">Salvar rascunho</button><button class="btn" type="submit" name="intent" value="ready">Marcar como pronta</button></div>
+ </form></div>`;
+}
+function nfIssueForm(n){
+ const c=n.so_contracts||{},amount=n.amount??nfContractTotal(c),today=new Date().toISOString().slice(0,10);
+ return `<div class="card nf-editor"><div class="top"><div><div class="page-kicker">Registro da emissão</div><h2>Registrar NFS-e emitida</h2><p class="muted">Use depois de emitir no Portal Nacional. Isto registra a nota no Solar Opará; não transmite uma nova nota.</p></div><button type="button" class="btn gray" id="nfCancel">Fechar</button></div>
+ <form id="nfIssueForm" class="form">
+ <input type="hidden" name="id" value="${n.id}">
+ <label>Número da NFS-e<input name="nfse_number" required value="${esc(n.nfse_number||"")}"></label>
+ <label>Data de emissão<input type="date" name="issue_date" required value="${esc(n.issue_date||today)}"></label>
+ <label>Valor emitido<input type="number" step="0.01" min="0.01" name="amount" required value="${Number(amount||0).toFixed(2)}"></label>
+ <label>Chave de acesso (44 dígitos)<input name="access_key" inputmode="numeric" maxlength="44" value="${esc(n.access_key||"")}" placeholder="Opcional se ainda não tiver"></label>
+ <label class="full">Link do PDF/XML (opcional)<input name="file_url" type="url" value="${esc(n.file_url||"")}" placeholder="https://..."></label>
+ <label class="full">Observações internas<textarea name="notes">${esc(n.notes||"")}</textarea></label>
+ <div class="full"><button class="btn">Confirmar registro da NFS-e</button></div>
+ </form></div>`;
+}
 async function nfse(){
- const {data}=await sb.from("so_nfse").select("*,so_contracts(event_name,client_id,so_clients(name,email))").order("created_at",{ascending:false});
- return `<h1>NFS-e</h1><div class=warnbox><b>Controle fiscal manual.</b> A transmissão automática só deve ser ativada com certificado A1 e parâmetros fiscais válidos.</div><table><tr><th>Evento</th><th>Cliente</th><th>Status</th><th>Número/chave</th><th></th></tr>${(data||[]).map(x=>`<tr><td>${esc(x.so_contracts?.event_name)}</td><td>${esc(x.so_contracts?.so_clients?.name)}</td><td>${esc(x.status)}</td><td>${esc(x.number_key||"—")}</td><td><button class="btn small" data-nf="${x.id}">Registrar emitida</button></td></tr>`).join("")}</table><div id=nfForm></div>`;
+ const {data,error}=await sb.from("so_nfse").select("*,so_contracts(event_name,event_date,rental_value,cleaning_fee,additional_value,client_id,so_clients(name,email,document,address,phone))").order("created_at",{ascending:false});
+ if(error)return `<h1>NFS-e</h1><div class="warnbox">${esc(error.message)}</div>`;
+ const rows=data||[];window.__solarNfse=rows;
+ const draft=rows.filter(x=>x.status==="draft").length,ready=rows.filter(x=>x.status==="ready").length,issued=rows.filter(x=>x.status==="issued").length,issuedValue=rows.filter(x=>x.status==="issued").reduce((a,x)=>a+Number(x.amount||0),0);
+ return `<style>
+ .nf-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:14px 0}.nf-kpis .card{margin:0}.nf-kpis span{display:block;color:#817c72;font-size:12px}.nf-kpis b{display:block;font-size:25px;margin-top:5px}.nf-banner{display:flex;justify-content:space-between;gap:16px;align-items:center}.nf-banner .row{flex-wrap:wrap}.nf-party{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:8px 0 18px}.nf-party>div{background:#faf7f1;border:1px solid #e8dfd2;border-radius:10px;padding:10px}.nf-party span{display:block;color:#888277;font-size:11px;text-transform:uppercase;letter-spacing:.5px}.nf-party b{display:block;margin-top:4px}.nf-editor{margin-top:14px}.nf-actions{display:flex;gap:6px;flex-wrap:wrap}.badge.ready{background:#fff1c9;color:#7a5311}.badge.late{background:#fde0dc;color:#9b3025}.nf-num{font-family:ui-monospace,Consolas,monospace;font-size:12px;word-break:break-all}@media(max-width:900px){.nf-kpis,.nf-party{grid-template-columns:1fr 1fr}}@media(max-width:560px){.nf-kpis,.nf-party{grid-template-columns:1fr}}
+ </style>
+ <div class="top"><div><div class="page-kicker">Fiscal</div><h1>NFS-e</h1><p class="muted">Controle das notas fiscais do Solar Opará.</p></div></div>
+ <div class="warnbox nf-banner"><div><b>Emissão Nacional — Pirapora/MG.</b><br><span>Modo atual: manual assistido. A emissão por API permanece bloqueada até credenciamento, certificado A1 e parâmetros fiscais validados.</span></div><div class="row"><a class="btn" target="_blank" rel="noopener" href="https://www.nfse.gov.br/EmissorNacional/">Abrir Emissor Nacional</a><a class="btn gray" target="_blank" rel="noopener" href="https://www.gov.br/pt-br/servicos/consultar-nota-fiscal-de-servico-eletronica">Consultar NFS-e</a></div></div>
+ <div class="nf-kpis"><div class="card"><span>Rascunhos</span><b>${draft}</b></div><div class="card"><span>Prontas</span><b>${ready}</b></div><div class="card"><span>Emitidas</span><b>${issued}</b></div><div class="card"><span>Valor emitido</span><b>${money(issuedValue)}</b></div></div>
+ <div class="card"><h2>Notas e rascunhos</h2>${rows.length?`<div style="overflow:auto"><table><tr><th>Evento</th><th>Tomador</th><th>Competência</th><th>Valor</th><th>Status</th><th>NFS-e / chave</th><th>Ações</th></tr>
+ ${rows.map(x=>{const c=x.so_contracts||{},cl=c.so_clients||{},amount=x.amount??nfContractTotal(c),competence=x.competence_date||c.event_date||"";return `<tr><td><b>${esc(c.event_name||"—")}</b></td><td>${esc(cl.name||"—")}<br><span class="muted">${esc(cl.document||"CPF/CNPJ não informado")}</span></td><td>${dateBR(competence)}</td><td>${money(amount)}</td><td><span class="badge ${nfStatusClass(x.status)}">${nfStatusLabel(x.status)}</span></td><td><span class="nf-num">${esc(x.nfse_number||x.number_key||"—")}</span>${x.access_key?`<br><span class="muted nf-num">${esc(x.access_key)}</span>`:""}</td><td><div class="nf-actions">${x.status!=="issued"?`<button class="btn small gray" data-nf-edit="${x.id}">Editar</button><button class="btn small gray" data-nf-copy="${x.id}">Copiar dados</button><a class="btn small" target="_blank" rel="noopener" href="https://www.nfse.gov.br/EmissorNacional/">Emitir no portal</a><button class="btn small" data-nf-issue="${x.id}">Registrar emitida</button>`:`<a class="btn small gray" target="_blank" rel="noopener" href="https://www.gov.br/pt-br/servicos/consultar-nota-fiscal-de-servico-eletronica">Consultar</a>`}</div></td></tr>`}).join("")}</table></div>`:'<div class="empty">Nenhuma NFS-e cadastrada.</div>'}</div>
+ <div id="nfForm"></div>`;
 }
 async function usuarios(){
  if(profile?.role!=="admin")return `<h1>Usuários</h1><div class="warnbox">Somente administradores podem gerenciar acessos.</div>`;
@@ -389,7 +437,31 @@ function bindPage(){
 });
  document.querySelectorAll("[data-doc]").forEach(b=>b.onclick=()=>showDoc(b.dataset.doc,false));document.querySelectorAll("[data-manual]").forEach(b=>b.onclick=()=>showDoc(b.dataset.manual,true));document.querySelectorAll("[data-pix]").forEach(b=>b.onclick=()=>openPix(b.dataset.pix));
  if($("#newExpense"))$("#newExpense").onclick=()=>{$("#expenseForm").innerHTML=expenseForm();$("#ef").onsubmit=async e=>{e.preventDefault();let o=Object.fromEntries(new FormData(e.target));o.amount=Number(o.amount);let {data,error}=await sb.from("so_expenses").insert(o).select().single();if(error)return toast(error.message);await audit("create","expense",data.id,{amount:data.amount});toast("Despesa salva");render()}};
- document.querySelectorAll("[data-nf]").forEach(b=>b.onclick=()=>{$("#nfForm").innerHTML=`<div class=card><form id=nff class=form><input type=hidden name=id value="${b.dataset.nf}"><label>Número/chave<input name=number_key required></label><label>Data de emissão<input type=date name=issue_date required></label><label>Valor<input type=number step=.01 name=amount></label><label class=full>Observações<textarea name=notes></textarea></label><div class=full><button class=btn>Registrar NFS-e emitida</button></div></form></div>`;$("#nff").onsubmit=async e=>{e.preventDefault();let f=new FormData(e.target),nid=f.get("id");await sb.from("so_nfse").update({status:"issued",number_key:f.get("number_key"),issue_date:f.get("issue_date"),amount:Number(f.get("amount")||0),notes:f.get("notes")}).eq("id",nid);await audit("issue","nfse",nid,{number_key:f.get("number_key")});toast("NFS-e registrada");render()}});if($("#csvPay"))$("#csvPay").onclick=async()=>{const {data}=await sb.from("so_payments").select("*").eq("reversed",false);let csv="data,valor,metodo,referencia\n"+(data||[]).map(x=>[x.paid_at,x.amount,x.method,x.reference].map(v=>'"'+String(v??"").replaceAll('"','""')+'"').join(",")).join("\n");let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="recebimentos.csv";a.click()}
+ document.querySelectorAll("[data-nf-edit]").forEach(b=>b.onclick=()=>{
+  const n=(window.__solarNfse||[]).find(x=>String(x.id)===String(b.dataset.nfEdit));if(!n)return toast("NFS-e não encontrada");
+  $("#nfForm").innerHTML=nfDraftForm(n);$("#nfForm").scrollIntoView({behavior:"smooth",block:"start"});
+  $("#nfCancel").onclick=()=>$("#nfForm").innerHTML="";
+  $("#nfDraftForm").onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target),id=f.get("id"),intent=e.submitter?.value||"draft",n=(window.__solarNfse||[]).find(x=>String(x.id)===String(id)),cl=n?.so_contracts?.so_clients||{};
+   const o={competence_date:f.get("competence_date"),amount:Number(f.get("amount")||0),service_description:String(f.get("service_description")||"").trim(),service_code:String(f.get("service_code")||"").trim(),notes:String(f.get("notes")||"").trim(),updated_at:new Date().toISOString()};
+   if(intent==="ready"){const missing=[];if(!cl.document)missing.push("CPF/CNPJ do tomador");if(!o.competence_date)missing.push("competência");if(!(o.amount>0))missing.push("valor");if(!o.service_description)missing.push("descrição do serviço");if(!o.service_code)missing.push("código do serviço");if(missing.length)return toast("Falta: "+missing.join(", "));o.status="ready"}else o.status="draft";
+   const {error}=await sb.from("so_nfse").update(o).eq("id",id);if(error)return toast(error.message);await audit("update","nfse",id,{status:o.status});toast(o.status==="ready"?"NFS-e pronta para emissão":"Rascunho salvo");render()
+  };
+ });
+ document.querySelectorAll("[data-nf-issue]").forEach(b=>b.onclick=()=>{
+  const n=(window.__solarNfse||[]).find(x=>String(x.id)===String(b.dataset.nfIssue));if(!n)return toast("NFS-e não encontrada");
+  $("#nfForm").innerHTML=nfIssueForm(n);$("#nfForm").scrollIntoView({behavior:"smooth",block:"start"});$("#nfCancel").onclick=()=>$("#nfForm").innerHTML="";
+  $("#nfIssueForm").onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target),id=f.get("id"),key=String(f.get("access_key")||"").replace(/\D/g,""),num=String(f.get("nfse_number")||"").trim();
+   if(key&&key.length!==44)return toast("A chave de acesso nacional deve ter 44 dígitos");
+   const o={status:"issued",nfse_number:num,access_key:key||null,number_key:key||num,issue_date:f.get("issue_date"),amount:Number(f.get("amount")||0),file_url:String(f.get("file_url")||"").trim()||null,notes:String(f.get("notes")||"").trim(),environment:"manual",last_error:null,updated_at:new Date().toISOString()};
+   const {error}=await sb.from("so_nfse").update(o).eq("id",id);if(error)return toast(error.message);await audit("issue","nfse",id,{nfse_number:num,has_access_key:!!key,amount:o.amount});toast("NFS-e registrada como emitida");render()
+  };
+ });
+ document.querySelectorAll("[data-nf-copy]").forEach(b=>b.onclick=async()=>{
+  const n=(window.__solarNfse||[]).find(x=>String(x.id)===String(b.dataset.nfCopy));if(!n)return;
+  const c=n.so_contracts||{},cl=c.so_clients||{},amount=n.amount??nfContractTotal(c),txt=["SOLAR OPARÁ — DADOS PARA NFS-e","Evento: "+(c.event_name||""),"Tomador: "+(cl.name||""),"CPF/CNPJ: "+(cl.document||""),"E-mail: "+(cl.email||""),"Competência: "+(n.competence_date||c.event_date||""),"Valor: "+money(amount),"Descrição: "+(n.service_description||""),"Código do serviço: "+(n.service_code||"")].join("\n");
+  try{await navigator.clipboard.writeText(txt);toast("Dados da NFS-e copiados")}catch{toast("Não foi possível copiar")}
+ });
+ if($("#csvPay"))$("#csvPay").onclick=async()=>{const {data}=await sb.from("so_payments").select("*").eq("reversed",false);let csv="data,valor,metodo,referencia\n"+(data||[]).map(x=>[x.paid_at,x.amount,x.method,x.reference].map(v=>'"'+String(v??"").replaceAll('"','""')+'"').join(",")).join("\n");let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="recebimentos.csv";a.click()}
 }
 load();
 </script><script src="/enhance.js"></script><script src="/documents-fiel-core.js"></script><script src="/documents-fiel-render.js"></script><script src="/documents-fiel-words.js"></script></body></html>
