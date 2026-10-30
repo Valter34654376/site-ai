@@ -139,6 +139,75 @@ async function clientes(){
  return `<div class=top><h1>Clientes</h1><button class=btn id="newClient">+ Novo cliente</button></div><div id="clientForm"></div><table><tr><th>Nome</th><th>CPF/CNPJ</th><th>Telefone</th><th>E-mail</th><th></th></tr>${(data||[]).map(x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.document)}</td><td>${esc(x.phone)}</td><td>${esc(x.email)}</td><td><a class="btn small gray" href="mailto:${encodeURIComponent(x.email||"")}?subject=${encodeURIComponent("Solar Opará")}" target="_blank">E-mail</a></td></tr>`).join("")}</table>`;
 }
 function clientForm(){return `<div class=card><form id=cf class=form><label>Nome/Razão social<input name=name required></label><label>CPF/CNPJ<input name=document></label><label>Telefone<input name=phone></label><label>E-mail<input type=email name=email></label><label class=full>Endereço<input name=address></label><label class=full>Observações<textarea name=notes></textarea></label><div class=full><button class=btn>Salvar</button></div></form></div>`}
+async function ensureAgendaXLSX(){
+ if(window.XLSX)return window.XLSX;
+ await new Promise((ok,no)=>{const x=document.createElement("script");x.src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";x.onload=ok;x.onerror=()=>no(new Error("Não foi possível carregar o leitor de Excel"));document.head.appendChild(x)});
+ return window.XLSX;
+}
+function agendaNorm(v){return String(v??"").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")}
+function agendaDate(v,X){
+ if(v instanceof Date&&!isNaN(v))return v.toISOString().slice(0,10);
+ if(typeof v==="number"){const p=X.SSF.parse_date_code(v);if(p)return p.y+"-"+String(p.m).padStart(2,"0")+"-"+String(p.d).padStart(2,"0")}
+ const q=String(v??"").trim();let m=q.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);if(m)return m[3]+"-"+m[2].padStart(2,"0")+"-"+m[1].padStart(2,"0");
+ m=q.match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})/);if(m)return m[1]+"-"+m[2].padStart(2,"0")+"-"+m[3].padStart(2,"0");
+ return null;
+}
+async function parseAgendaImport(file){
+ const ext=(file.name.split(".").pop()||"").toLowerCase();
+ if(!["xlsx","xls","csv"].includes(ext))throw new Error("Formato inválido. Use .xlsx, .xls ou .csv");
+ if(file.size>10*1024*1024)throw new Error("Arquivo muito grande. Limite: 10 MB");
+ const X=await ensureAgendaXLSX(),book=X.read(await file.arrayBuffer(),{type:"array",cellDates:true});
+ let events=[],notes=[];
+ for(const sheet of book.SheetNames){
+  if(agendaNorm(sheet).includes("instruc"))continue;
+  const rows=X.utils.sheet_to_json(book.Sheets[sheet],{header:1,raw:true,defval:""});
+  let dc=-1,cc=-1,nc=-1,start=0;
+  for(let r=0;r<Math.min(rows.length,50);r++){
+   for(let c=0;c<(rows[r]||[]).length;c++){
+    const n=agendaNorm(rows[r][c]);
+    if(n==="data")dc=c;
+    if(["compromisso","evento","descricao"].includes(n))cc=c;
+    if(["anotacao","anotacoes","observacao","observacoes"].includes(n))nc=c;
+   }
+   if(dc>=0&&cc>=0){start=r+1;break}
+  }
+  if(dc>=0&&cc>=0)for(let r=start;r<rows.length;r++){
+   const d=agendaDate(rows[r]?.[dc],X),desc=String(rows[r]?.[cc]??"").replace(/\s+/g," ").trim();
+   if(d&&desc)events.push({event_date:d,description:desc,source_sheet:String(sheet).trim()});
+  }
+  if(nc>=0)for(let r=start;r<rows.length;r++){
+   const note=String(rows[r]?.[nc]??"").replace(/\s+/g," ").trim();
+   if(note)notes.push({note_text:note,source_sheet:String(sheet).trim()});
+  }
+ }
+ events=[...new Map(events.map(x=>[x.event_date+"|"+x.description+"|"+x.source_sheet,x])).values()];
+ notes=[...new Map(notes.map(x=>[x.note_text+"|"+x.source_sheet,x])).values()];
+ return {events,notes,ext,sheets:book.SheetNames};
+}
+async function previewAgendaImport(file){
+ const parsed=await parseAgendaImport(file);
+ const [{data:oldE},{data:oldN}]=await Promise.all([
+  sb.from("so_legacy_events").select("event_date,description,source_sheet"),
+  sb.from("so_legacy_notes").select("note_text,source_sheet")
+ ]);
+ const es=new Set((oldE||[]).map(x=>String(x.event_date).slice(0,10)+"|"+x.description+"|"+x.source_sheet));
+ const ns=new Set((oldN||[]).map(x=>x.note_text+"|"+x.source_sheet));
+ parsed.freshEvents=parsed.events.filter(x=>!es.has(x.event_date+"|"+x.description+"|"+x.source_sheet));
+ parsed.freshNotes=parsed.notes.filter(x=>!ns.has(x.note_text+"|"+x.source_sheet));
+ return parsed;
+}
+async function commitAgendaImport(file,p){
+ let importedEvents=[],importedNotes=[];
+ if(p.freshEvents.length){const q=await sb.from("so_legacy_events").upsert(p.freshEvents,{onConflict:"event_date,description,source_sheet",ignoreDuplicates:true}).select();if(q.error)throw q.error;importedEvents=q.data||[]}
+ if(p.freshNotes.length){const q=await sb.from("so_legacy_notes").upsert(p.freshNotes,{onConflict:"note_text,source_sheet",ignoreDuplicates:true}).select();if(q.error)throw q.error;importedNotes=q.data||[]}
+ const q=await sb.from("so_import_batches").insert({
+  filename:file.name,file_type:p.ext,events_found:p.events.length,events_imported:importedEvents.length,
+  duplicates_skipped:p.events.length-p.freshEvents.length,notes_found:p.notes.length,notes_imported:importedNotes.length
+ });
+ if(q.error)throw q.error;
+ await audit("import","agenda",file.name,{events:importedEvents.length,notes:importedNotes.length});
+ return {events:importedEvents.length,notes:importedNotes.length};
+}
 async function agenda(){
  const [{data:c},{data:l}]=await Promise.all([
   sb.from("so_contracts").select("*,so_clients(name)").neq("status","cancelled").order("event_date"),
@@ -152,7 +221,8 @@ async function agenda(){
  const monthPrefix=`${y}-${String(m+1).padStart(2,"0")}`;
  const monthEvents=evs.filter(x=>String(x.event_date).startsWith(monthPrefix));
  return `<div class="top"><div><div class="page-kicker">Programação</div><h1>Agenda</h1><p class="muted">Eventos do sistema + compromissos importados da planilha.</p></div>
- <div class="row"><button class="btn gray" id="agendaPrev">←</button><button class="btn gray" id="agendaToday">Hoje</button><button class="btn gray" id="agendaNext">→</button></div></div>
+ <div class="row"><button class="btn gray" id="agendaPrev">←</button><button class="btn gray" id="agendaToday">Hoje</button><button class="btn gray" id="agendaNext">→</button>${profile?.role==="admin"?'<button class="btn" id="agendaImportBtn">Importar arquivo</button><input type="file" id="agendaImportFile" accept=".xlsx,.xls,.csv" style="display:none">':""}</div></div>
+ <div id="agendaImportPreview"></div>
  <div class="card"><h2 style="text-transform:capitalize">${ref.toLocaleDateString("pt-BR",{month:"long",year:"numeric"})}</h2><div class="calendar">${["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"].map(d=>`<div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#8b877f;padding:4px">${d}</div>`).join("")}${cells.map(d=>{if(!d)return '<div class="day" style="opacity:.35"></div>';let iso=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;let dayEvents=evs.filter(x=>x.event_date===iso);return `<div class="day"><b>${d}</b>${dayEvents.map(x=>`<div class="evt ${x.origin==="legacy"?"imported":""}">${esc(x.label)}<br><span class="muted">${x.origin==="legacy"?"IMPORTADO · "+esc(x.subtitle):esc(x.subtitle)}</span></div>`).join("")}</div>`}).join("")}</div></div>
  <div class="card"><h2>Eventos do mês</h2>${monthEvents.length?`<table><tr><th>Data</th><th>Evento</th><th>Origem</th></tr>${monthEvents.map(x=>`<tr><td>${dateBR(x.event_date)}</td><td><b>${esc(x.label)}</b><br><span class="muted">${esc(x.subtitle)}</span></td><td>${x.origin==="legacy"?"PLANILHA":"SISTEMA"}</td></tr>`).join("")}</table>`:'<div class="empty">Nenhum evento neste mês.</div>'}</div>`;
 }
@@ -216,6 +286,21 @@ function bindPage(){
  if($("#agendaPrev"))$("#agendaPrev").onclick=()=>{let d=window.solarAgendaMonth||new Date();window.solarAgendaMonth=new Date(d.getFullYear(),d.getMonth()-1,1);render()};
  if($("#agendaToday"))$("#agendaToday").onclick=()=>{let d=new Date();window.solarAgendaMonth=new Date(d.getFullYear(),d.getMonth(),1);render()};
  if($("#agendaNext"))$("#agendaNext").onclick=()=>{let d=window.solarAgendaMonth||new Date();window.solarAgendaMonth=new Date(d.getFullYear(),d.getMonth()+1,1);render()};
+ if($("#agendaImportBtn"))$("#agendaImportBtn").onclick=()=>$("#agendaImportFile").click();
+ if($("#agendaImportFile"))$("#agendaImportFile").onchange=async e=>{
+  const file=e.target.files?.[0];if(!file)return;
+  const box=$("#agendaImportPreview");box.innerHTML='<div class="card"><b>Lendo arquivo...</b></div>';
+  try{
+   const p=await previewAgendaImport(file);window.__agendaImport={file,p};
+   box.innerHTML=`<div class="card"><div class="top"><div><h2>Prévia da importação</h2><p class="muted">${esc(file.name)} · ${p.sheets.length} aba(s)</p></div></div>
+   <div class="stats"><div class="stat"><span>Eventos encontrados</span><b>${p.events.length}</b></div><div class="stat"><span>Eventos novos</span><b>${p.freshEvents.length}</b></div><div class="stat"><span>Duplicados</span><b>${p.events.length-p.freshEvents.length}</b></div><div class="stat"><span>Anotações novas</span><b>${p.freshNotes.length}</b></div></div>
+   <div style="max-height:320px;overflow:auto"><table><tr><th>Data</th><th>Compromisso</th><th>Aba</th></tr>${p.events.slice(0,100).map(x=>`<tr><td>${dateBR(x.event_date)}</td><td>${esc(x.description)}</td><td>${esc(x.source_sheet)}</td></tr>`).join("")}</table></div>
+   <div class="row" style="margin-top:12px"><button class="btn" id="agendaImportConfirm" ${p.freshEvents.length||p.freshNotes.length?"":"disabled"}>Confirmar importação</button><button class="btn gray" id="agendaImportCancel">Cancelar</button></div></div>`;
+   $("#agendaImportCancel").onclick=()=>{box.innerHTML="";e.target.value=""};
+   if($("#agendaImportConfirm"))$("#agendaImportConfirm").onclick=async()=>{const b=$("#agendaImportConfirm");b.disabled=true;b.textContent="Importando...";try{const r=await commitAgendaImport(file,p);toast("Importado: "+r.events+" evento(s) e "+r.notes+" anotação(ões)");window.__agendaImport=null;render()}catch(err){toast(err.message||String(err));b.disabled=false;b.textContent="Confirmar importação"}};
+  }catch(err){box.innerHTML='<div class="warnbox">'+esc(err.message||String(err))+'</div>'}
+ };
+
 
  if($("#localUserForm"))$("#localUserForm").onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target),username=String(f.get("username")||"").trim().toLowerCase(),password=String(f.get("password")||""),name=String(f.get("name")||"").trim(),role=String(f.get("role")||"operator");if(password.length<8)return toast("A senha precisa ter pelo menos 8 caracteres");const digest=await passwordDigest(username,password);const {data,error}=await publicClient.rpc("so_local_create_user",{p_token:sessionToken,p_username:username,p_name:name,p_role:role,p_digest:digest});if(error||!data?.ok)return toast(data?.error==="username_exists"?"Usuário já existe":"Não foi possível criar o usuário");toast("Usuário criado");e.target.reset();render()};
  document.querySelectorAll("[data-local-toggle]").forEach(b=>b.onclick=async()=>{const active=b.dataset.active!=="true";const {data,error}=await publicClient.rpc("so_local_set_active",{p_token:sessionToken,p_user_id:b.dataset.localToggle,p_active:active});if(error||!data?.ok)return toast("Não foi possível alterar o usuário");toast(active?"Usuário reativado":"Usuário bloqueado");render()});
