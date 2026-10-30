@@ -65,6 +65,16 @@ let sessionToken=localStorage.getItem("solar_session")||"";
 const sessionClient=t=>createClient(SUPABASE_URL,SUPABASE_KEY,{global:{headers:{"x-solar-session":t}},auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
 let sb=sessionToken?sessionClient(sessionToken):publicClient;
 const PIX="33.958.617/0001-73";
+const NFSE_API="https://solar-opara-nfse-api7.onrender.com";
+async function nfGateway(path,opt={}){
+ const r=await fetch(NFSE_API+path,{
+  ...opt,
+  headers:{"Content-Type":"application/json","X-Solar-Session":sessionToken,...(opt.headers||{})}
+ });
+ const j=await r.json().catch(()=>({}));
+ if(!r.ok)throw new Error(j.error||"Falha na integração fiscal");
+ return j;
+}
 let me=null, profile=null, route="dashboard";
 const $=s=>document.querySelector(s);
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
