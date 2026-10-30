@@ -200,80 +200,178 @@ function buildNota(nf:any,fs:any,nDps:number){
 
 const idSchema=z.string().uuid();
 app.get("/health",async(_req,res)=>{
-  let cert={configured:!!PFX_BASE64,passwordConfigured:!!PFX_PASSWORD,valid:false,error:null as string|null};
-  if(PFX_BASE64&&PFX_PASSWORD){try{pfx();cert.valid=true}catch(e:any){cert.error=e?.message||String(e)}}
-  res.json({ok:true,service:"solar-opara-fiscal-gateway",environment:NFSE_ENV,certificate:cert});
+  res.json({
+    ok:true,
+    service:"solar-opara-fiscal-gateway",
+    certificate:{stored:true,passwordMode:"on-demand"},
+    defaultEnvironment:DEFAULT_NFSE_ENV
+  });
+});
+
+app.post("/v1/certificate/test",async(req,res)=>{
+  try{
+    const body=z.object({password:z.string().min(1)}).parse(req.body);
+    await certificate(req,body.password);
+    res.json({ok:true,valid:true,cacheMinutes:20});
+  }catch(e:any){
+    res.status(422).json({ok:false,valid:false,error:e?.message||String(e)});
+  }
 });
 
 app.get("/v1/nfse/:id/status",async(req,res)=>{
   try{
-    await session(req);
+    const {token}=await session(req);
     const {nf,fs}=await getContext(req,idSchema.parse(req.params.id));
     const missing=fiscalErrors(nf,fs);
-    let cert:any={configured:!!PFX_BASE64,passwordConfigured:!!PFX_PASSWORD,valid:false};
-    if(PFX_BASE64&&PFX_PASSWORD){try{pfx();cert.valid=true}catch(e:any){cert.error=e?.message||String(e)}}
-    res.json({ok:true,environment:NFSE_ENV,missing,ready:missing.length===0&&cert.valid,certificate:cert,fiscalConfirmed:!!fs.confirmed_at});
-  }catch(e:any){res.status(400).json({ok:false,error:e?.message||String(e)})}
+    const cached=certCache.get(token);
+    const sessionActive=!!(cached&&cached.expires>Date.now());
+    res.json({
+      ok:true,
+      environment:fiscalEnvironment(fs),
+      missing,
+      ready:missing.length===0,
+      certificate:{stored:true,sessionActive,passwordRequired:!sessionActive},
+      fiscalConfirmed:!!fs.confirmed_at
+    });
+  }catch(e:any){
+    res.status(400).json({ok:false,error:e?.message||String(e)});
+  }
 });
 
 app.post("/v1/nfse/:id/preview",async(req,res)=>{
   try{
     await session(req);
     const {nf,fs}=await getContext(req,idSchema.parse(req.params.id));
-    const missing=fiscalErrors(nf,fs);if(missing.length)throw new Error("Campos fiscais pendentes: "+missing.join(", "));
+    const missing=fiscalErrors(nf,fs);
+    if(missing.length)throw new Error("Campos fiscais pendentes: "+missing.join(", "));
     const n=Number(fs.next_dps_number||1);
     const nota=buildNota(nf,fs,n);
     const built:any=await buildDpsFromJson(nota as any);
-    res.json({ok:true,dpsNumber:n,dpsId:built?.id||null,xml:built?.xml||built,environment:NFSE_ENV});
-  }catch(e:any){res.status(422).json({ok:false,error:e?.message||String(e)})}
+    res.json({
+      ok:true,
+      dpsNumber:n,
+      dpsId:built?.id||null,
+      xml:built?.xml||built,
+      environment:fiscalEnvironment(fs)
+    });
+  }catch(e:any){
+    res.status(422).json({ok:false,error:e?.message||String(e)});
+  }
 });
 
 app.post("/v1/nfse/:id/emit",async(req,res)=>{
+  let id:string|undefined;
+  let env="restrita";
+  let dpsNumber:number|undefined;
   try{
-    const body=z.object({confirm:z.literal(true)}).parse(req.body);
-    void body;
+    const body=z.object({
+      confirm:z.literal(true),
+      password:z.string().optional()
+    }).parse(req.body);
     const {token}=await session(req);
-    const id=idSchema.parse(req.params.id);
+    id=idSchema.parse(req.params.id);
     const {nf,fs}=await getContext(req,id);
+    env=fiscalEnvironment(fs);
     if(nf.status!=="ready")throw new Error("A NFS-e precisa estar com status PRONTA antes da emissão.");
-    const missing=fiscalErrors(nf,fs);if(missing.length)throw new Error("Campos fiscais pendentes: "+missing.join(", "));
-    if(NFSE_ENV==="producao"&&!fs.confirmed_at)throw new Error("Produção bloqueada: configuração fiscal não confirmada.");
-    const cert=pfx();
-    const n=await (async()=>{
-      const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/so_next_dps_number`,{
-        method:"POST",headers:{apikey:SUPABASE_KEY,authorization:`Bearer ${SUPABASE_KEY}`,"content-type":"application/json"},
-        body:JSON.stringify({p_token:token})
-      });if(!r.ok)throw new Error("Falha ao reservar número da DPS.");return Number(await r.json());
-    })();
-    const nota=buildNota(nf,fs,n);
-    const result:any=await emitirNfse(nota as any,cert as any,{ambiente:NFSE_ENV as any});
+    const missing=fiscalErrors(nf,fs);
+    if(missing.length)throw new Error("Campos fiscais pendentes: "+missing.join(", "));
+    if(env==="producao"&&!fs.confirmed_at)throw new Error("Produção bloqueada: confirme os parâmetros fiscais antes de emitir.");
+    const cert=await certificate(req,body.password);
+
+    const nr=await fetch(`${SUPABASE_URL}/rest/v1/rpc/so_next_dps_number`,{
+      method:"POST",
+      headers:{
+        apikey:SUPABASE_KEY,
+        authorization:`Bearer ${SUPABASE_KEY}`,
+        "x-solar-session":token,
+        "content-type":"application/json"
+      },
+      body:JSON.stringify({p_token:token})
+    });
+    if(!nr.ok)throw new Error("Falha ao reservar número da DPS.");
+    dpsNumber=Number(await nr.json());
+
+    const nota=buildNota(nf,fs,dpsNumber);
+    const result:any=await emitirNfse(nota as any,cert as any,{ambiente:env as any});
     const key=String(result?.chaveAcesso||result?.chave||"");
     const nfNumber=String(result?.numero||result?.nNFSe||"");
+
     await sb(req,`so_nfse?id=eq.${encodeURIComponent(id)}`,{
       method:"PATCH",
       headers:{Prefer:"return=minimal"},
-      body:JSON.stringify({status:"issued",access_key:key||null,number_key:key||nfNumber||null,nfse_number:nfNumber||null,issue_date:new Date().toISOString().slice(0,10),environment:NFSE_ENV,last_error:null,updated_at:new Date().toISOString()})
+      body:JSON.stringify({
+        status:"issued",
+        access_key:key||null,
+        number_key:key||nfNumber||null,
+        nfse_number:nfNumber||null,
+        issue_date:new Date().toISOString().slice(0,10),
+        environment:env,
+        last_error:null,
+        updated_at:new Date().toISOString()
+      })
     });
+
     await sb(req,"so_nfse_attempts",{
-      method:"POST",headers:{Prefer:"return=minimal"},
-      body:JSON.stringify({nfse_id:id,environment:NFSE_ENV,dps_number:n,http_status:200,success:true,response_excerpt:JSON.stringify({chaveAcesso:key,numero:nfNumber}).slice(0,4000)})
+      method:"POST",
+      headers:{Prefer:"return=minimal"},
+      body:JSON.stringify({
+        nfse_id:id,
+        environment:env,
+        dps_number:dpsNumber,
+        http_status:200,
+        success:true,
+        response_excerpt:JSON.stringify({chaveAcesso:key,numero:nfNumber}).slice(0,4000)
+      })
     });
-    res.json({ok:true,environment:NFSE_ENV,dpsNumber:n,chaveAcesso:key,numero:nfNumber});
+
+    res.json({ok:true,environment:env,dpsNumber,chaveAcesso:key,numero:nfNumber});
   }catch(e:any){
     const msg=e?.message||String(e);
+    if(id){
+      try{
+        await sb(req,`so_nfse?id=eq.${encodeURIComponent(id)}`,{
+          method:"PATCH",
+          headers:{Prefer:"return=minimal"},
+          body:JSON.stringify({
+            status:"error",
+            last_error:msg.slice(0,4000),
+            updated_at:new Date().toISOString()
+          })
+        });
+        await sb(req,"so_nfse_attempts",{
+          method:"POST",
+          headers:{Prefer:"return=minimal"},
+          body:JSON.stringify({
+            nfse_id:id,
+            environment:env,
+            dps_number:dpsNumber||null,
+            success:false,
+            response_excerpt:msg.slice(0,4000)
+          })
+        });
+      }catch{}
+    }
     res.status(422).json({ok:false,error:msg});
   }
 });
 
-app.get("/v1/nfse/:id/consult",async(req,res)=>{
+app.post("/v1/nfse/:id/consult",async(req,res)=>{
   try{
-    await session(req);const id=idSchema.parse(req.params.id);
-    const {nf}=await getContext(req,id);
+    await session(req);
+    const body=z.object({password:z.string().optional()}).parse(req.body||{});
+    const id=idSchema.parse(req.params.id);
+    const {nf,fs}=await getContext(req,id);
     const key=String(nf.access_key||nf.number_key||"").replace(/\D/g,"");
     if(!key)throw new Error("NFS-e ainda não possui chave de acesso.");
-    const result:any=await consultarNfse(key,pfx() as any,NFSE_ENV as any);
+    const result:any=await consultarNfse(
+      key,
+      await certificate(req,body.password),
+      fiscalEnvironment(fs) as any
+    );
     res.json({ok:true,result});
-  }catch(e:any){res.status(422).json({ok:false,error:e?.message||String(e)})}
+  }catch(e:any){
+    res.status(422).json({ok:false,error:e?.message||String(e)});
+  }
 });
 
 app.listen(PORT,"0.0.0.0",()=>console.log("Solar Opará Fiscal Gateway ativo."));
