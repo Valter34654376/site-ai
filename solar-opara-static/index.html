@@ -227,12 +227,82 @@ async function agenda(){
  <div class="card"><h2>Eventos do mês</h2>${monthEvents.length?`<table><tr><th>Data</th><th>Evento</th><th>Origem</th></tr>${monthEvents.map(x=>`<tr><td>${dateBR(x.event_date)}</td><td><b>${esc(x.label)}</b><br><span class="muted">${esc(x.subtitle)}</span></td><td>${x.origin==="legacy"?"PLANILHA":"SISTEMA"}</td></tr>`).join("")}</table>`:'<div class="empty">Nenhum evento neste mês.</div>'}</div>`;
 }
 async function contratos(){
- const [{data:c},{data:cl}]=await Promise.all([sb.from("so_contracts").select("*,so_clients(name,email,document,address)").order("created_at",{ascending:false}),sb.from("so_clients").select("id,name").order("name")]);
- return `<div class=top><h1>Contratos</h1><button class=btn id="newContract">+ Novo contrato</button></div><div id=contractForm></div><table><tr><th>Evento</th><th>Cliente</th><th>Data</th><th>Total</th><th></th></tr>${(c||[]).map(x=>`<tr><td>${esc(x.event_name)}</td><td>${esc(x.so_clients?.name)}</td><td>${dateBR(x.event_date)}</td><td>${money(Number(x.rental_value)+Number(x.cleaning_fee)+Number(x.additional_value))}</td><td class=row><button class="btn small" data-doc="${x.id}">Contrato</button><button class="btn small gray" data-manual="${x.id}">Manual</button></td></tr>`).join("")}</table><template id=clientOpts>${(cl||[]).map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join("")}</template>`;
+ const [{data:c},{data:cl}]=await Promise.all([
+  sb.from("so_contracts").select("*,so_clients(name,email,document,address)").order("created_at",{ascending:false}),
+  sb.from("so_clients").select("id,name").order("name")
+ ]);
+ window.__solarContracts=c||[];
+ return `<div class=top><h1>Contratos</h1><button class=btn id="newContract">+ Novo contrato</button></div><div id=contractForm></div><table><tr><th>Evento</th><th>Cliente</th><th>Data</th><th>Total</th><th></th></tr>${(c||[]).map(x=>`<tr><td>${esc(x.event_name)}</td><td>${esc(x.so_clients?.name)}</td><td>${dateBR(x.event_date)}</td><td>${money(Number(x.rental_value)+Number(x.cleaning_fee)+Number(x.additional_value))}</td><td class=row><button class="btn small gray" data-edit-contract="${x.id}">Editar</button><button class="btn small" data-doc="${x.id}">Contrato</button><button class="btn small gray" data-manual="${x.id}">Manual</button></td></tr>`).join("")}</table><template id=clientOpts>${(cl||[]).map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join("")}</template>`;
 }
-function contractForm(){
+function contractDateTimeInput(v){
+ if(!v)return "";
+ const d=new Date(v);if(isNaN(d))return String(v).slice(0,16);
+ const p=new Intl.DateTimeFormat("sv-SE",{timeZone:"America/Sao_Paulo",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).formatToParts(d);
+ const g=t=>p.find(x=>x.type===t)?.value||"";
+ return g("year")+"-"+g("month")+"-"+g("day")+"T"+g("hour")+":"+g("minute");
+}
+function contractForm(data=null,dueDate=""){
  const opts=$("#clientOpts")?.innerHTML||"";
- return `<div class=card><form id=ctf class=form><label>Cliente<select name=client_id required>${opts}</select></label><label>Evento<input name=event_name required></label><label>Data do evento<input type=date name=event_date required></label><label>Capacidade<input type=number name=capacity></label><label>Montagem/entrega<input type=datetime-local name=setup_at></label><label>Início<input type=datetime-local name=start_at></label><label>Término<input type=datetime-local name=end_at></label><label>Desmontagem/devolução<input type=datetime-local name=teardown_at></label><label>Valor locação<input type=number step=.01 name=rental_value required></label><label>Taxa limpeza<input type=number step=.01 name=cleaning_fee value=0></label><label>Valor adicional<input type=number step=.01 name=additional_value value=0></label><label>Vencimento da cobrança<input type=date name=due_date></label><label class=full>Serviços adicionais<input name=additional_services></label><label class=full>Caução/garantia<input name=guarantee_text></label><label class=full>Forma de pagamento<select name=payment_terms><option value="PIX" selected>PIX</option><option value="Dinheiro">Dinheiro</option><option value="Transferência bancária">Transferência bancária</option><option value="Boleto">Boleto</option><option value="Cartão">Cartão</option><option value="Outro">Outro</option></select></label><label class=full>Observações<textarea name=observations></textarea></label><div class=full><button class=btn>Salvar contrato e gerar cobrança</button></div></form></div>`}
+ const selectedOpts=opts.replace(/<option value="([^"]+)"/g,(m,id)=>`<option value="${id}"${String(data?.client_id||"")===String(id)?" selected":""}`);
+ const pay=data?.payment_terms||"PIX";
+ const paymentOptions=["PIX","Dinheiro","Transferência bancária","Boleto","Cartão","Outro"].map(x=>`<option value="${esc(x)}"${x===pay?" selected":""}>${esc(x)}</option>`).join("");
+ const v=x=>esc(x??"");
+ return `<div class=card><div class=top><div><h2>${data?"Editar contrato":"Novo contrato"}</h2>${data?'<p class="muted">Altere os campos e salve. O mesmo contrato será atualizado, sem duplicar.</p>':""}</div></div><form id=ctf class=form>
+ <input type=hidden name=contract_id value="${v(data?.id)}">
+ <label>Cliente<select name=client_id required>${selectedOpts}</select></label>
+ <label>Evento<input name=event_name required value="${v(data?.event_name)}"></label>
+ <label>Data do evento<input type=date name=event_date required value="${v(data?.event_date)}"></label>
+ <label>Capacidade<input type=number name=capacity value="${v(data?.capacity)}"></label>
+ <label>Montagem/entrega<input type=datetime-local name=setup_at value="${v(contractDateTimeInput(data?.setup_at))}"></label>
+ <label>Início<input type=datetime-local name=start_at value="${v(contractDateTimeInput(data?.start_at))}"></label>
+ <label>Término<input type=datetime-local name=end_at value="${v(contractDateTimeInput(data?.end_at))}"></label>
+ <label>Desmontagem/devolução<input type=datetime-local name=teardown_at value="${v(contractDateTimeInput(data?.teardown_at))}"></label>
+ <label>Valor locação<input type=number step=.01 name=rental_value required value="${v(data?.rental_value??0)}"></label>
+ <label>Taxa limpeza<input type=number step=.01 name=cleaning_fee value="${v(data?.cleaning_fee??0)}"></label>
+ <label>Valor adicional<input type=number step=.01 name=additional_value value="${v(data?.additional_value??0)}"></label>
+ <label>Vencimento da cobrança<input type=date name=due_date value="${v(dueDate||data?.event_date||"")}"></label>
+ <label class=full>Serviços adicionais<input name=additional_services value="${v(data?.additional_services)}"></label>
+ <label class=full>Caução/garantia<input name=guarantee_text value="${v(data?.guarantee_text)}"></label>
+ <label class=full>Forma de pagamento<select name=payment_terms>${paymentOptions}</select></label>
+ <label class=full>Observações<textarea name=observations>${v(data?.observations)}</textarea></label>
+ <div class="full row"><button class=btn>${data?"Salvar alterações":"Salvar contrato e gerar cobrança"}</button>${data?'<button type=button class="btn gray" id="cancelContractEdit">Cancelar</button>':""}</div>
+ </form></div>`;
+}
+async function saveContractForm(form){
+ const f=new FormData(form),contractId=String(f.get("contract_id")||""),o=Object.fromEntries(f);
+ delete o.contract_id;delete o.due_date;
+ ["capacity"].forEach(k=>o[k]=o[k]?Number(o[k]):null);
+ ["rental_value","cleaning_fee","additional_value"].forEach(k=>o[k]=Number(o[k]||0));
+ const dueDate=String(f.get("due_date")||o.event_date),total=Number(o.rental_value)+Number(o.cleaning_fee)+Number(o.additional_value);
+ let conflictQ=sb.from("so_contracts").select("id").eq("event_date",o.event_date).eq("status","active");
+ if(contractId)conflictQ=conflictQ.neq("id",contractId);
+ const {data:conflict}=await conflictQ;
+ if(conflict?.length&&!confirm("Já existe outro evento ativo nesta data. Deseja continuar?"))return;
+ if(contractId){
+  const {data:c,error}=await sb.from("so_contracts").update(o).eq("id",contractId).select().single();
+  if(error)return toast(error.message);
+  const {data:receivables}=await sb.from("so_receivables").select("id").eq("contract_id",contractId).order("created_at",{ascending:true});
+  if(receivables?.length){
+   await sb.from("so_receivables").update({description:"Contrato - "+o.event_name,amount:total,due_date:dueDate}).eq("id",receivables[0].id);
+  }else{
+   const tx=("SO"+Date.now().toString(36)+id().replaceAll("-","").slice(0,6)).toUpperCase().slice(0,25);
+   await sb.from("so_receivables").insert({contract_id:contractId,description:"Contrato - "+o.event_name,amount:total,due_date:dueDate,txid:tx});
+  }
+  await sb.from("so_nfse").update({amount:total}).eq("contract_id",contractId).eq("status","draft");
+  await audit("update","contract",contractId,{event:o.event_name,total});
+  toast("Contrato atualizado");
+ }else{
+  const {data:c,error}=await sb.from("so_contracts").insert({...o,status:"active"}).select().single();
+  if(error)return toast(error.message);
+  const tx=("SO"+Date.now().toString(36)+id().replaceAll("-","").slice(0,6)).toUpperCase().slice(0,25);
+  await sb.from("so_receivables").insert({contract_id:c.id,description:"Contrato - "+o.event_name,amount:total,due_date:dueDate,txid:tx});
+  await sb.from("so_nfse").insert({contract_id:c.id,status:"draft",amount:total});
+  await audit("create","contract",c.id,{event:o.event_name,total});
+  toast("Contrato criado");
+ }
+ render();
+}
+
 async function receber(){
  const [{data:r},{data:p}]=await Promise.all([sb.from("so_receivables").select("*,so_contracts(event_name,client_id,so_clients(name,email))").order("due_date"),sb.from("so_payments").select("*").eq("reversed",false)]);
  return `<h1>A receber</h1><table><tr><th>Cliente / evento</th><th>Venc.</th><th>Valor</th><th>Status</th><th></th></tr>${(r||[]).map(x=>{let paid=(p||[]).filter(y=>y.receivable_id===x.id).reduce((a,y)=>a+Number(y.amount),0),st=paid>=Number(x.amount)?"PAGO":paid>0?"PARCIAL":"PENDENTE";return `<tr><td>${esc(x.so_contracts?.so_clients?.name)}<br><span class=muted>${esc(x.so_contracts?.event_name)}</span></td><td>${dateBR(x.due_date)}</td><td>${money(x.amount)}</td><td><span class="badge ${st==="PAGO"?"paid":""}">${st}</span></td><td><button class="btn small" data-pix="${x.id}">Pix / confirmar</button></td></tr>`}).join("")}</table><div id=pixModal></div>`;
@@ -306,7 +376,17 @@ function bindPage(){
  document.querySelectorAll("[data-local-toggle]").forEach(b=>b.onclick=async()=>{const active=b.dataset.active!=="true";const {data,error}=await publicClient.rpc("so_local_set_active",{p_token:sessionToken,p_user_id:b.dataset.localToggle,p_active:active});if(error||!data?.ok)return toast("Não foi possível alterar o usuário");toast(active?"Usuário reativado":"Usuário bloqueado");render()});
 
  if($("#newClient"))$("#newClient").onclick=()=>{$("#clientForm").innerHTML=clientForm();$("#cf").onsubmit=async e=>{e.preventDefault();let o=Object.fromEntries(new FormData(e.target));let {data,error}=await sb.from("so_clients").insert(o).select().single();if(error)return toast(error.message);await audit("create","client",data.id,{name:data.name});toast("Cliente salvo");render()}};
- if($("#newContract"))$("#newContract").onclick=()=>{$("#contractForm").innerHTML=contractForm();$("#ctf").onsubmit=async e=>{e.preventDefault();let f=new FormData(e.target),o=Object.fromEntries(f);delete o.due_date;["capacity"].forEach(k=>o[k]=o[k]?Number(o[k]):null);["rental_value","cleaning_fee","additional_value"].forEach(k=>o[k]=Number(o[k]||0));let {data:conflict}=await sb.from("so_contracts").select("id").eq("event_date",o.event_date).eq("status","active");if(conflict?.length&&!confirm("Já existe evento ativo nesta data. Deseja continuar?"))return;let {data:c,error}=await sb.from("so_contracts").insert({...o,status:"active"}).select().single();if(error)return toast(error.message);let total=Number(o.rental_value)+Number(o.cleaning_fee)+Number(o.additional_value),tx=("SO"+Date.now().toString(36)+id().replaceAll("-","").slice(0,6)).toUpperCase().slice(0,25);await sb.from("so_receivables").insert({contract_id:c.id,description:"Contrato - "+o.event_name,amount:total,due_date:String(f.get("due_date")||o.event_date),txid:tx});await sb.from("so_nfse").insert({contract_id:c.id,status:"draft",amount:total});await audit("create","contract",c.id,{event:o.event_name,total});toast("Contrato criado");render()}};
+ if($("#newContract"))$("#newContract").onclick=()=>{$("#contractForm").innerHTML=contractForm();$("#ctf").onsubmit=async e=>{e.preventDefault();await saveContractForm(e.target)}};
+ document.querySelectorAll("[data-edit-contract]").forEach(b=>b.onclick=async()=>{
+ const id=b.dataset.editContract;
+ const item=(window.__solarContracts||[]).find(x=>String(x.id)===String(id));
+ if(!item)return toast("Contrato não encontrado");
+ const {data:r}=await sb.from("so_receivables").select("due_date").eq("contract_id",id).order("created_at",{ascending:true}).limit(1).maybeSingle();
+ $("#contractForm").innerHTML=contractForm(item,r?.due_date||item.event_date||"");
+ $("#contractForm").scrollIntoView({behavior:"smooth",block:"start"});
+ $("#ctf").onsubmit=async e=>{e.preventDefault();await saveContractForm(e.target)};
+ if($("#cancelContractEdit"))$("#cancelContractEdit").onclick=()=>{$("#contractForm").innerHTML=""};
+});
  document.querySelectorAll("[data-doc]").forEach(b=>b.onclick=()=>showDoc(b.dataset.doc,false));document.querySelectorAll("[data-manual]").forEach(b=>b.onclick=()=>showDoc(b.dataset.manual,true));document.querySelectorAll("[data-pix]").forEach(b=>b.onclick=()=>openPix(b.dataset.pix));
  if($("#newExpense"))$("#newExpense").onclick=()=>{$("#expenseForm").innerHTML=expenseForm();$("#ef").onsubmit=async e=>{e.preventDefault();let o=Object.fromEntries(new FormData(e.target));o.amount=Number(o.amount);let {data,error}=await sb.from("so_expenses").insert(o).select().single();if(error)return toast(error.message);await audit("create","expense",data.id,{amount:data.amount});toast("Despesa salva");render()}};
  document.querySelectorAll("[data-nf]").forEach(b=>b.onclick=()=>{$("#nfForm").innerHTML=`<div class=card><form id=nff class=form><input type=hidden name=id value="${b.dataset.nf}"><label>Número/chave<input name=number_key required></label><label>Data de emissão<input type=date name=issue_date required></label><label>Valor<input type=number step=.01 name=amount></label><label class=full>Observações<textarea name=notes></textarea></label><div class=full><button class=btn>Registrar NFS-e emitida</button></div></form></div>`;$("#nff").onsubmit=async e=>{e.preventDefault();let f=new FormData(e.target),nid=f.get("id");await sb.from("so_nfse").update({status:"issued",number_key:f.get("number_key"),issue_date:f.get("issue_date"),amount:Number(f.get("amount")||0),notes:f.get("notes")}).eq("id",nid);await audit("issue","nfse",nid,{number_key:f.get("number_key")});toast("NFS-e registrada");render()}});if($("#csvPay"))$("#csvPay").onclick=async()=>{const {data}=await sb.from("so_payments").select("*").eq("reversed",false);let csv="data,valor,metodo,referencia\n"+(data||[]).map(x=>[x.paid_at,x.amount,x.method,x.reference].map(v=>'"'+String(v??"").replaceAll('"','""')+'"').join(",")).join("\n");let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="recebimentos.csv";a.click()}
