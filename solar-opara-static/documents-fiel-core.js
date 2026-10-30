@@ -3,7 +3,7 @@ const F=window.SolarDocFiel=window.SolarDocFiel||{};
 F.MASTER="/CONTRATO_SOLAR_OPARA_MASTER.pdf";
 F.SB="https://bdfojankowlfuezdhdjl.supabase.co";
 F.KEY="sb_publishable_mHNwZ6rrplQy9P-0o3wfnQ_iRC_AvYY";
-F.session=()=>localStorage.getItem("solar_session")||"";
+F.session=()=>sessionStorage.getItem("solar_session")||"";
 F.ensurePdfLib=async()=>{
  if(window.PDFLib)return window.PDFLib;
  await new Promise((ok,no)=>{const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js";s.onload=ok;s.onerror=()=>no(new Error("Não foi possível carregar o gerador de PDF."));document.head.appendChild(s)});
