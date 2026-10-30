@@ -51,8 +51,9 @@ async function session(req:express.Request){
   });
   if(!r.ok) throw new Error("Sessão inválida.");
   const data:any=await r.json();
-  if(!data?.user_id||data?.role!=="admin") throw new Error("Somente administrador pode operar a emissão fiscal.");
-  return {token,data};
+  const user=data?.user;
+  if(!data?.ok||!user?.id||user?.role!=="admin") throw new Error("Somente administrador pode operar a emissão fiscal.");
+  return {token,data,user};
 }
 
 async function sb(req:express.Request,path:string,init:RequestInit={}){
