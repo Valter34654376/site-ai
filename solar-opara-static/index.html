@@ -363,12 +363,39 @@ function nfIssueForm(n){
  <label>Número da NFS-e<input name="nfse_number" required value="${esc(n.nfse_number||"")}"></label>
  <label>Data de emissão<input type="date" name="issue_date" required value="${esc(n.issue_date||today)}"></label>
  <label>Valor emitido<input type="number" step="0.01" min="0.01" name="amount" required value="${Number(amount||0).toFixed(2)}"></label>
- <label>Chave de acesso (44 dígitos)<input name="access_key" inputmode="numeric" maxlength="44" value="${esc(n.access_key||"")}" placeholder="Opcional se ainda não tiver"></label>
+ <label>Chave de acesso (50 dígitos)<input name="access_key" inputmode="numeric" maxlength="50" value="${esc(n.access_key||"")}" placeholder="Opcional se ainda não tiver"></label>
  <label class="full">Link do PDF/XML (opcional)<input name="file_url" type="url" value="${esc(n.file_url||"")}" placeholder="https://..."></label>
  <label class="full">Observações internas<textarea name="notes">${esc(n.notes||"")}</textarea></label>
  <div class="full"><button class="btn">Confirmar registro da NFS-e</button></div>
  </form></div>`;
 }
+function nfFiscalForm(fs){
+ const sel=(v,x)=>String(v??"")===String(x)?" selected":"";
+ return `<div class="card"><div class="top"><div><div class="page-kicker">Configuração</div><h2>Parâmetros fiscais</h2><p class="muted">Produção só é liberada após confirmação do administrador.</p></div></div>
+ <form id="nfFiscalForm" class="form">
+ <label>CNPJ<input value="33.958.617/0001-73" disabled></label>
+ <label>Município<input value="Pirapora/MG · 3151206" disabled></label>
+ <label>Inscrição municipal<input name="municipal_registration" value="${esc(fs.municipal_registration||"")}"></label>
+ <label>Série DPS<input name="dps_series" required value="${esc(fs.dps_series||"1601")}"></label>
+ <label>Código nacional<input name="service_code" required value="${esc(fs.service_code||"030301")}"></label>
+ <label>NBS (se aplicável)<input name="nbs_code" value="${esc(fs.nbs_code||"")}"></label>
+ <label>Simples Nacional<select name="op_simp_nac" required><option value="">Selecione</option><option value="1"${sel(fs.op_simp_nac,1)}>1 — Não optante</option><option value="2"${sel(fs.op_simp_nac,2)}>2 — MEI</option><option value="3"${sel(fs.op_simp_nac,3)}>3 — Simples ME/EPP</option></select></label>
+ <label>Regime de apuração SN<select name="reg_ap_trib_sn"><option value="">Não se aplica</option><option value="1"${sel(fs.reg_ap_trib_sn,1)}>1 — Federais e ISS pelo Simples</option><option value="2"${sel(fs.reg_ap_trib_sn,2)}>2 — Federais pelo Simples, ISS fora</option><option value="3"${sel(fs.reg_ap_trib_sn,3)}>3 — Tributos fora do Simples</option></select></label>
+ <label>Regime especial<select name="reg_esp_trib"><option value="0"${sel(fs.reg_esp_trib,0)}>0 — Nenhum</option><option value="1"${sel(fs.reg_esp_trib,1)}>1 — Ato cooperado</option><option value="2"${sel(fs.reg_esp_trib,2)}>2 — Estimativa</option><option value="3"${sel(fs.reg_esp_trib,3)}>3 — Microempresa municipal</option><option value="4"${sel(fs.reg_esp_trib,4)}>4 — Notário/registrador</option><option value="5"${sel(fs.reg_esp_trib,5)}>5 — Profissional autônomo</option><option value="6"${sel(fs.reg_esp_trib,6)}>6 — Sociedade de profissionais</option></select></label>
+ <label>ISSQN<select name="trib_issqn"><option value="1"${sel(fs.trib_issqn,1)}>1 — Operação tributável</option><option value="2"${sel(fs.trib_issqn,2)}>2 — Imunidade</option><option value="3"${sel(fs.trib_issqn,3)}>3 — Exportação</option><option value="4"${sel(fs.trib_issqn,4)}>4 — Não incidência</option></select></label>
+ <label>Retenção ISSQN<select name="tp_ret_issqn"><option value="1"${sel(fs.tp_ret_issqn,1)}>1 — Não retido</option><option value="2"${sel(fs.tp_ret_issqn,2)}>2 — Retido pelo tomador</option><option value="3"${sel(fs.tp_ret_issqn,3)}>3 — Retido pelo intermediário</option></select></label>
+ <label>Alíquota ISS (%)<input type="number" step=".01" name="iss_rate" value="${esc(fs.iss_rate??"")}"></label>
+ <label>Alíquota nominal Simples (%)<input type="number" step=".01" name="tot_trib_sn" value="${esc(fs.tot_trib_sn??"")}"></label>
+ <label>Tributos federais aprox. (%)<input type="number" step=".01" name="tot_trib_fed" value="${esc(fs.tot_trib_fed??"")}"></label>
+ <label>Tributos estaduais aprox. (%)<input type="number" step=".01" name="tot_trib_est" value="${esc(fs.tot_trib_est??"")}"></label>
+ <label>Tributos municipais aprox. (%)<input type="number" step=".01" name="tot_trib_mun" value="${esc(fs.tot_trib_mun??"")}"></label>
+ <label>CST PIS/COFINS (opcional)<input name="piscofins_cst" value="${esc(fs.piscofins_cst||"")}"></label>
+ <label>Ambiente<select name="environment"><option value="restrita"${sel(fs.environment,"restrita")}>Teste / produção restrita</option><option value="producao"${sel(fs.environment,"producao")}>Produção — efeito fiscal</option></select></label>
+ <label class="full">Descrição padrão<textarea name="default_service_description">${esc(fs.default_service_description||"Exploração de salão de festas e espaço para realização de eventos.")}</textarea></label>
+ <div class="full row"><button class="btn">Salvar parâmetros</button><button type="button" class="btn gray" id="nfConfirmFiscal">Confirmar configuração</button></div>
+ </form></div>`;
+}
+
 async function nfse(){
  const {data,error}=await sb.from("so_nfse").select("*,so_contracts(event_name,event_date,rental_value,cleaning_fee,additional_value,client_id,so_clients(name,email,document,address,phone))").order("created_at",{ascending:false});
  if(error)return `<h1>NFS-e</h1><div class="warnbox">${esc(error.message)}</div>`;
