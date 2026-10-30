@@ -337,14 +337,20 @@ function nfContractTotal(c){
 }
 function nfDraftForm(n){
  const c=n.so_contracts||{},cl=c.so_clients||{},amount=n.amount??nfContractTotal(c),competence=n.competence_date||c.event_date||"";
- return `<div class="card nf-editor"><div class="top"><div><div class="page-kicker">Preparação fiscal</div><h2>Preparar NFS-e</h2><p class="muted">Revise os dados antes de abrir o Emissor Nacional.</p></div><button type="button" class="btn gray" id="nfCancel">Fechar</button></div>
+ return `<div class="card nf-editor"><div class="top"><div><div class="page-kicker">Preparação fiscal</div><h2>Dados da NFS-e</h2><p class="muted">Dados que serão enviados ao Ambiente Nacional.</p></div><button type="button" class="btn gray" id="nfCancel">Fechar</button></div>
  <div class="nf-party"><div><span>Tomador</span><b>${esc(cl.name||"—")}</b></div><div><span>CPF/CNPJ</span><b>${esc(cl.document||"NÃO INFORMADO")}</b></div><div><span>E-mail</span><b>${esc(cl.email||"—")}</b></div><div><span>Evento</span><b>${esc(c.event_name||"—")}</b></div></div>
  <form id="nfDraftForm" class="form">
  <input type="hidden" name="id" value="${n.id}">
- <label>Data de competência<input type="date" name="competence_date" required value="${esc(competence)}"></label>
- <label>Valor da NFS-e<input type="number" step="0.01" min="0.01" name="amount" required value="${Number(amount||0).toFixed(2)}"></label>
- <label class="full">Descrição do serviço<textarea name="service_description" required placeholder="Descreva exatamente o serviço que será informado na NFS-e.">${esc(n.service_description||"")}</textarea></label>
- <label class="full">Código do serviço (conforme cadastro fiscal)<input name="service_code" value="${esc(n.service_code||"")}" placeholder="Não preencher no chute"></label>
+ <label>Competência<input type="date" name="competence_date" required value="${esc(competence)}"></label>
+ <label>Valor<input type="number" step="0.01" min="0.01" name="amount" required value="${Number(amount||0).toFixed(2)}"></label>
+ <label class="full">Descrição do serviço<textarea name="service_description" required>${esc(n.service_description||window.__solarFiscalSettings?.default_service_description||"")}</textarea></label>
+ <label>Código nacional<input name="service_code" required value="${esc(n.service_code||window.__solarFiscalSettings?.service_code||"030301")}"></label>
+ <label>CEP do tomador<input name="tomador_cep" inputmode="numeric" value="${esc(n.tomador_cep||"")}"></label>
+ <label>Código IBGE do tomador<input name="tomador_city_code" inputmode="numeric" value="${esc(n.tomador_city_code||"")}"></label>
+ <label>Logradouro<input name="tomador_street" value="${esc(n.tomador_street||"")}"></label>
+ <label>Número<input name="tomador_number" value="${esc(n.tomador_number||"")}"></label>
+ <label>Bairro<input name="tomador_neighborhood" value="${esc(n.tomador_neighborhood||"")}"></label>
+ <label>Complemento<input name="tomador_complement" value="${esc(n.tomador_complement||"")}"></label>
  <label class="full">Observações internas<textarea name="notes">${esc(n.notes||"")}</textarea></label>
  <div class="full row"><button class="btn gray" type="submit" name="intent" value="draft">Salvar rascunho</button><button class="btn" type="submit" name="intent" value="ready">Marcar como pronta</button></div>
  </form></div>`;
