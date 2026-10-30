@@ -20,8 +20,8 @@ async function session(){
  return rest("/rest/v1/rpc/so_local_session",{method:"POST",body:JSON.stringify({p_token:token()})});
 }
 const total=c=>Number(c?.rental_value||0)+Number(c?.cleaning_fee||0)+Number(c?.additional_value||0);
-const label=s=>({draft:"RASCUNHO",ready:"PRONTA",issued:"EMITIDA",error:"ERRO",cancelled:"CANCELADA"})[s]||String(s||"").toUpperCase();
-const badge=s=>s==="issued"?"paid":s==="ready"?"ready":s==="error"?"late":"";
+const label=s=>({draft:"RASCUNHO",ready:"PRONTA",issued:"EMITIDA",rejected:"REJEITADA",error:"ERRO",cancelled:"CANCELADA"})[s]||String(s||"").toUpperCase();
+const badge=s=>s==="issued"?"paid":s==="ready"?"ready":s==="rejected"||s==="error"?"late":"";
 const val=(o,k)=>o?.[k]??"";
 const num=v=>v===""||v==null?null:Number(v);
 function fiscalForm(fs){
@@ -80,7 +80,7 @@ async function render(){
   ]);
   const fs=fsRows?.[0]||{},admin=sess?.user?.role==="admin",env=fs.environment==="producao"?"PRODUÇÃO":"TESTE / PRODUÇÃO RESTRITA";
   window.__nfaRows=rows||[];window.__nfaFs=fs;
-  const draft=(rows||[]).filter(x=>x.status==="draft").length,ready=(rows||[]).filter(x=>x.status==="ready").length,issued=(rows||[]).filter(x=>x.status==="issued").length,issuedValue=(rows||[]).filter(x=>x.status==="issued").reduce((a,x)=>a+Number(x.amount||0),0);
+  const draft=(rows||[]).filter(x=>x.status==="draft").length,ready=(rows||[]).filter(x=>x.status==="ready").length,issued=(rows||[]).filter(x=>(x.status==="issued"&&x.environment==="producao")).length,issuedValue=(rows||[]).filter(x=>x.status==="issued").reduce((a,x)=>a+Number(x.amount||0),0);
   main.dataset.nfseAuto="1";
   main.innerHTML=`<style>.nf-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:14px 0}.nf-kpis .card{margin:0}.nf-kpis span{display:block;color:#817c72;font-size:12px}.nf-kpis b{display:block;font-size:25px;margin-top:5px}.nf-party{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:8px 0 18px}.nf-party>div{background:#faf7f1;border:1px solid #e8dfd2;border-radius:10px;padding:10px}.nf-party span{display:block;color:#888277;font-size:11px;text-transform:uppercase}.nf-actions{display:flex;gap:6px;flex-wrap:wrap}.badge.ready{background:#fff1c9;color:#7a5311}.badge.late{background:#fde0dc;color:#9b3025}.nf-num{font-family:ui-monospace,Consolas,monospace;font-size:12px;word-break:break-all}.nfa-cert{display:flex;gap:10px;align-items:end;flex-wrap:wrap}.nfa-cert label{flex:1;min-width:220px}@media(max-width:850px){.nf-kpis,.nf-party{grid-template-columns:1fr 1fr}}</style>
   <div class="top"><div><div class="page-kicker">Fiscal automático</div><h1>NFS-e</h1><p class="muted">Emissão integrada ao Ambiente Nacional usando o A1 no backend.</p></div></div>
