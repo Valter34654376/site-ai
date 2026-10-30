@@ -980,7 +980,6 @@ app.listen(PORT, "0.0.0.0", () => {
       })
       .catch((e) => {
         console.error("Falha na restauração automática do A1:", e?.message || String(e));
-        );
       });
   }
 });
