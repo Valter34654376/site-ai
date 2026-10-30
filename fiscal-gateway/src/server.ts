@@ -19,8 +19,8 @@ const PORT=Number(process.env.PORT||8788);
 const PFX_BASE64=process.env.NFSE_PFX_BASE64||"";
 const PFX_PASSWORD=process.env.NFSE_PFX_PASSWORD||"";
 const NFSE_ENV=process.env.NFSE_ENV==="producao"?"producao":"restrita";
-const SUPABASE_URL=process.env.SUPABASE_URL||"";
-const SUPABASE_KEY=process.env.SUPABASE_ANON_KEY||"";
+const SUPABASE_URL=process.env.SUPABASE_URL||"https://bdfojankowlfuezdhdjl.supabase.co";
+const SUPABASE_KEY=process.env.SUPABASE_ANON_KEY||"sb_publishable_mHNwZ6rrplQy9P-0o3wfnQ_iRC_AvYY";
 const ALLOWED_ORIGIN=process.env.ALLOWED_ORIGIN||"https://solar-opara-gestao-v4.onrender.com";
 
 app.use((req,res,next)=>{
