@@ -16,9 +16,8 @@ app.use(helmet({crossOriginResourcePolicy:false}));
 app.use(express.json({limit:"1mb"}));
 
 const PORT=Number(process.env.PORT||8788);
-const PFX_BASE64=process.env.NFSE_PFX_BASE64||"";
-const PFX_PASSWORD=process.env.NFSE_PFX_PASSWORD||"";
-const NFSE_ENV=process.env.NFSE_ENV==="producao"?"producao":"restrita";
+const DEFAULT_NFSE_ENV=process.env.NFSE_ENV==="producao"?"producao":"restrita";
+const certCache=new Map<string,{mat:any,expires:number}>();
 const SUPABASE_URL=process.env.SUPABASE_URL||"https://bdfojankowlfuezdhdjl.supabase.co";
 const SUPABASE_KEY=process.env.SUPABASE_ANON_KEY||"sb_publishable_mHNwZ6rrplQy9P-0o3wfnQ_iRC_AvYY";
 const ALLOWED_ORIGIN=process.env.ALLOWED_ORIGIN||"https://solar-opara-gestao-v4.onrender.com";
@@ -39,15 +38,6 @@ function nowBr(){
   const parts=new Intl.DateTimeFormat("sv-SE",{timeZone:"America/Sao_Paulo",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).formatToParts(new Date());
   const g=(t:string)=>parts.find(x=>x.type===t)?.value||"";
   return `${g("year")}-${g("month")}-${g("day")}T${g("hour")}:${g("minute")}:${g("second")}-03:00`;
-}
-
-function pfx(){
-  if(!PFX_BASE64) throw new Error("Certificado A1 não configurado no gateway fiscal.");
-  if(!PFX_PASSWORD) throw new Error("Senha do certificado A1 não configurada no gateway fiscal.");
-  const mat=loadPfxFromBuffer(Buffer.from(PFX_BASE64,"base64"),PFX_PASSWORD);
-  assertCertificateValidity(mat);
-  assertCertificateForProvider(mat,"33958617000173");
-  return mat;
 }
 
 async function session(req:express.Request){
