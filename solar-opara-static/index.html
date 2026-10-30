@@ -60,7 +60,10 @@ import QRCode from "https://cdn.jsdelivr.net/npm/qrcode@1.5.4/+esm";
 
 const SUPABASE_URL="https://bdfojankowlfuezdhdjl.supabase.co";
 const SUPABASE_KEY="sb_publishable_mHNwZ6rrplQy9P-0o3wfnQ_iRC_AvYY";
-const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+const publicClient=createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+let sessionToken=localStorage.getItem("solar_session")||"";
+const sessionClient=t=>createClient(SUPABASE_URL,SUPABASE_KEY,{global:{headers:{"x-solar-session":t}},auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+let sb=sessionToken?sessionClient(sessionToken):publicClient;
 const PIX="33.958.617/0001-73";
 let me=null, profile=null, route="dashboard";
 const $=s=>document.querySelector(s);
@@ -71,29 +74,40 @@ const dtBR=v=>v?new Date(v).toLocaleString("pt-BR"):"—";
 const toast=t=>{let x=document.createElement("div");x.className="toast";x.textContent=t;document.body.appendChild(x);setTimeout(()=>x.remove(),2500)};
 const id=()=>crypto.randomUUID();
 const audit=async(action,entity,entity_id,details={})=>{await sb.from("so_audit").insert({action,entity,entity_id:String(entity_id||""),details})};
-async function ensureProfile(){
-  const {data}=await sb.from("so_profiles").select("*").eq("user_id",me.id).maybeSingle();
-  if(data){profile=data;return}
-  const username=(me.email||"usuario").split("@")[0];
-  const name=me.user_metadata?.name||username;
-  const {data:r,error}=await sb.rpc("so_bootstrap_profile",{p_username:username,p_name:name});
-  if(error) throw error; profile=r;
+async function passwordDigest(username,password){
+ const enc=new TextEncoder();
+ const key=await crypto.subtle.importKey("raw",enc.encode(password),"PBKDF2",false,["deriveBits"]);
+ const bits=await crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-256",salt:enc.encode("solar-opara:"+username.toLowerCase()),iterations:150000},key,256);
+ return Array.from(new Uint8Array(bits),b=>b.toString(16).padStart(2,"0")).join("");
 }
 const navMeta={
  dashboard:["Painel","◫"],clientes:["Clientes","◎"],agenda:["Agenda","▦"],contratos:["Contratos","▤"],receber:["A receber","↙"],recebimentos:["Recebimentos","✓"],despesas:["Despesas","↗"],nfse:["NFS-e","N"],usuarios:["Usuários","♙"],auditoria:["Auditoria","⌁"]
 };
 function nav(){return Object.entries(navMeta).map(([x,m])=>`<button data-route="${x}" class="${route===x?"active":""}"><span class="nav-icon">${m[1]}</span><span>${m[0]}</span></button>`).join("")}
 function shell(body){return `<div class="layout"><aside class="side"><div class="brand"><img src="/favicon.svg" alt=""><div class="brand-copy"><strong>Solar Opará</strong><span>Gestão de Eventos</span></div></div>${nav()}<button id="logout" class="logout"><span class="nav-icon">↪</span><span>Sair</span></button></aside><main class="main">${body}</main></div>`}
-function bindNav(){document.querySelectorAll("[data-route]").forEach(b=>b.onclick=()=>{route=b.dataset.route;render()});$("#logout").onclick=async()=>{await sb.auth.signOut();location.reload()}}
+function bindNav(){document.querySelectorAll("[data-route]").forEach(b=>b.onclick=()=>{route=b.dataset.route;render()});$("#logout").onclick=async()=>{if(sessionToken)await publicClient.rpc("so_local_logout",{p_token:sessionToken});localStorage.removeItem("solar_session");sessionToken="";me=null;profile=null;location.reload()}}
 function setApp(h){$("#app").innerHTML=h}
 async function loginView(){
- setApp(`<div class="login-page"><section class="login-art"><h2>Gestão simples para momentos importantes.</h2><p>Clientes, agenda, contratos, financeiro, Pix, documentos e NFS-e organizados em um único lugar.</p></section><section class="login"><div class="card"><div class="login-logo"><img src="/favicon.svg" alt=""><div><strong>Solar Opará</strong><div class="muted">Gestão de Eventos</div></div></div><h1 style="font-size:28px">Bem-vindo</h1><p class="muted">Entre com seu acesso interno.</p><div id="authmsg"></div><label>E-mail<input id="email" type="email" placeholder="seu@email.com"></label><label>Senha<input id="pass" type="password" placeholder="••••••••"></label><label>Nome <span class="muted">(somente no primeiro cadastro)</span><input id="name"></label><div class="row"><button class="btn" id="loginBtn">Entrar</button><button class="btn gray" id="signupBtn">Criar acesso</button></div><button class="btn gray" style="width:100%;margin-top:10px" id="resetBtn">Recuperar senha</button></div></section></div>`);
- $("#loginBtn").onclick=async()=>{const {error}=await sb.auth.signInWithPassword({email:$("#email").value,password:$("#pass").value});if(error)return $("#authmsg").innerHTML='<p style="color:#a74444">'+esc(error.message)+'</p>';location.reload()};
- $("#signupBtn").onclick=async()=>{const {data,error}=await sb.auth.signUp({email:$("#email").value,password:$("#pass").value,options:{data:{name:$("#name").value}}});if(error)return $("#authmsg").innerHTML='<p style="color:#a74444">'+esc(error.message)+'</p>';if(data.user && !data.session)return $("#authmsg").innerHTML='<div class="warnbox">Esse e-mail já pode estar cadastrado. Se não chegar confirmação, use <b>Recuperar senha</b> abaixo.</div>';$("#authmsg").innerHTML='<div class="warnbox">Acesso criado. Agora tente entrar.</div>'};
- $("#resetBtn").onclick=async()=>{const email=$("#email").value.trim();if(!email)return $("#authmsg").innerHTML='<p style="color:#a74444">Digite seu e-mail primeiro.</p>';const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin});if(error)return $("#authmsg").innerHTML='<p style="color:#a74444">'+esc(error.message)+'</p>';$("#authmsg").innerHTML='<div class="warnbox">Enviei o link para redefinir sua senha. Confira também Spam/Lixo eletrônico.</div>'};
+ setApp(`<div class="login-page"><section class="login-art"><h2>Gestão simples para momentos importantes.</h2><p>Clientes, agenda, contratos, financeiro, Pix, documentos e NFS-e organizados em um único lugar.</p></section><section class="login"><div class="card"><div class="login-logo"><img src="/favicon.svg" alt=""><div><strong>Solar Opará</strong><div class="muted">Gestão de Eventos</div></div></div><h1 style="font-size:28px">Acesso interno</h1><p class="muted">Entre com usuário e senha.</p><div id="authmsg"></div><label>Usuário<input id="username" value="valter" autocomplete="username"></label><label>Senha<input id="pass" type="password" placeholder="••••••••" autocomplete="current-password"></label><button class="btn" style="width:100%" id="loginBtn">Entrar</button></div></section></div>`);
+ $("#loginBtn").onclick=async()=>{
+   const username=$("#username").value.trim().toLowerCase(),password=$("#pass").value;
+   if(!username||!password)return $("#authmsg").innerHTML='<p style="color:#a74444">Informe usuário e senha.</p>';
+   $("#loginBtn").disabled=true;
+   try{
+     const digest=await passwordDigest(username,password);
+     const {data,error}=await publicClient.rpc("so_local_login",{p_username:username,p_digest:digest});
+     if(error||!data?.ok)return $("#authmsg").innerHTML='<p style="color:#a74444">Usuário ou senha inválidos.</p>';
+     sessionToken=data.token;localStorage.setItem("solar_session",sessionToken);
+     sb=sessionClient(sessionToken);me=data.user;profile=data.user;render();
+   }finally{$("#loginBtn")&&($("#loginBtn").disabled=false)}
+ };
+ $("#pass").onkeydown=e=>{if(e.key==="Enter")$("#loginBtn").click()};
 }
 async function load(){
- const {data:{session}}=await sb.auth.getSession(); if(!session)return loginView(); me=session.user; await ensureProfile(); render();
+ if(!sessionToken)return loginView();
+ const {data,error}=await publicClient.rpc("so_local_session",{p_token:sessionToken});
+ if(error||!data?.ok){localStorage.removeItem("solar_session");sessionToken="";return loginView()}
+ me=data.user;profile=data.user;sb=sessionClient(sessionToken);render();
 }
 async function render(){
  let body=""; try{
@@ -158,8 +172,18 @@ async function nfse(){
  return `<h1>NFS-e</h1><div class=warnbox><b>Controle fiscal manual.</b> A transmissão automática só deve ser ativada com certificado A1 e parâmetros fiscais válidos.</div><table><tr><th>Evento</th><th>Cliente</th><th>Status</th><th>Número/chave</th><th></th></tr>${(data||[]).map(x=>`<tr><td>${esc(x.so_contracts?.event_name)}</td><td>${esc(x.so_contracts?.so_clients?.name)}</td><td>${esc(x.status)}</td><td>${esc(x.number_key||"—")}</td><td><button class="btn small" data-nf="${x.id}">Registrar emitida</button></td></tr>`).join("")}</table><div id=nfForm></div>`;
 }
 async function usuarios(){
- const {data}=await sb.from("so_profiles").select("*").order("created_at");
- return `<h1>Usuários</h1><p class=muted>Primeiro usuário é administrador. Novos usuários criam acesso pela tela de login.</p><table><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Ativo</th></tr>${(data||[]).map(x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.username)}</td><td>${esc(x.role)}</td><td>${x.active?"Sim":"Não"}</td></tr>`).join("")}</table>`;
+ if(profile?.role!=="admin")return `<h1>Usuários</h1><div class="warnbox">Somente administradores podem gerenciar acessos.</div>`;
+ const {data,error}=await publicClient.rpc("so_local_list_users",{p_token:sessionToken});
+ const users=error?[]:(data||[]);
+ return `<div class="top"><div><div class="page-kicker">Acessos</div><h1>Usuários</h1><p class="muted">Crie e controle os acessos ao sistema.</p></div></div>
+ <div class="card"><h2>Novo usuário</h2><form id="localUserForm" class="form">
+ <label>Nome<input name="name" required></label>
+ <label>Usuário<input name="username" required autocomplete="off"></label>
+ <label>Senha inicial<input name="password" type="password" minlength="8" required autocomplete="new-password"></label>
+ <label>Perfil<select name="role"><option value="operator">Operador</option><option value="viewer">Consulta</option><option value="admin">Administrador</option></select></label>
+ <div class="full"><button class="btn">Criar usuário</button></div></form></div>
+ <div class="card"><h2>Usuários cadastrados</h2><table><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Status</th><th></th></tr>
+ ${users.map(x=>`<tr><td>${esc(x.name)}</td><td><b>${esc(x.username)}</b></td><td>${esc(x.role)}</td><td><span class="badge ${x.active?"paid":""}">${x.active?"ATIVO":"BLOQUEADO"}</span></td><td>${x.id!==me.id?`<button class="btn small gray" data-local-toggle="${x.id}" data-active="${x.active}">${x.active?"Bloquear":"Reativar"}</button>`:""}</td></tr>`).join("")}</table></div>`;
 }
 async function auditoria(){
  if(profile.role!=="admin")return `<h1>Auditoria</h1><div class=warnbox>Apenas administradores.</div>`;
@@ -180,6 +204,9 @@ async function showDoc(cid,manual=false){
  else w.document.write(`<meta charset=utf-8><title>Contrato Solar Opará</title><style>body{font-family:Arial;max-width:900px;margin:30px auto;line-height:1.5}table{width:100%;border-collapse:collapse}td{border:1px solid #aaa;padding:8px}</style><button onclick=print()>Imprimir / Salvar PDF</button><h1>CONTRATO DE LOCAÇÃO DE ESPAÇO PARA EVENTOS – SOLAR OPARÁ</h1><table><tr><td>LOCADOR</td><td>SOLAR OPARÁ TURISMO E HOTEIS — CNPJ 33.958.617/0001-73</td></tr><tr><td>REPRESENTANTE</td><td>FLAVIA TATIANA RIBEIRO DE OLIVEIRA</td></tr><tr><td>LOCATÁRIO</td><td>${esc(cl.name)}</td></tr><tr><td>CPF/CNPJ</td><td>${esc(cl.document)}</td></tr><tr><td>EVENTO</td><td>${esc(c.event_name)}</td></tr><tr><td>DATA</td><td>${dateBR(c.event_date)}</td></tr><tr><td>CAPACIDADE</td><td>${esc(c.capacity)}</td></tr><tr><td>LOCAÇÃO</td><td>${money(c.rental_value)}</td></tr><tr><td>LIMPEZA</td><td>${money(c.cleaning_fee)}</td></tr><tr><td>ADICIONAIS</td><td>${money(c.additional_value)} — ${esc(c.additional_services)}</td></tr><tr><td>TOTAL</td><td>${money(total)}</td></tr><tr><td>CAUÇÃO/GARANTIA</td><td>${esc(c.guarantee_text)}</td></tr><tr><td>PAGAMENTO</td><td>${esc(c.payment_terms)}</td></tr><tr><td>OBSERVAÇÕES</td><td>${esc(c.observations)}</td></tr></table><h2>Vistoria e checklist</h2><p>As condições do espaço, montagem, uso e devolução devem ser conferidas pelas partes conforme o evento.</p><h2>Disposições gerais</h2><p>Este documento registra as condições operacionais e financeiras informadas no cadastro do evento.</p><p>Chave Pix: ${PIX}</p>`);w.document.close()
 }
 function bindPage(){
+ if($("#localUserForm"))$("#localUserForm").onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target),username=String(f.get("username")||"").trim().toLowerCase(),password=String(f.get("password")||""),name=String(f.get("name")||"").trim(),role=String(f.get("role")||"operator");if(password.length<8)return toast("A senha precisa ter pelo menos 8 caracteres");const digest=await passwordDigest(username,password);const {data,error}=await publicClient.rpc("so_local_create_user",{p_token:sessionToken,p_username:username,p_name:name,p_role:role,p_digest:digest});if(error||!data?.ok)return toast(data?.error==="username_exists"?"Usuário já existe":"Não foi possível criar o usuário");toast("Usuário criado");e.target.reset();render()};
+ document.querySelectorAll("[data-local-toggle]").forEach(b=>b.onclick=async()=>{const active=b.dataset.active!=="true";const {data,error}=await publicClient.rpc("so_local_set_active",{p_token:sessionToken,p_user_id:b.dataset.localToggle,p_active:active});if(error||!data?.ok)return toast("Não foi possível alterar o usuário");toast(active?"Usuário reativado":"Usuário bloqueado");render()});
+
  if($("#newClient"))$("#newClient").onclick=()=>{$("#clientForm").innerHTML=clientForm();$("#cf").onsubmit=async e=>{e.preventDefault();let o=Object.fromEntries(new FormData(e.target));let {data,error}=await sb.from("so_clients").insert(o).select().single();if(error)return toast(error.message);await audit("create","client",data.id,{name:data.name});toast("Cliente salvo");render()}};
  if($("#newContract"))$("#newContract").onclick=()=>{$("#contractForm").innerHTML=contractForm();$("#ctf").onsubmit=async e=>{e.preventDefault();let f=new FormData(e.target),o=Object.fromEntries(f);delete o.due_date;["capacity"].forEach(k=>o[k]=o[k]?Number(o[k]):null);["rental_value","cleaning_fee","additional_value"].forEach(k=>o[k]=Number(o[k]||0));let {data:conflict}=await sb.from("so_contracts").select("id").eq("event_date",o.event_date).eq("status","active");if(conflict?.length&&!confirm("Já existe evento ativo nesta data. Deseja continuar?"))return;let {data:c,error}=await sb.from("so_contracts").insert({...o,status:"active"}).select().single();if(error)return toast(error.message);let total=Number(o.rental_value)+Number(o.cleaning_fee)+Number(o.additional_value),tx=("SO"+Date.now().toString(36)+id().replaceAll("-","").slice(0,6)).toUpperCase().slice(0,25);await sb.from("so_receivables").insert({contract_id:c.id,description:"Contrato - "+o.event_name,amount:total,due_date:String(f.get("due_date")||o.event_date),txid:tx});await sb.from("so_nfse").insert({contract_id:c.id,status:"draft",amount:total});await audit("create","contract",c.id,{event:o.event_name,total});toast("Contrato criado");render()}};
  document.querySelectorAll("[data-doc]").forEach(b=>b.onclick=()=>showDoc(b.dataset.doc,false));document.querySelectorAll("[data-manual]").forEach(b=>b.onclick=()=>showDoc(b.dataset.manual,true));document.querySelectorAll("[data-pix]").forEach(b=>b.onclick=()=>openPix(b.dataset.pix));
