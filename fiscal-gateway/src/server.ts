@@ -329,9 +329,10 @@ app.post("/v1/nfse/:id/emit",async(req,res)=>{
 
     const nota=buildNota(nf,fs,dpsNumber);
     const result:any=await emitirNfse(nota as any,cert as any,{ambiente:env as any});
-    const key=String(result?.chaveAcesso||result?.chave||"");
+    // A chave da NFS-e Nacional tem 50 posições (não 44 como a NF-e estadual).
+    const key=String(result?.chaveAcesso||result?.chave||"").replace(/^NFS/i,"").replace(/\s/g,"");
     const nfNumber=String(result?.numero||result?.nNFSe||"");
-    if(!/^\d{44}$/.test(key.replace(/\D/g,""))) throw new Error("Resposta sem chave de acesso válida: verificar autorização antes de tentar novamente.");
+    if(!/^[A-Za-z0-9]{50}$/.test(key)) throw new Error("Resposta sem chave válida de NFS-e (50 posições). Consulte a DPS antes de tentar novamente.");
 
     await sb(req,`so_nfse?id=eq.${encodeURIComponent(id)}`,{
       method:"PATCH",
