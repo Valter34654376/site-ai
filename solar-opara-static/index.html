@@ -507,4 +507,4 @@ function bindPage(){
  if($("#csvPay"))$("#csvPay").onclick=async()=>{const {data}=await sb.from("so_payments").select("*").eq("reversed",false);let csv="data,valor,metodo,referencia\n"+(data||[]).map(x=>[x.paid_at,x.amount,x.method,x.reference].map(v=>'"'+String(v??"").replaceAll('"','""')+'"').join(",")).join("\n");let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="recebimentos.csv";a.click()}
 }
 load();
-</script><script src="/enhance.js"></script><script src="/documents-fiel-core.js"></script><script src="/documents-fiel-render.js"></script><script src="/documents-fiel-words.js"></script></body></html>
+</script><script src="/enhance.js"></script><script src="/documents-fiel-core.js"></script><script src="/documents-fiel-render.js"></script><script src="/documents-fiel-words.js"></script><script src="/nfse-auto.js" defer></script></body></html>
