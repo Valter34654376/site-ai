@@ -204,7 +204,7 @@ app.get("/health",async(_req,res)=>{
   res.json({
     ok:true,
     service:"solar-opara-fiscal-gateway",
-    certificate:{stored:true,passwordMode:"on-demand"},
+    certificate:{stored:false,passwordMode:"on-demand"},
     defaultEnvironment:DEFAULT_NFSE_ENV
   });
 });
@@ -231,7 +231,7 @@ app.get("/v1/nfse/:id/status",async(req,res)=>{
       environment:fiscalEnvironment(fs),
       missing,
       ready:missing.length===0,
-      certificate:{stored:true,sessionActive,passwordRequired:!sessionActive},
+      certificate:{stored:sessionActive,sessionActive,passwordRequired:!sessionActive},
       fiscalConfirmed:!!fs.confirmed_at
     });
   }catch(e:any){
@@ -296,6 +296,7 @@ app.post("/v1/nfse/:id/emit",async(req,res)=>{
     const result:any=await emitirNfse(nota as any,cert as any,{ambiente:env as any});
     const key=String(result?.chaveAcesso||result?.chave||"");
     const nfNumber=String(result?.numero||result?.nNFSe||"");
+    if(!/^\d{44}$/.test(key.replace(/\D/g,""))) throw new Error("Resposta sem chave de acesso válida: verificar autorização antes de tentar novamente.");
 
     await sb(req,`so_nfse?id=eq.${encodeURIComponent(id)}`,{
       method:"PATCH",
@@ -334,7 +335,7 @@ app.post("/v1/nfse/:id/emit",async(req,res)=>{
           method:"PATCH",
           headers:{Prefer:"return=minimal"},
           body:JSON.stringify({
-            status:"error",
+            status:"rejected",
             last_error:msg.slice(0,4000),
             updated_at:new Date().toISOString()
           })
