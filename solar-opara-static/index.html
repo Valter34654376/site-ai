@@ -422,8 +422,8 @@ async function usuarios(){
  <label>Senha inicial<input name="password" type="password" minlength="8" required autocomplete="new-password"></label>
  <label>Perfil<select name="role"><option value="operator">Operador</option><option value="viewer">Consulta</option><option value="admin">Administrador</option></select></label>
  <div class="full"><button class="btn">Criar usuário</button></div></form></div>
- <div class="card"><h2>Usuários cadastrados</h2><table><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Status</th><th></th></tr>
- ${users.map(x=>`<tr><td>${esc(x.name)}</td><td><b>${esc(x.username)}</b></td><td>${esc(x.role)}</td><td><span class="badge ${x.active?"paid":""}">${x.active?"ATIVO":"BLOQUEADO"}</span></td><td>${x.id!==me.id?`<button class="btn small gray" data-local-toggle="${x.id}" data-active="${x.active}">${x.active?"Bloquear":"Reativar"}</button>`:""}</td></tr>`).join("")}</table></div>`;
+ <div class="card"><h2>Usuários cadastrados</h2><table><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Status</th><th>Emitir NFS-e</th><th></th></tr>
+ ${users.map(x=>`<tr><td>${esc(x.name)}</td><td><b>${esc(x.username)}</b></td><td>${esc(x.role)}</td><td><span class="badge ${x.active?"paid":""}">${x.active?"ATIVO":"BLOQUEADO"}</span></td><td>${x.role==="operator"?`<label><input type="checkbox" data-nfse-permission="${x.id}" ${x.can_issue_nfse?"checked":""}> Autorizar</label>`:x.role==="admin"?"Administrador":"Sem acesso"}</td><td>${x.id!==me.id?`<button class="btn small gray" data-local-toggle="${x.id}" data-active="${x.active}">${x.active?"Bloquear":"Reativar"}</button>`:""}</td></tr>`).join("")}</table></div>`;
 }
 async function auditoria(){
  if(profile.role!=="admin")return `<h1>Auditoria</h1><div class=warnbox>Apenas administradores.</div>`;
@@ -464,6 +464,13 @@ function bindPage(){
 
 
  if($("#localUserForm"))$("#localUserForm").onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target),username=String(f.get("username")||"").trim().toLowerCase(),password=String(f.get("password")||""),name=String(f.get("name")||"").trim(),role=String(f.get("role")||"operator");if(password.length<8)return toast("A senha precisa ter pelo menos 8 caracteres");const digest=await passwordDigest(username,password);const {data,error}=await publicClient.rpc("so_local_create_user",{p_token:sessionToken,p_username:username,p_name:name,p_role:role,p_digest:digest});if(error||!data?.ok)return toast(data?.error==="username_exists"?"Usuário já existe":"Não foi possível criar o usuário");toast("Usuário criado");e.target.reset();render()};
+ document.querySelectorAll("[data-nfse-permission]").forEach(box=>box.onchange=async()=>{
+    const allowed=box.checked;box.disabled=true;
+    const {data,error}=await publicClient.rpc("so_nfse_set_permission",{p_token:sessionToken,p_user_id:box.dataset.nfsePermission,p_allowed:allowed});
+    if(error||!data?.ok){box.checked=!allowed;toast("Erro ao alterar a permissão fiscal");}
+    else toast(allowed?"Permissão de NFS-e concedida":"Permissão de NFS-e revogada");
+    box.disabled=false;
+ });
  document.querySelectorAll("[data-local-toggle]").forEach(b=>b.onclick=async()=>{const active=b.dataset.active!=="true";const {data,error}=await publicClient.rpc("so_local_set_active",{p_token:sessionToken,p_user_id:b.dataset.localToggle,p_active:active});if(error||!data?.ok)return toast("Não foi possível alterar o usuário");toast(active?"Usuário reativado":"Usuário bloqueado");render()});
 
  if($("#newClient"))$("#newClient").onclick=()=>{$("#clientForm").innerHTML=clientForm();$("#cf").onsubmit=async e=>{e.preventDefault();let o=Object.fromEntries(new FormData(e.target));let {data,error}=await sb.from("so_clients").insert(o).select().single();if(error)return toast(error.message);await audit("create","client",data.id,{name:data.name});toast("Cliente salvo");render()}};
