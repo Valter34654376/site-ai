@@ -6,7 +6,7 @@ const dateBR=v=>{if(!v)return "________________";const d=new Date(String(v).leng
 const dtBR=v=>{if(!v)return "________________";const d=new Date(v);return isNaN(d)?"________________":d.toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"})};
 const sbUrl="https://bdfojankowlfuezdhdjl.supabase.co";
 const sbKey="sb_publishable_mHNwZ6rrplQy9P-0o3wfnQ_iRC_AvYY";
-const session=()=>localStorage.getItem("solar_session")||"";
+const session=()=>sessionStorage.getItem("solar_session")||"";
 async function getContract(id){
  const r=await fetch(sbUrl+"/rest/v1/so_contracts?id=eq."+encodeURIComponent(id)+"&select=*,so_clients(*)",{headers:{apikey:sbKey,"x-solar-session":session()}});
  if(!r.ok)throw new Error("Não foi possível carregar o contrato.");
