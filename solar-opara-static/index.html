@@ -61,6 +61,7 @@ import QRCode from "https://cdn.jsdelivr.net/npm/qrcode@1.5.4/+esm";
 const SUPABASE_URL="https://bdfojankowlfuezdhdjl.supabase.co";
 const SUPABASE_KEY="sb_publishable_mHNwZ6rrplQy9P-0o3wfnQ_iRC_AvYY";
 const publicClient=createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+const googleClient=createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 let sessionToken=sessionStorage.getItem("solar_session")||"";
 // Elimina tokens persistentes legados do navegador.
 localStorage.removeItem("solar_session");
@@ -97,23 +98,44 @@ const navMeta={
 };
 function nav(){return Object.entries(navMeta).map(([x,m])=>`<button data-route="${x}" class="${route===x?"active":""}"><span class="nav-icon">${m[1]}</span><span>${m[0]}</span></button>`).join("")}
 function shell(body){return `<div class="layout"><aside class="side"><div class="brand"><img src="/favicon.svg" alt=""><div class="brand-copy"><strong>Solar Opará</strong><span>Gestão de Eventos</span></div></div>${nav()}<button id="logout" class="logout"><span class="nav-icon">↪</span><span>Sair</span></button></aside><main class="main">${body}</main></div>`}
-function bindNav(){document.querySelectorAll("[data-route]").forEach(b=>b.onclick=()=>{route=b.dataset.route;render()});$("#logout").onclick=async()=>{if(sessionToken)await publicClient.rpc("so_local_logout",{p_token:sessionToken});sessionStorage.removeItem("solar_session");sessionToken="";me=null;profile=null;location.reload()}}
+function bindNav(){document.querySelectorAll("[data-route]").forEach(b=>b.onclick=()=>{route=b.dataset.route;render()});$("#logout").onclick=async()=>{if(sessionToken)await publicClient.rpc("so_local_logout",{p_token:sessionToken});await googleClient.auth.signOut();sessionStorage.removeItem("solar_session");sessionToken="";me=null;profile=null;location.reload()}}
 function setApp(h){$("#app").innerHTML=h}
+async function finishGoogleLogin(){
+ const {data:{session},error:sessionError}=await googleClient.auth.getSession();
+ if(sessionError||!session)return false;
+ const {data,error}=await googleClient.rpc("so_google_login");
+ if(error||!data?.ok){
+   const msg=data?.error==="not_authorized"
+     ?"Esta conta Google ainda não foi autorizada pelo administrador."
+     :data?.error==="google_required"
+       ?"Entre usando uma conta Google."
+       :"Não foi possível validar sua conta Google.";
+   await googleClient.auth.signOut();
+   sessionStorage.removeItem("solar_session");
+   sessionToken="";
+   return msg;
+ }
+ sessionToken=data.token;
+ sessionStorage.setItem("solar_session",sessionToken);
+ sb=sessionClient(sessionToken);
+ me=data.user;
+ profile=data.user;
+ history.replaceState({},document.title,location.pathname);
+ return true;
+}
 async function loginView(){
- setApp(`<div class="login-page"><section class="login-art"><h2>Gestão simples para momentos importantes.</h2><p>Clientes, agenda, contratos, financeiro, Pix, documentos e NFS-e organizados em um único lugar.</p></section><section class="login"><div class="card"><div class="login-logo"><img src="/favicon.svg" alt=""><div><strong>Solar Opará</strong><div class="muted">Gestão de Eventos</div></div></div><h1 style="font-size:28px">Acesso interno</h1><p class="muted">Entre com usuário e senha.</p><div id="authmsg"></div><label>Usuário<input id="username" autocomplete="username"></label><label>Senha<input id="pass" type="password" placeholder="••••••••" autocomplete="current-password"></label><button class="btn" style="width:100%" id="loginBtn">Entrar</button></div></section></div>`);
- $("#loginBtn").onclick=async()=>{
-   const username=$("#username").value.trim().toLowerCase(),password=$("#pass").value;
-   if(!username||!password)return $("#authmsg").innerHTML='<p style="color:#a74444">Informe usuário e senha.</p>';
-   $("#loginBtn").disabled=true;
-   try{
-     const digest=await passwordDigest(username,password);
-     const {data,error}=await publicClient.rpc("so_local_login",{p_username:username,p_digest:digest});
-     if(error||!data?.ok)return $("#authmsg").innerHTML='<p style="color:#a74444">Usuário ou senha inválidos.</p>';
-     sessionToken=data.token;sessionStorage.setItem("solar_session",sessionToken);
-     sb=sessionClient(sessionToken);me=data.user;profile=data.user;render();
-   }finally{$("#loginBtn")&&($("#loginBtn").disabled=false)}
+ const googleResult=await finishGoogleLogin();
+ if(googleResult===true)return render();
+ const denied=typeof googleResult==="string"?`<div class="warnbox" style="margin:14px 0">${esc(googleResult)}</div>`:"";
+ setApp(`<div class="login-page"><section class="login-art"><h2>Gestão simples para momentos importantes.</h2><p>Clientes, agenda, contratos, financeiro, Pix, documentos e NFS-e organizados em um único lugar.</p></section><section class="login"><div class="card"><div class="login-logo"><img src="/favicon.svg" alt=""><div><strong>Solar Opará</strong><div class="muted">Gestão de Eventos</div></div></div><h1 style="font-size:28px">Bem-vindo de volta</h1><p class="muted">Entre com uma conta Google autorizada pelo administrador.</p>${denied}<button class="btn" style="width:100%;margin-top:14px" id="googleLoginBtn">G&nbsp;&nbsp;Continuar com Google</button><p class="muted" style="font-size:12px;margin-top:16px">Não usamos senha própria do Solar Opará. O acesso depende do e-mail Google autorizado.</p></div></section></div>`);
+ $("#googleLoginBtn").onclick=async()=>{
+   const b=$("#googleLoginBtn"); b.disabled=true; b.textContent="Abrindo Google...";
+   const {error}=await googleClient.auth.signInWithOAuth({
+     provider:"google",
+     options:{redirectTo:location.origin,queryParams:{prompt:"select_account"}}
+   });
+   if(error){b.disabled=false;b.textContent="G  Continuar com Google";toast("Não foi possível abrir o login Google");}
  };
- $("#pass").onkeydown=e=>{if(e.key==="Enter")$("#loginBtn").click()};
 }
 async function load(){
  if(!sessionToken)return loginView();
@@ -417,15 +439,14 @@ async function usuarios(){
  if(profile?.role!=="admin")return `<h1>Usuários</h1><div class="warnbox">Somente administradores podem gerenciar acessos.</div>`;
  const {data,error}=await publicClient.rpc("so_local_list_users",{p_token:sessionToken});
  const users=error?[]:(data||[]);
- return `<div class="top"><div><div class="page-kicker">Acessos</div><h1>Usuários</h1><p class="muted">Crie e controle os acessos ao sistema.</p></div></div>
- <div class="card"><h2>Novo usuário</h2><form id="localUserForm" class="form">
+ return `<div class="top"><div><div class="page-kicker">Acessos Google</div><h1>Usuários</h1><p class="muted">Somente contas Google autorizadas aqui conseguem entrar no sistema.</p></div></div>
+ <div class="card"><h2>Liberar novo usuário</h2><form id="googleUserForm" class="form">
  <label>Nome<input name="name" required></label>
- <label>Usuário<input name="username" required autocomplete="off"></label>
- <label>Senha inicial<input name="password" type="password" minlength="12" required autocomplete="new-password"></label>
+ <label>E-mail Google<input name="email" type="email" required autocomplete="off" placeholder="usuario@gmail.com"></label>
  <label>Perfil<select name="role"><option value="operator">Operador</option><option value="viewer">Consulta</option><option value="admin">Administrador</option></select></label>
- <div class="full"><button class="btn">Criar usuário</button></div></form></div>
- <div class="card"><h2>Usuários cadastrados</h2><table><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Status</th><th>Emitir NFS-e</th><th></th></tr>
- ${users.map(x=>`<tr><td>${esc(x.name)}</td><td><b>${esc(x.username)}</b></td><td>${esc(x.role)}</td><td><span class="badge ${x.active?"paid":""}">${x.active?"ATIVO":"BLOQUEADO"}</span></td><td>${x.role==="operator"?`<label><input type="checkbox" data-nfse-permission="${x.id}" ${x.can_issue_nfse?"checked":""}> Autorizar</label>`:x.role==="admin"?"Administrador":"Sem acesso"}</td><td>${x.id!==me.id?`<button class="btn small gray" data-local-toggle="${x.id}" data-active="${x.active}">${x.active?"Bloquear":"Reativar"}</button>`:""}</td></tr>`).join("")}</table></div>`;
+ <div class="full"><button class="btn">Liberar acesso</button></div></form></div>
+ <div class="card"><h2>Usuários autorizados</h2><table><tr><th>Nome</th><th>Conta Google</th><th>Perfil</th><th>Status</th><th>Emitir NFS-e</th><th>Ações</th></tr>
+ ${users.map(x=>`<tr><td>${esc(x.name)}</td><td><div class="row"><input style="min-width:230px;margin:0" type="email" data-google-input="${x.id}" value="${esc(x.google_email||"")}" placeholder="Vincular e-mail Google"><button class="btn small gray" data-google-save="${x.id}">Salvar</button></div></td><td>${esc(x.role)}</td><td><span class="badge ${x.active?"paid":""}">${x.active?"ATIVO":"BLOQUEADO"}</span></td><td>${x.role==="operator"?`<label><input type="checkbox" data-nfse-permission="${x.id}" ${x.can_issue_nfse?"checked":""}> Autorizar</label>`:x.role==="admin"?"Administrador":"Sem acesso"}</td><td>${x.id!==me.id?`<button class="btn small gray" data-local-toggle="${x.id}" data-active="${x.active}">${x.active?"Bloquear":"Reativar"}</button>`:""}</td></tr>`).join("")}</table></div>`;
 }
 async function auditoria(){
  if(profile.role!=="admin")return `<h1>Auditoria</h1><div class=warnbox>Apenas administradores.</div>`;
@@ -465,7 +486,8 @@ function bindPage(){
  };
 
 
- if($("#localUserForm"))$("#localUserForm").onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target),username=String(f.get("username")||"").trim().toLowerCase(),password=String(f.get("password")||""),name=String(f.get("name")||"").trim(),role=String(f.get("role")||"operator");if(password.length<8)return toast("A senha precisa ter pelo menos 8 caracteres");const digest=await passwordDigest(username,password);const {data,error}=await publicClient.rpc("so_local_create_user",{p_token:sessionToken,p_username:username,p_name:name,p_role:role,p_digest:digest});if(error||!data?.ok)return toast(data?.error==="username_exists"?"Usuário já existe":"Não foi possível criar o usuário");toast("Usuário criado");e.target.reset();render()};
+ if($("#googleUserForm"))$("#googleUserForm").onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target),email=String(f.get("email")||"").trim().toLowerCase(),name=String(f.get("name")||"").trim(),role=String(f.get("role")||"operator");const {data,error}=await publicClient.rpc("so_google_create_user",{p_token:sessionToken,p_email:email,p_name:name,p_role:role});if(error||!data?.ok)return toast(data?.error==="user_exists"?"E-mail já cadastrado":"Não foi possível liberar o usuário");toast("Acesso Google liberado");e.target.reset();render()};
+ document.querySelectorAll("[data-google-save]").forEach(b=>b.onclick=async()=>{const id=b.dataset.googleSave,input=document.querySelector(`[data-google-input="${id}"]`),email=String(input?.value||"").trim().toLowerCase();if(!email)return toast("Informe o e-mail Google");b.disabled=true;const {data,error}=await publicClient.rpc("so_google_set_email",{p_token:sessionToken,p_user_id:id,p_email:email});b.disabled=false;if(error||!data?.ok)return toast(data?.error==="email_in_use"?"Este e-mail já está em uso":"Não foi possível vincular o e-mail");toast("Conta Google vinculada");render()});
  document.querySelectorAll("[data-nfse-permission]").forEach(box=>box.onchange=async()=>{
     const allowed=box.checked;box.disabled=true;
     const {data,error}=await publicClient.rpc("so_nfse_set_permission",{p_token:sessionToken,p_user_id:box.dataset.nfsePermission,p_allowed:allowed});
