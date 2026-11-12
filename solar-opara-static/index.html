@@ -463,12 +463,12 @@ async function saveContractForm(form){
 }
 
 async function receber(){
- const [{data:r},{data:p}]=await Promise.all([sb.from("so_receivables").select("*,so_contracts(event_name,client_id,so_clients(name,email))").order("due_date"),sb.from("so_payments").select("*").eq("reversed",false)]);
- return `<h1>A receber</h1><table><tr><th>Cliente / evento</th><th>Venc.</th><th>Valor</th><th>Status</th><th></th></tr>${(r||[]).map(x=>{let paid=(p||[]).filter(y=>y.receivable_id===x.id).reduce((a,y)=>a+Number(y.amount),0),st=paid>=Number(x.amount)?"PAGO":paid>0?"PARCIAL":"PENDENTE";return `<tr><td>${esc(x.so_contracts?.so_clients?.name)}<br><span class=muted>${esc(x.so_contracts?.event_name)}</span></td><td>${dateBR(x.due_date)}</td><td>${money(x.amount)}</td><td><span class="badge ${st==="PAGO"?"paid":""}">${st}</span></td><td><button class="btn small" data-pix="${x.id}">Pix / confirmar</button></td></tr>`}).join("")}</table><div id=pixModal></div>`;
+ const [{data:r},{data:p}]=await Promise.all([sb.from("so_receivables").select("*,so_contracts(event_name,client_id,payment_terms,so_clients(name,email))").order("due_date"),sb.from("so_payments").select("*").eq("reversed",false)]);
+ return `<h1>A receber</h1><table><tr><th>Cliente / evento</th><th>Venc.</th><th>Parcela</th><th>Forma</th><th>Status</th><th></th></tr>${(r||[]).map(x=>{let paid=(p||[]).filter(y=>y.receivable_id===x.id).reduce((a,y)=>a+Number(y.amount),0),st=paid>=Number(x.amount)?"PAGO":paid>0?"PARCIAL":"PENDENTE";return `<tr><td>${esc(x.so_contracts?.so_clients?.name)}<br><span class=muted>${esc(x.so_contracts?.event_name)}</span></td><td>${dateBR(x.due_date)}</td><td>${money(x.amount)}<br><small class="muted">${esc(x.description)}</small></td><td>${esc(x.so_contracts?.payment_terms||"PIX")}</td><td><span class="badge ${st==="PAGO"?"paid":""}">${st}</span></td><td><button class="btn small" data-pix="${x.id}">Cobrar / confirmar</button></td></tr>`}).join("")}</table><div id=pixModal></div>`;
 }
 async function recebimentos(){
  const {data}=await sb.from("so_payments").select("*,so_receivables(amount,so_contracts(event_name,so_clients(name,email)))").eq("reversed",false).order("paid_at",{ascending:false});
- return `<div class=top><h1>Recebimentos</h1><button class="btn gray" id=csvPay>Exportar CSV</button></div><table><tr><th>Data</th><th>Cliente</th><th>Evento</th><th>Valor</th><th>Referência</th><th></th></tr>${(data||[]).map(x=>{let cl=x.so_receivables?.so_contracts?.so_clients;let ev=x.so_receivables?.so_contracts?.event_name;let subj=`Solar Opará – Pagamento confirmado – ${ev||""}`;let body=`Olá ${cl?.name||""},%0D%0A%0D%0AConfirmamos o recebimento de ${money(x.amount)} referente ao evento ${ev||""}.%0D%0AData: ${dtBR(x.paid_at)}.%0D%0A%0D%0AAtenciosamente,%0D%0ASolar Opará`;return `<tr><td>${dtBR(x.paid_at)}</td><td>${esc(cl?.name)}</td><td>${esc(ev)}</td><td>${money(x.amount)}</td><td>${esc(x.reference)}</td><td><a class="btn small" target=_blank href="mailto:${encodeURIComponent(cl?.email||"")}?subject=${encodeURIComponent(subj)}&body=${body}">Enviar e-mail</a></td></tr>`}).join("")}</table>`;
+ return `<div class=top><h1>Recebimentos</h1><button class="btn gray" id=csvPay>Exportar CSV</button></div><table><tr><th>Data</th><th>Cliente</th><th>Evento</th><th>Valor</th><th>Forma</th><th>Referência</th><th></th></tr>${(data||[]).map(x=>{let cl=x.so_receivables?.so_contracts?.so_clients;let ev=x.so_receivables?.so_contracts?.event_name;let subj=`Solar Opará – Pagamento confirmado – ${ev||""}`;let body=`Olá ${cl?.name||""},%0D%0A%0D%0AConfirmamos o recebimento de ${money(x.amount)} referente ao evento ${ev||""}.%0D%0AData: ${dtBR(x.paid_at)}.%0D%0A%0D%0AAtenciosamente,%0D%0ASolar Opará`;return `<tr><td>${dtBR(x.paid_at)}</td><td>${esc(cl?.name)}</td><td>${esc(ev)}</td><td>${money(x.amount)}</td><td>${esc(x.method||"PIX")}</td><td>${esc(x.reference)}</td><td><a class="btn small" target=_blank href="mailto:${encodeURIComponent(cl?.email||"")}?subject=${encodeURIComponent(subj)}&body=${body}">Enviar e-mail</a></td></tr>`}).join("")}</table>`;
 }
 async function despesas(){
  const {data}=await sb.from("so_expenses").select("*").order("expense_date",{ascending:false});
@@ -581,11 +581,70 @@ async function auditoria(){
 function emv(i,v){return i+String(v.length).padStart(2,"0")+v}function crc(s){let c=65535;for(const h of s){c^=h.charCodeAt(0)<<8;for(let i=0;i<8;i++)c=(c&32768)?((c<<1)^4129)&65535:(c<<1)&65535}return c.toString(16).toUpperCase().padStart(4,"0")}
 function pixPayload(amount,tx){const ma=emv("00","br.gov.bcb.pix")+emv("01",PIX);let p=emv("00","01")+emv("26",ma)+emv("52","0000")+emv("53","986")+emv("54",Number(amount).toFixed(2))+emv("58","BR")+emv("59","SOLAR OPARA")+emv("60","PIRAPORA")+emv("62",emv("05",tx.slice(0,25)))+"6304";return p+crc(p)}
 async function openPix(rid){
- const [{data:r},{data:p}]=await Promise.all([sb.from("so_receivables").select("*,so_contracts(event_name,so_clients(name,email))").eq("id",rid).single(),sb.from("so_payments").select("*").eq("receivable_id",rid).eq("reversed",false)]);
- const paid=(p||[]).reduce((a,x)=>a+Number(x.amount),0),balance=Math.max(0,Number(r.amount)-paid),payload=pixPayload(balance,r.txid),qr=await QRCode.toDataURL(payload);
- $("#pixModal").innerHTML=`<div class=card><h2>Cobrança Pix</h2><div class=form><div><p><b>Cliente:</b> ${esc(r.so_contracts?.so_clients?.name)}</p><p><b>Evento:</b> ${esc(r.so_contracts?.event_name)}</p><p><b>Valor restante:</b> ${money(balance)}</p><p><b>Chave:</b> ${PIX}</p><p><b>TXID:</b> ${esc(r.txid)}</p><img src="${qr}" style="max-width:280px;width:100%"><div class=code>${esc(payload)}</div></div><form id=pf><input type=hidden name=rid value="${rid}"><label>Valor recebido<input type=number step=.01 name=amount value="${balance.toFixed(2)}" required></label><label>Data/hora<input type=datetime-local name=paid_at value="${new Date().toISOString().slice(0,16)}"></label><label>Referência/comprovante<input name=reference></label><label>Observação<textarea name=notes></textarea></label><button class=btn>Confirmar pagamento</button></form></div></div>`;
- $("#pf").onsubmit=async e=>{e.preventDefault();let f=new FormData(e.target);await sb.from("so_payments").insert({receivable_id:rid,amount:Number(f.get("amount")),reference:String(f.get("reference")||""),notes:String(f.get("notes")||""),paid_at:new Date(String(f.get("paid_at"))).toISOString()});let {data:all}=await sb.from("so_payments").select("*").eq("receivable_id",rid).eq("reversed",false);let sum=(all||[]).reduce((a,x)=>a+Number(x.amount),0);await sb.from("so_receivables").update({status:sum>=Number(r.amount)?"paid":sum>0?"partial":"pending"}).eq("id",rid);await audit("confirm_payment","payment",rid,{amount:Number(f.get("amount"))});toast("Pagamento confirmado");render()}
+ const [{data:r,error:recErr},{data:p,error:payErr}]=await Promise.all([
+  sb.from("so_receivables").select("*,so_contracts(event_name,payment_terms,so_clients(name,email))").eq("id",rid).single(),
+  sb.from("so_payments").select("*").eq("receivable_id",rid).eq("reversed",false)
+ ]);
+ if(recErr||payErr||!r)return toast(recErr?.message||payErr?.message||"Cobrança não encontrada.");
+ const paid=(p||[]).reduce((a,x)=>a+Number(x.amount),0),balance=Math.max(0,Number(r.amount)-paid);
+ const terms=String(r.so_contracts?.payment_terms||"PIX");
+ const pix=terms==="PIX"||terms==="Pix parcelado";
+ const boleto=terms==="Boleto bancário"||terms==="Boleto";
+ const defaultMethod=boleto?"Boleto bancário":pix?"PIX":terms;
+ const choices=["PIX","Boleto bancário","Transferência bancária","Dinheiro","Cartão"];
+ if(!choices.includes(defaultMethod))choices.push(defaultMethod);
+ const options=choices.map(x=>'<option value="'+esc(x)+'"'+(x===defaultMethod?' selected':'')+'>'+esc(x)+'</option>').join("");
+ let details="";
+ if(pix&&balance>0){
+  const payload=pixPayload(balance,r.txid);
+  const qr=await QRCode.toDataURL(payload);
+  details='<p><b>Pix da parcela:</b> '+money(balance)+'</p><img src="'+qr+'" alt="QR Code Pix" style="max-width:280px;width:100%"><div class="code">'+esc(payload)+'</div>';
+ }else if(boleto){
+  details='<div class="warnbox">Boleto bancário: vencimento e recebimento registrados no sistema. Para emitir boleto com linha digitável ou código de barras é necessária integração com o banco emissor. Registre pagamento somente após confirmação bancária.</div>';
+ }else{
+  details='<p class="muted">Selecione a forma realmente recebida e confirme após verificar o pagamento.</p>';
+ }
+ const fields=balance>0?
+  '<form id="pf" class="form"><label>Valor recebido<input type="number" step="0.01" min="0.01" max="'+balance.toFixed(2)+'" name="amount" value="'+balance.toFixed(2)+'" required></label>'+
+  '<label>Forma recebida<select name="method">'+options+'</select></label>'+
+  '<label>Data/hora<input type="datetime-local" name="paid_at" value="'+new Date().toISOString().slice(0,16)+'"></label>'+
+  '<label>Referência/comprovante<input name="reference" placeholder="Código da transação ou confirmação bancária"></label>'+
+  '<label class="full">Observação<textarea name="notes"></textarea></label>'+
+  '<div class="full"><button class="btn" type="submit">Confirmar recebimento</button></div></form>':
+  '<p><b>Esta cobrança está totalmente paga.</b></p>';
+ $("#pixModal").innerHTML='<div class="card"><h2>Cobrança / confirmar pagamento</h2>'+
+  '<p><b>Cliente:</b> '+esc(r.so_contracts?.so_clients?.name)+'</p>'+
+  '<p><b>Evento:</b> '+esc(r.so_contracts?.event_name)+'</p>'+
+  '<p><b>Forma contratada:</b> '+esc(terms)+'</p>'+
+  '<p><b>Vencimento:</b> '+dateBR(r.due_date)+'</p>'+
+  '<p><b>Parcela:</b> '+money(r.amount)+' · <b>Saldo:</b> '+money(balance)+'</p>'+
+  details+fields+'</div>';
+ if(!$("#pf"))return;
+ $("#pf").onsubmit=async e=>{
+  e.preventDefault();
+  const f=new FormData(e.target),amount=Number(f.get("amount")),method=String(f.get("method")||""),ref=String(f.get("reference")||"").trim();
+  if(!Number.isFinite(amount)||amount<=0||amount>balance+0.001)return toast("Informe um valor até o saldo da cobrança.");
+  if(method==="Boleto bancário"&&!ref)return toast("Informe a referência da confirmação bancária do boleto.");
+  const submit=e.target.querySelector('button[type="submit"]');
+  if(submit)submit.disabled=true;
+  try{
+   const at=String(f.get("paid_at")||"");
+   const paidAt=at?new Date(at).toISOString():new Date().toISOString();
+   const {error:insertErr}=await sb.from("so_payments").insert({receivable_id:rid,amount,method,reference:ref||null,notes:String(f.get("notes")||""),paid_at:paidAt});
+   if(insertErr)throw Error(insertErr.message);
+   const {data:all,error:listErr}=await sb.from("so_payments").select("amount").eq("receivable_id",rid).eq("reversed",false);
+   if(listErr)throw Error(listErr.message);
+   const sum=(all||[]).reduce((a,x)=>a+Number(x.amount),0);
+   const status=sum>=Number(r.amount)-0.001?"paid":sum>0?"partial":"pending";
+   const {error:updateErr}=await sb.from("so_receivables").update({status}).eq("id",rid);
+   if(updateErr)throw Error("Recebimento salvo, mas o status precisa ser atualizado: "+updateErr.message);
+   await audit("confirm_payment","payment",rid,{amount,method});
+   toast("Pagamento confirmado e registrado como "+method+".");
+   render();
+  }catch(err){toast(err.message||String(err));if(submit)submit.disabled=false}
+ };
 }
+
 async function showDoc(cid,manual=false){
  const {data:c}=await sb.from("so_contracts").select("*,so_clients(*)").eq("id",cid).single();const cl=c.so_clients,total=Number(c.rental_value)+Number(c.cleaning_fee)+Number(c.additional_value);
  const w=open("","_blank");if(manual)w.document.write(`<meta charset=utf-8><title>Manual Solar Opará</title><style>body{font-family:Arial;max-width:900px;margin:30px auto;line-height:1.55}</style><button onclick=print()>Imprimir / Salvar PDF</button><h1>ORIENTAÇÕES PARA USO – SOLAR OPARÁ</h1><p><b>Locatário:</b> ${esc(cl.name)} — <b>CPF/CNPJ:</b> ${esc(cl.document)}</p><p><b>Evento:</b> ${esc(c.event_name)} — <b>Data:</b> ${dateBR(c.event_date)}</p><h2>Checklist operacional</h2><p>Montagem, fornecedores, horários, capacidade, limpeza, segurança e devolução do espaço devem seguir as condições combinadas para o evento.</p><h2>Declaração de ciência</h2><p>O locatário declara que recebeu as orientações de uso do Solar Opará e se compromete a observá-las durante montagem, realização e desmontagem.</p><br>____________________________________<br>Assinatura do locatário`);
