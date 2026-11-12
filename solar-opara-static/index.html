@@ -321,11 +321,11 @@ function contractDateTimeInput(v){
  const g=t=>p.find(x=>x.type===t)?.value||"";
  return g("year")+"-"+g("month")+"-"+g("day")+"T"+g("hour")+":"+g("minute");
 }
-function contractForm(data=null,dueDate=""){
+function contractForm(data=null,dueDate="",installments=1){
  const opts=$("#clientOpts")?.innerHTML||"";
  const selectedOpts=opts.replace(/<option value="([^"]+)"/g,(m,id)=>`<option value="${id}"${String(data?.client_id||"")===String(id)?" selected":""}`);
- const pay=data?.payment_terms||"PIX";
- const paymentOptions=["PIX","Dinheiro","Transferência bancária","Boleto","Cartão","Outro"].map(x=>`<option value="${esc(x)}"${x===pay?" selected":""}>${esc(x)}</option>`).join("");
+ const pay=data?.payment_terms==="Boleto"?"Boleto bancário":data?.payment_terms||"PIX";
+ const paymentOptions=["PIX","Pix parcelado","Boleto bancário","Dinheiro","Transferência bancária","Cartão","Outro"].map(x=>`<option value="${esc(x)}"${x===pay?" selected":""}>${esc(x)}</option>`).join("");
  const v=x=>esc(x??"");
  return `<div class=card><div class=top><div><h2>${data?"Editar contrato":"Novo contrato"}</h2>${data?'<p class="muted">Altere os campos e salve. O mesmo contrato será atualizado, sem duplicar.</p>':""}</div></div><form id=ctf class=form>
  <input type=hidden name=contract_id value="${v(data?.id)}">
@@ -343,44 +343,123 @@ function contractForm(data=null,dueDate=""){
  <label>Vencimento da cobrança<input type=date name=due_date value="${v(dueDate||data?.event_date||"")}"></label>
  <label class=full>Serviços adicionais<input name=additional_services value="${v(data?.additional_services)}"></label>
  <label class=full>Caução/garantia<input name=guarantee_text value="${v(data?.guarantee_text)}"></label>
- <label class=full>Forma de pagamento<select name=payment_terms>${paymentOptions}</select></label>
+ <label>Forma de pagamento<select name=payment_terms>${paymentOptions}</select></label>
+ <label>Quantidade de parcelas<select name=installment_count>${Array.from({length:12},(_,i)=>i+1).map(n=>`<option value="${n}"${n===installments?" selected":""}>${n}x</option>`).join("")}</select></label>
+ <p class="muted full">Pix parcelado = cobranças Pix mensais independentes (não é crédito bancário). Boleto bancário: registro e controle das parcelas; emissão de boleto exige integração com o banco.</p>
  <label class=full>Observações<textarea name=observations>${v(data?.observations)}</textarea></label>
  <div class="full row"><button class=btn>${data?"Salvar alterações":"Salvar contrato e gerar cobrança"}</button>${data?'<button type=button class="btn gray" id="cancelContractEdit">Cancelar</button>':""}</div>
  </form></div>`;
 }
+
+function planRecebimentos(total, firstDate, count){
+ const cents=Math.round(Number(total)*100);
+ if(!Number.isFinite(cents)||cents<0)throw Error("Valor do contrato inválido.");
+ if(!Number.isInteger(count)||count<1||count>12)throw Error("Escolha de 1 a 12 parcelas.");
+ if(cents>0&&cents<count)throw Error("Valor insuficiente para o número de parcelas.");
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(firstDate))throw Error("Informe a data do primeiro vencimento.");
+ const [year,month,day]=firstDate.split("-").map(Number);
+ const first=new Date(Date.UTC(year,month-1,day));
+ if(first.toISOString().slice(0,10)!==firstDate)throw Error("Vencimento inválido.");
+ const base=Math.floor(cents/count),extra=cents%count;
+ return Array.from({length:count},(_,i)=>{
+  const start=new Date(Date.UTC(year,month-1+i,1));
+  const last=new Date(Date.UTC(start.getUTCFullYear(),start.getUTCMonth()+1,0)).getUTCDate();
+  const date=new Date(Date.UTC(start.getUTCFullYear(),start.getUTCMonth(),Math.min(day,last)));
+  return {amount:(base+(i<extra?1:0))/100,due_date:date.toISOString().slice(0,10)};
+ });
+}
+function newCharge(contractId,eventName,part,position,totalParts){
+ const tx=("SO"+Date.now().toString(36)+id().replaceAll("-","").slice(0,9)).toUpperCase().slice(0,25);
+ return {contract_id:contractId,description:"Contrato - "+eventName+(totalParts>1?" | Parcela "+(position+1)+"/"+totalParts:""),amount:part.amount,due_date:part.due_date,txid:tx};
+}
+function bindPaymentPlan(form){
+ if(!form)return;
+ const method=form.elements.namedItem("payment_terms"),parts=form.elements.namedItem("installment_count");
+ if(!method||!parts)return;
+ const sync=()=>{
+  const allow=method.value==="Pix parcelado"||method.value==="Boleto bancário";
+  parts.disabled=!allow;
+  if(!allow)parts.value="1";
+  if(method.value==="Pix parcelado"&&Number(parts.value)<2)parts.value="2";
+ };
+ method.addEventListener("change",sync);sync();
+}
+
 async function saveContractForm(form){
  const f=new FormData(form),contractId=String(f.get("contract_id")||""),o=Object.fromEntries(f);
- delete o.contract_id;delete o.due_date;
+ const requested=Number(f.get("installment_count")||1);
+ delete o.contract_id;delete o.due_date;delete o.installment_count;
  ["capacity"].forEach(k=>o[k]=o[k]?Number(o[k]):null);
  ["rental_value","cleaning_fee","additional_value"].forEach(k=>o[k]=Number(o[k]||0));
- const dueDate=String(f.get("due_date")||o.event_date),total=Number(o.rental_value)+Number(o.cleaning_fee)+Number(o.additional_value);
+ const dueDate=String(f.get("due_date")||o.event_date);
+ const total=Number(o.rental_value)+Number(o.cleaning_fee)+Number(o.additional_value);
+ const method=String(o.payment_terms||"PIX");
+ const count=method==="Pix parcelado"||method==="Boleto bancário"?requested:1;
+ if(method==="Pix parcelado"&&count<2)return toast("Pix parcelado exige 2 a 12 parcelas.");
+ let plan;
+ try{plan=planRecebimentos(total,dueDate,count)}catch(e){return toast(e.message)}
  let conflictQ=sb.from("so_contracts").select("id").eq("event_date",o.event_date).eq("status","active");
  if(contractId)conflictQ=conflictQ.neq("id",contractId);
- const {data:conflict}=await conflictQ;
+ const {data:conflict,error:conflictError}=await conflictQ;
+ if(conflictError)return toast(conflictError.message);
  if(conflict?.length&&!confirm("Já existe outro evento ativo nesta data. Deseja continuar?"))return;
- if(contractId){
-  const {data:c,error}=await sb.from("so_contracts").update(o).eq("id",contractId).select().single();
-  if(error)return toast(error.message);
-  const {data:receivables}=await sb.from("so_receivables").select("id").eq("contract_id",contractId).order("created_at",{ascending:true});
-  if(receivables?.length){
-   await sb.from("so_receivables").update({description:"Contrato - "+o.event_name,amount:total,due_date:dueDate}).eq("id",receivables[0].id);
+ form.querySelector("button[type=submit],button:not([type])")?.setAttribute("disabled","disabled");
+ try{
+  if(contractId){
+   const [{data:current,error:currentError},{data:oldCharges,error:chargeError}]=await Promise.all([
+    sb.from("so_contracts").select("*").eq("id",contractId).single(),
+    sb.from("so_receivables").select("id,amount,due_date").eq("contract_id",contractId).order("created_at",{ascending:true})
+   ]);
+   if(currentError||chargeError)throw Error(currentError?.message||chargeError?.message);
+   const ids=(oldCharges||[]).map(x=>x.id);
+   const {data:received,error:paidError}=ids.length?
+    await sb.from("so_payments").select("id").in("receivable_id",ids).eq("reversed",false):
+    {data:[],error:null};
+   if(paidError)throw Error(paidError.message);
+   const oldTotal=Math.round((Number(current.rental_value||0)+Number(current.cleaning_fee||0)+Number(current.additional_value||0))*100);
+   const newTotal=Math.round(total*100);
+   if(received?.length&&(newTotal!==oldTotal||count!==ids.length||method!==(current.payment_terms||"PIX")||dueDate!==(oldCharges?.[0]?.due_date||current.event_date)))
+    throw Error("Já existem pagamentos. Não altere valor, parcelas, vencimento inicial ou forma de pagamento; regularize os recebimentos primeiro.");
+   if(!received?.length){
+    const extras=(oldCharges||[]).slice(plan.length).map(x=>x.id);
+    if(extras.length){
+     const {error}=await sb.from("so_receivables").delete().in("id",extras);
+     if(error)throw Error("Não foi possível remover parcelas antigas: "+error.message);
+    }
+    for(let i=0;i<Math.min(oldCharges?.length||0,plan.length);i++){
+     const part=plan[i];
+     const description="Contrato - "+o.event_name+(plan.length>1?" | Parcela "+(i+1)+"/"+plan.length:"");
+     const {error}=await sb.from("so_receivables").update({description,amount:part.amount,due_date:part.due_date}).eq("id",oldCharges[i].id);
+     if(error)throw Error("Falha ao atualizar parcela "+(i+1)+": "+error.message);
+    }
+    if(plan.length>(oldCharges?.length||0)){
+     const start=oldCharges?.length||0;
+     const inserts=plan.slice(start).map((part,i)=>newCharge(contractId,o.event_name,part,start+i,plan.length));
+     const {error}=await sb.from("so_receivables").insert(inserts);
+     if(error)throw Error("Falha ao criar parcelas: "+error.message);
+    }
+   }
+   const {error}=await sb.from("so_contracts").update(o).eq("id",contractId);
+   if(error)throw Error(error.message);
+   const {error:nfErr}=await sb.from("so_nfse").update({amount:total}).eq("contract_id",contractId).eq("status","draft");
+   if(nfErr)console.warn("NFS-e draft update:",nfErr.message);
+   await audit("update","contract",contractId,{event:o.event_name,total,method,installments:count});
+   toast("Contrato atualizado e cobranças revisadas.");
   }else{
-   const tx=("SO"+Date.now().toString(36)+id().replaceAll("-","").slice(0,6)).toUpperCase().slice(0,25);
-   await sb.from("so_receivables").insert({contract_id:contractId,description:"Contrato - "+o.event_name,amount:total,due_date:dueDate,txid:tx});
+   const {data:c,error}=await sb.from("so_contracts").insert({...o,status:"active"}).select().single();
+   if(error)throw Error(error.message);
+   const {error:chargeError}=await sb.from("so_receivables").insert(plan.map((part,i)=>newCharge(c.id,o.event_name,part,i,plan.length)));
+   if(chargeError)throw Error("Contrato criado, mas as parcelas não foram geradas: "+chargeError.message);
+   const {error:nfErr}=await sb.from("so_nfse").insert({contract_id:c.id,status:"draft",amount:total});
+   if(nfErr)console.warn("NFS-e draft creation:",nfErr.message);
+   await audit("create","contract",c.id,{event:o.event_name,total,method,installments:count});
+   toast("Contrato criado com "+count+" cobrança(s).");
   }
-  await sb.from("so_nfse").update({amount:total}).eq("contract_id",contractId).eq("status","draft");
-  await audit("update","contract",contractId,{event:o.event_name,total});
-  toast("Contrato atualizado");
- }else{
-  const {data:c,error}=await sb.from("so_contracts").insert({...o,status:"active"}).select().single();
-  if(error)return toast(error.message);
-  const tx=("SO"+Date.now().toString(36)+id().replaceAll("-","").slice(0,6)).toUpperCase().slice(0,25);
-  await sb.from("so_receivables").insert({contract_id:c.id,description:"Contrato - "+o.event_name,amount:total,due_date:dueDate,txid:tx});
-  await sb.from("so_nfse").insert({contract_id:c.id,status:"draft",amount:total});
-  await audit("create","contract",c.id,{event:o.event_name,total});
-  toast("Contrato criado");
+  render();
+ }catch(e){
+  toast(e?.message||String(e));
+  form.querySelector("button[type=submit],button:not([type])")?.removeAttribute("disabled");
  }
- render();
 }
 
 async function receber(){
@@ -544,13 +623,14 @@ function bindPage(){
  document.querySelectorAll("[data-local-toggle]").forEach(b=>b.onclick=async()=>{const active=b.dataset.active!=="true";const {data,error}=await publicClient.rpc("so_local_set_active",{p_token:sessionToken,p_user_id:b.dataset.localToggle,p_active:active});if(error||!data?.ok)return toast("Não foi possível alterar o usuário");toast(active?"Usuário reativado":"Usuário bloqueado");render()});
 
  if($("#newClient"))$("#newClient").onclick=()=>{$("#clientForm").innerHTML=clientForm();$("#cf").onsubmit=async e=>{e.preventDefault();let o=Object.fromEntries(new FormData(e.target));let {data,error}=await sb.from("so_clients").insert(o).select().single();if(error)return toast(error.message);await audit("create","client",data.id,{name:data.name});toast("Cliente salvo");render()}};
- if($("#newContract"))$("#newContract").onclick=()=>{$("#contractForm").innerHTML=contractForm();$("#ctf").onsubmit=async e=>{e.preventDefault();await saveContractForm(e.target)}};
+ if($("#newContract"))$("#newContract").onclick=()=>{$("#contractForm").innerHTML=contractForm();bindPaymentPlan($("#ctf"));$("#ctf").onsubmit=async e=>{e.preventDefault();await saveContractForm(e.target)}};
  document.querySelectorAll("[data-edit-contract]").forEach(b=>b.onclick=async()=>{
  const id=b.dataset.editContract;
  const item=(window.__solarContracts||[]).find(x=>String(x.id)===String(id));
  if(!item)return toast("Contrato não encontrado");
- const {data:r}=await sb.from("so_receivables").select("due_date").eq("contract_id",id).order("created_at",{ascending:true}).limit(1).maybeSingle();
- $("#contractForm").innerHTML=contractForm(item,r?.due_date||item.event_date||"");
+ const {data:rows}=await sb.from("so_receivables").select("due_date").eq("contract_id",id).order("created_at",{ascending:true});
+ $("#contractForm").innerHTML=contractForm(item,rows?.[0]?.due_date||item.event_date||"",Math.max(1,rows?.length||0));
+ bindPaymentPlan($("#ctf"));
  $("#contractForm").scrollIntoView({behavior:"smooth",block:"start"});
  $("#ctf").onsubmit=async e=>{e.preventDefault();await saveContractForm(e.target)};
  if($("#cancelContractEdit"))$("#cancelContractEdit").onclick=()=>{$("#contractForm").innerHTML=""};
