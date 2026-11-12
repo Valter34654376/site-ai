@@ -9,12 +9,12 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
 :root{
  --gold:#c98d2f;--gold-2:#e6b85b;--dark:#171715;--dark-2:#22221f;--bg:#f5f2eb;--card:#fff;
- --muted:#77746d;--line:#e8e1d6;--ok:#e4f5e9;--warn:#fff3d2;--danger:#a74444;--shadow:0 14px 35px rgba(56,43,23,.08)
+ --muted:#77746d;--line:#e8e1d6;--ok:#e4f5e9;--warn:#fff3d2;--danger:#a74444;--shadow:0 4px 14px rgba(56,43,23,.06)
 }
-*{box-sizing:border-box}html{background:var(--bg)}body{margin:0;font-family:'DM Sans',Arial,sans-serif;background:radial-gradient(circle at top right,#fff7e7 0,transparent 28%),var(--bg);color:#262520}
+*{box-sizing:border-box}html{background:var(--bg)}body{margin:0;font-family:'DM Sans',Arial,sans-serif;background:var(--bg);color:#262520}
 button,input,select,textarea{font:inherit}#app{min-height:100vh}
 .layout{display:flex;min-height:100vh}
-.side{width:252px;background:linear-gradient(180deg,#171715 0%,#1e1e1b 100%);color:white;padding:22px 16px;position:fixed;inset:0 auto 0 0;overflow:auto;border-right:1px solid #2e2d28}
+.side{width:232px;background:linear-gradient(180deg,#171715 0%,#1e1e1b 100%);color:white;padding:18px 14px;position:fixed;inset:0 auto 0 0;overflow:auto;border-right:1px solid #2e2d28}
 .brand{display:flex;align-items:center;gap:12px;padding:5px 8px 20px;margin-bottom:8px;border-bottom:1px solid #2d2d29}
 .brand img{width:42px;height:42px;border-radius:13px;box-shadow:0 8px 20px rgba(0,0,0,.25)}
 .brand-copy strong{display:block;font-family:'Playfair Display',serif;font-size:20px;color:#f3d38f;letter-spacing:.2px}.brand-copy span{font-size:10px;color:#9e9c95;text-transform:uppercase;letter-spacing:1.7px}
@@ -22,14 +22,14 @@ button,input,select,textarea{font:inherit}#app{min-height:100vh}
 .side button:hover{background:#292925;color:#fff;transform:translateX(2px)}.side button.active{background:linear-gradient(90deg,rgba(201,141,47,.24),rgba(201,141,47,.07));color:#f6d999;box-shadow:inset 3px 0 0 var(--gold)}
 .side .nav-icon{width:20px;height:20px;display:grid;place-items:center;font-size:15px;opacity:.95}
 .side .logout{margin-top:14px;border:1px solid #35352f;color:#aaa}
-.main{margin-left:252px;padding:32px 36px 50px;width:calc(100% - 252px);max-width:1600px}
+.main{margin-left:232px;padding:28px 32px 44px;width:calc(100% - 232px);max-width:1600px}
 .page-kicker{color:var(--gold);font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px}
-h1,h2,h3{font-family:'Playfair Display',serif;margin-top:0;color:#24231f}h1{font-size:34px;line-height:1.08;margin-bottom:6px}h2{font-size:24px}
+h1,h2,h3{font-family:'Playfair Display',serif;margin-top:0;color:#24231f}h1{font-size:31px;line-height:1.08;margin-bottom:6px}h2{font-size:24px}
 .top{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:18px}.top:after{content:"";display:none}
-.card{background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:17px;padding:18px;margin:14px 0;box-shadow:var(--shadow)}
+.card{background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0;box-shadow:var(--shadow)}
 .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px}
 .metric{position:relative;overflow:hidden;padding:20px}.metric:before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:linear-gradient(var(--gold-2),var(--gold))}.metric span{font-size:12px;color:var(--muted);font-weight:600}.metric b{display:block;font-family:'Playfair Display',serif;font-size:27px;margin-top:8px;color:#22211d}.metric small{display:block;margin-top:6px;color:#9a968d;font-size:11px}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:0;border-radius:10px;padding:10px 14px;background:linear-gradient(135deg,#d39a3d,#b9791f);box-shadow:0 7px 16px rgba(185,121,31,.2);color:white;text-decoration:none;cursor:pointer;font-weight:700;transition:.18s ease}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:0;border-radius:10px;padding:10px 14px;background:#c48627;box-shadow:none;color:white;text-decoration:none;cursor:pointer;font-weight:700;transition:.18s ease}
 .btn:hover{transform:translateY(-1px);filter:brightness(1.04)}.btn.gray{background:#53524e;box-shadow:none}.btn.danger{background:var(--danger);box-shadow:none}.btn.small{padding:7px 10px;font-size:12px}
 table{width:100%;border-collapse:separate;border-spacing:0;background:white;border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 8px 25px rgba(60,45,22,.04)}
 th,td{padding:12px 13px;border-bottom:1px solid #eee9e0;text-align:left;font-size:13px;vertical-align:middle}th{background:#fbf8f2;color:#716d64;font-size:10px;text-transform:uppercase;letter-spacing:.9px;font-weight:800}tbody tr:hover td{background:#fffcf6}tr:last-child td{border-bottom:0}
@@ -43,16 +43,16 @@ textarea{min-height:88px;resize:vertical}.form{display:grid;grid-template-column
 .login-art h2{position:relative;font-size:48px;color:#f4d592;max-width:500px;margin:0}.login-art p{position:relative;color:#aaa69c;max-width:500px;line-height:1.6}
 .login{display:flex;align-items:center;justify-content:center;padding:30px;background:linear-gradient(180deg,#f8f5ef,#eee8de)}.login .card{width:min(440px,100%);padding:30px;border-radius:22px}.login-logo{display:flex;align-items:center;gap:12px;margin-bottom:22px}.login-logo img{width:48px;height:48px}.login-logo strong{font-family:'Playfair Display',serif;font-size:25px}
 .code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all;background:#f3f0e9;border:1px dashed #d7cdbd;padding:11px;border-radius:10px;font-size:11px}.toast{position:fixed;right:20px;top:20px;background:#24231f;color:#fff;padding:13px 16px;border-radius:11px;z-index:9999;box-shadow:0 18px 40px rgba(0,0,0,.22)}
-.warnbox{background:linear-gradient(90deg,#fff4d6,#fffaf0);border:1px solid #f1d38f;padding:13px 15px;border-radius:11px}
+.warnbox{background:#fff9ec;border:1px solid #ecd8a8;padding:13px 15px;border-radius:11px}
 .dashboard-hero{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:22px}.dashboard-hero p{margin:4px 0 0;color:var(--muted)}
 .summary-strip{margin-top:15px;background:linear-gradient(135deg,#191916,#2a2923);border-radius:18px;padding:20px 22px;color:#fff;display:flex;justify-content:space-between;gap:20px;align-items:center;box-shadow:0 18px 40px rgba(29,26,19,.18)}.summary-strip strong{font-family:'Playfair Display',serif;font-size:25px;color:#f1ce82}.summary-strip span{font-size:12px;color:#aaa79f}
 .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:12px}.day{min-height:120px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:9px}.day b{font-size:12px}.evt{font-size:10px;background:#f8edda;border-left:3px solid var(--gold);padding:5px 6px;border-radius:6px;margin-top:5px}
-.empty{padding:42px 18px;text-align:center;color:var(--muted);border:1px dashed #d9d1c5;border-radius:14px;background:#fffdf9}
+.empty{padding:34px 18px;text-align:center;color:var(--muted);border:1px dashed #d9d1c5;border-radius:12px;background:#fff}.advanced-panel{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:#fbfaf7}.advanced-panel summary{cursor:pointer;font-weight:700;color:#57534c}.advanced-panel[open] summary{margin-bottom:12px}.advanced-grid{margin-top:8px}.subtle-note{font-size:12px;color:var(--muted);line-height:1.5}.badge.late{background:#fde8e3;color:#953b31}
 @media(max-width:1050px){.grid{grid-template-columns:repeat(2,1fr)}.main{padding:26px}.login-page{grid-template-columns:1fr}.login-art{display:none}}
 @media(max-width:850px){.layout{display:block}.side{position:static;width:100%;display:flex;gap:4px;overflow:auto;align-items:center}.brand{min-width:210px;border:0;margin:0;padding:3px 8px}.brand-copy span{display:none}.side button{min-width:max-content}.main{margin:0;width:100%;padding:18px}.form{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.grid,.form{grid-template-columns:1fr}.dashboard-hero,.top{align-items:flex-start;flex-direction:column}.calendar{grid-template-columns:1fr 1fr}.main{padding:15px}h1{font-size:29px}}
 </style>
-<link rel="stylesheet" href="/enhance.css"></head>
+</head>
 <body><div id="app"></div>
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
@@ -106,9 +106,9 @@ async function passwordDigest(username,password){
  return Array.from(new Uint8Array(bits),b=>b.toString(16).padStart(2,"0")).join("");
 }
 const navMeta={
- dashboard:["Painel","◫"],clientes:["Clientes","◎"],agenda:["Agenda","▦"],contratos:["Contratos","▤"],receber:["A receber","↙"],recebimentos:["Recebimentos","✓"],despesas:["Despesas","↗"],nfse:["NFS-e","N"],usuarios:["Usuários","♙"],auditoria:["Auditoria","⌁"]
+ dashboard:["Início","◫"],clientes:["Clientes","◎"],agenda:["Agenda","▦"],contratos:["Contratos","▤"],receber:["Cobranças","↙"],recebimentos:["Pagamentos","✓"],despesas:["Despesas","↗"],nfse:["Notas fiscais","N"],usuarios:["Equipe","♙"],auditoria:["Histórico","⌁"]
 };
-function nav(){return Object.entries(navMeta).map(([x,m])=>`<button data-route="${x}" class="${route===x?"active":""}"><span class="nav-icon">${m[1]}</span><span>${m[0]}</span></button>`).join("")}
+function nav(){return Object.entries(navMeta).filter(([x])=>profile?.role==="admin"||!["usuarios","auditoria"].includes(x)).map(([x,m])=>`<button data-route="${x}" class="${route===x?"active":""}"><span class="nav-icon">${m[1]}</span><span>${m[0]}</span></button>`).join("")}
 function shell(body){return `<div class="layout"><aside class="side"><div class="brand"><img src="/favicon.svg" alt=""><div class="brand-copy"><strong>Solar Opará</strong><span>Gestão de Eventos</span></div></div>${nav()}<button id="logout" class="logout"><span class="nav-icon">↪</span><span>Sair</span></button></aside><main class="main">${body}</main></div>`}
 function bindNav(){document.querySelectorAll("[data-route]").forEach(b=>b.onclick=()=>{route=b.dataset.route;render()});$("#logout").onclick=async()=>{if(sessionToken)await publicClient.rpc("so_local_logout",{p_token:sessionToken});await googleClient.auth.signOut();sessionStorage.removeItem("solar_session");sessionToken="";me=null;profile=null;location.reload()}}
 function setApp(h){$("#app").innerHTML=h}
@@ -164,7 +164,7 @@ async function loginView(){
  const googleResult=await finishGoogleLogin();
  if(googleResult===true)return render();
  const denied=typeof googleResult==="string"?`<div class="warnbox" style="margin:14px 0">${esc(googleResult)}</div>`:"";
- setApp(`<div class="login-page"><section class="login-art"><h2>Gestão simples para momentos importantes.</h2><p>Clientes, agenda, contratos, financeiro, Pix, documentos e NFS-e organizados em um único lugar.</p></section><section class="login"><div class="card"><div class="login-logo"><img src="/favicon.svg" alt=""><div><strong>Solar Opará</strong><div class="muted">Gestão de Eventos</div></div></div><h1 style="font-size:28px">Bem-vindo de volta</h1><p class="muted">Entre com uma conta Google autorizada pelo administrador.</p>${denied}<button class="btn" style="width:100%;margin-top:14px" id="googleLoginBtn">G&nbsp;&nbsp;Continuar com Google</button><p class="muted" style="font-size:12px;margin-top:16px">Não usamos senha própria do Solar Opará. O acesso depende do e-mail Google autorizado.</p></div></section></div>`);
+ setApp(`<div class="login-page"><section class="login-art"><h2>Gestão simples para momentos importantes.</h2><p>Clientes, agenda, contratos, financeiro, Pix, documentos e NFS-e organizados em um único lugar.</p></section><section class="login"><div class="card"><div class="login-logo"><img src="/favicon.svg" alt=""><div><strong>Solar Opará</strong><div class="muted">Gestão de Eventos</div></div></div><h1 style="font-size:28px">Bem-vindo de volta</h1><p class="muted">Entre com uma conta Google autorizada pelo administrador.</p>${denied}<button class="btn" style="width:100%;margin-top:14px" id="googleLoginBtn">G&nbsp;&nbsp;Continuar com Google</button><p class="muted" style="font-size:12px;margin-top:16px">Use sua conta Google autorizada para acessar.</p></div></section></div>`);
  $("#googleLoginBtn").onclick=async()=>{
    const b=$("#googleLoginBtn"); b.disabled=true; b.textContent="Abrindo Google...";
    const {error}=await googleClient.auth.signInWithOAuth({
@@ -202,17 +202,17 @@ async function render(){
  if(route==="usuarios")body=await usuarios();
  if(route==="auditoria")body=await auditoria();
  setApp(shell(body));bindNav();bindPage();
- }catch(e){console.error(e);setApp(shell(`<div class=card><h2>Erro</h2><pre>${esc(e.message)}</pre></div>`));bindNav()}
+ }catch(e){console.error(e);setApp(shell(`<div class=card><h2>Não foi possível carregar esta tela</h2><p class="muted">Atualize a página e tente novamente. Se o problema continuar, procure o administrador.</p><button class="btn" onclick="location.reload()">Atualizar</button></div>`));bindNav()}
 }
 async function dashboard(){
  const [{data:c},{data:r},{data:p},{data:e}]=await Promise.all([sb.from("so_contracts").select("*"),sb.from("so_receivables").select("*"),sb.from("so_payments").select("*").eq("reversed",false),sb.from("so_expenses").select("*")]);
  const total=(r||[]).reduce((a,x)=>a+Number(x.amount),0),paid=(p||[]).reduce((a,x)=>a+Number(x.amount),0),exp=(e||[]).reduce((a,x)=>a+Number(x.amount),0),saldo=paid-exp;
- return `<div class="dashboard-hero"><div><div class="page-kicker">Visão geral</div><h1>Painel de gestão</h1><p>Acompanhe contratos, recebimentos e despesas do Solar Opará.</p></div><button class=btn data-route="contratos">＋ Novo contrato</button></div><div class=grid>
+ return `<div class="dashboard-hero"><div><div class="page-kicker">Resumo</div><h1>Visão geral</h1><p>As principais informações do Solar Opará em um só lugar.</p></div><button class=btn data-route="contratos">＋ Novo contrato</button></div><div class=grid>
  <div class="card metric"><span>Contratos</span><b>${(c||[]).length}</b><small>eventos cadastrados</small></div>
- <div class="card metric"><span>A receber</span><b>${money(Math.max(0,total-paid))}</b><small>saldo pendente</small></div>
- <div class="card metric"><span>Recebido</span><b>${money(paid)}</b><small>pagamentos confirmados</small></div>
+ <div class="card metric"><span>Em aberto</span><b>${money(Math.max(0,total-paid))}</b><small>valores a receber</small></div>
+ <div class="card metric"><span>Recebido</span><b>${money(paid)}</b><small>pagamentos registrados</small></div>
  <div class="card metric"><span>Despesas</span><b>${money(exp)}</b><small>saídas registradas</small></div></div>
- <div class="summary-strip"><div><span>Saldo financeiro registrado</span><br><strong>${money(saldo)}</strong></div><div><span>Pix oficial</span><br><b>33.958.617/0001-73</b></div></div>`;
+ <div class="summary-strip"><div><span>Saldo registrado</span><br><strong>${money(saldo)}</strong></div><div><span>Pix oficial</span><br><b>33.958.617/0001-73</b></div></div>`;
 }
 async function clientes(){
  const {data}=await sb.from("so_clients").select("*").order("created_at",{ascending:false});
@@ -573,15 +573,15 @@ function nfContractTotal(c){
 function nfDraftForm(n){
  const c=n.so_contracts||{},cl=c.so_clients||{},amount=n.amount??nfContractTotal(c),competence=n.competence_date||c.event_date||"";
  return `<div class="card nf-editor"><div class="top"><div><div class="page-kicker">Preparação fiscal</div><h2>Dados da NFS-e</h2><p class="muted">Dados que serão enviados ao Ambiente Nacional.</p></div><button type="button" class="btn gray" id="nfCancel">Fechar</button></div>
- <div class="nf-party"><div><span>Tomador</span><b>${esc(cl.name||"—")}</b></div><div><span>CPF/CNPJ</span><b>${esc(cl.document||"NÃO INFORMADO")}</b></div><div><span>E-mail</span><b>${esc(cl.email||"—")}</b></div><div><span>Evento</span><b>${esc(c.event_name||"—")}</b></div></div>
+ <div class="nf-party"><div><span>Cliente</span><b>${esc(cl.name||"—")}</b></div><div><span>CPF/CNPJ</span><b>${esc(cl.document||"NÃO INFORMADO")}</b></div><div><span>E-mail</span><b>${esc(cl.email||"—")}</b></div><div><span>Evento</span><b>${esc(c.event_name||"—")}</b></div></div>
  <form id="nfDraftForm" class="form">
  <input type="hidden" name="id" value="${n.id}">
- <label>Competência<input type="date" name="competence_date" required value="${esc(competence)}"></label>
+ <label>Data de competência<input type="date" name="competence_date" required value="${esc(competence)}"></label>
  <label>Valor<input type="number" step="0.01" min="0.01" name="amount" required value="${Number(amount||0).toFixed(2)}"></label>
  <label class="full">Descrição do serviço<textarea name="service_description" required>${esc(n.service_description||window.__solarFiscalSettings?.default_service_description||"")}</textarea></label>
- <label>Código nacional<input name="service_code" required value="${esc(n.service_code||window.__solarFiscalSettings?.service_code||"030301")}"></label>
+ <label>Código do serviço<input name="service_code" required value="${esc(n.service_code||window.__solarFiscalSettings?.service_code||"030301")}"></label>
  <label>CEP do tomador<input name="tomador_cep" inputmode="numeric" value="${esc(n.tomador_cep||"")}"></label>
- <label>Código IBGE do tomador<input name="tomador_city_code" inputmode="numeric" value="${esc(n.tomador_city_code||"")}"></label>
+ <label>Código do município (IBGE)<input name="tomador_city_code" inputmode="numeric" value="${esc(n.tomador_city_code||"")}"></label>
  <label>Logradouro<input name="tomador_street" value="${esc(n.tomador_street||"")}"></label>
  <label>Número<input name="tomador_number" value="${esc(n.tomador_number||"")}"></label>
  <label>Bairro<input name="tomador_neighborhood" value="${esc(n.tomador_neighborhood||"")}"></label>
@@ -606,28 +606,30 @@ function nfIssueForm(n){
 }
 function nfFiscalForm(fs){
  const sel=(v,x)=>String(v??"")===String(x)?" selected":"";
- return `<div class="card"><div class="top"><div><div class="page-kicker">Configuração</div><h2>Parâmetros fiscais</h2><p class="muted">Produção só é liberada após confirmação do administrador.</p></div></div>
+ return `<div class="card"><div class="top"><div><div class="page-kicker">Configuração</div><h2>Dados fiscais</h2><p class="muted">Revise os dados principais. As opções avançadas só precisam ser alteradas com orientação contábil.</p></div></div>
  <form id="nfFiscalForm" class="form">
  <label>CNPJ<input value="33.958.617/0001-73" disabled></label>
- <label>Município<input value="Pirapora/MG · 3151206" disabled></label>
+ <label>Município<input value="Pirapora/MG" disabled></label>
  <label>Inscrição municipal<input name="municipal_registration" value="${esc(fs.municipal_registration||"")}"></label>
+ <label>Simples Nacional<select name="op_simp_nac" required><option value="">Selecione</option><option value="1"${sel(fs.op_simp_nac,1)}>Não optante</option><option value="2"${sel(fs.op_simp_nac,2)}>MEI</option><option value="3"${sel(fs.op_simp_nac,3)}>Simples Nacional</option></select></label>
+ <label>Ambiente<select name="environment"><option value="restrita"${sel(fs.environment,"restrita")}>Teste</option><option value="producao"${sel(fs.environment,"producao")}>Produção</option></select></label>
+ <label class="full">Descrição padrão do serviço<textarea name="default_service_description">${esc(fs.default_service_description||"Exploração de salão de festas e espaço para realização de eventos.")}</textarea></label>
+ <details class="advanced-panel full"><summary>Configurações fiscais avançadas</summary><p class="subtle-note">Mantenha estes dados conforme orientação do contador. Eles continuam sendo usados normalmente pelo sistema.</p><div class="form advanced-grid">
  <label>Série DPS<input name="dps_series" required value="${esc(fs.dps_series||"1601")}"></label>
- <label>Código nacional<input name="service_code" required value="${esc(fs.service_code||"030301")}"></label>
+ <label>Código nacional do serviço<input name="service_code" required value="${esc(fs.service_code||"030301")}"></label>
  <label>NBS (se aplicável)<input name="nbs_code" value="${esc(fs.nbs_code||"")}"></label>
- <label>Simples Nacional<select name="op_simp_nac" required><option value="">Selecione</option><option value="1"${sel(fs.op_simp_nac,1)}>1 — Não optante</option><option value="2"${sel(fs.op_simp_nac,2)}>2 — MEI</option><option value="3"${sel(fs.op_simp_nac,3)}>3 — Simples ME/EPP</option></select></label>
- <label>Regime de apuração SN<select name="reg_ap_trib_sn"><option value="">Não se aplica</option><option value="1"${sel(fs.reg_ap_trib_sn,1)}>1 — Federais e ISS pelo Simples</option><option value="2"${sel(fs.reg_ap_trib_sn,2)}>2 — Federais pelo Simples, ISS fora</option><option value="3"${sel(fs.reg_ap_trib_sn,3)}>3 — Tributos fora do Simples</option></select></label>
- <label>Regime especial<select name="reg_esp_trib"><option value="0"${sel(fs.reg_esp_trib,0)}>0 — Nenhum</option><option value="1"${sel(fs.reg_esp_trib,1)}>1 — Ato cooperado</option><option value="2"${sel(fs.reg_esp_trib,2)}>2 — Estimativa</option><option value="3"${sel(fs.reg_esp_trib,3)}>3 — Microempresa municipal</option><option value="4"${sel(fs.reg_esp_trib,4)}>4 — Notário/registrador</option><option value="5"${sel(fs.reg_esp_trib,5)}>5 — Profissional autônomo</option><option value="6"${sel(fs.reg_esp_trib,6)}>6 — Sociedade de profissionais</option></select></label>
- <label>ISSQN<select name="trib_issqn"><option value="1"${sel(fs.trib_issqn,1)}>1 — Operação tributável</option><option value="2"${sel(fs.trib_issqn,2)}>2 — Imunidade</option><option value="3"${sel(fs.trib_issqn,3)}>3 — Exportação</option><option value="4"${sel(fs.trib_issqn,4)}>4 — Não incidência</option></select></label>
- <label>Retenção ISSQN<select name="tp_ret_issqn"><option value="1"${sel(fs.tp_ret_issqn,1)}>1 — Não retido</option><option value="2"${sel(fs.tp_ret_issqn,2)}>2 — Retido pelo tomador</option><option value="3"${sel(fs.tp_ret_issqn,3)}>3 — Retido pelo intermediário</option></select></label>
+ <label>Regime de apuração<select name="reg_ap_trib_sn"><option value="">Não se aplica</option><option value="1"${sel(fs.reg_ap_trib_sn,1)}>Federais e ISS pelo Simples</option><option value="2"${sel(fs.reg_ap_trib_sn,2)}>Federais pelo Simples, ISS fora</option><option value="3"${sel(fs.reg_ap_trib_sn,3)}>Tributos fora do Simples</option></select></label>
+ <label>Regime especial<select name="reg_esp_trib"><option value="0"${sel(fs.reg_esp_trib,0)}>Nenhum</option><option value="1"${sel(fs.reg_esp_trib,1)}>Ato cooperado</option><option value="2"${sel(fs.reg_esp_trib,2)}>Estimativa</option><option value="3"${sel(fs.reg_esp_trib,3)}>Microempresa municipal</option><option value="4"${sel(fs.reg_esp_trib,4)}>Notário/registrador</option><option value="5"${sel(fs.reg_esp_trib,5)}>Profissional autônomo</option><option value="6"${sel(fs.reg_esp_trib,6)}>Sociedade de profissionais</option></select></label>
+ <label>ISSQN<select name="trib_issqn"><option value="1"${sel(fs.trib_issqn,1)}>Operação tributável</option><option value="2"${sel(fs.trib_issqn,2)}>Imunidade</option><option value="3"${sel(fs.trib_issqn,3)}>Exportação</option><option value="4"${sel(fs.trib_issqn,4)}>Não incidência</option></select></label>
+ <label>Retenção do ISS<select name="tp_ret_issqn"><option value="1"${sel(fs.tp_ret_issqn,1)}>Não retido</option><option value="2"${sel(fs.tp_ret_issqn,2)}>Retido pelo tomador</option><option value="3"${sel(fs.tp_ret_issqn,3)}>Retido pelo intermediário</option></select></label>
  <label>Alíquota ISS (%)<input type="number" step=".01" name="iss_rate" value="${esc(fs.iss_rate??"")}"></label>
- <label>Alíquota nominal Simples (%)<input type="number" step=".01" name="tot_trib_sn" value="${esc(fs.tot_trib_sn??"")}"></label>
+ <label>Alíquota Simples (%)<input type="number" step=".01" name="tot_trib_sn" value="${esc(fs.tot_trib_sn??"")}"></label>
  <label>Tributos federais aprox. (%)<input type="number" step=".01" name="tot_trib_fed" value="${esc(fs.tot_trib_fed??"")}"></label>
  <label>Tributos estaduais aprox. (%)<input type="number" step=".01" name="tot_trib_est" value="${esc(fs.tot_trib_est??"")}"></label>
  <label>Tributos municipais aprox. (%)<input type="number" step=".01" name="tot_trib_mun" value="${esc(fs.tot_trib_mun??"")}"></label>
- <label>CST PIS/COFINS (opcional)<input name="piscofins_cst" value="${esc(fs.piscofins_cst||"")}"></label>
- <label>Ambiente<select name="environment"><option value="restrita"${sel(fs.environment,"restrita")}>Teste / produção restrita</option><option value="producao"${sel(fs.environment,"producao")}>Produção — efeito fiscal</option></select></label>
- <label class="full">Descrição padrão<textarea name="default_service_description">${esc(fs.default_service_description||"Exploração de salão de festas e espaço para realização de eventos.")}</textarea></label>
- <div class="full row"><button class="btn">Salvar parâmetros</button><button type="button" class="btn gray" id="nfConfirmFiscal">Confirmar configuração</button></div>
+ <label>CST PIS/COFINS<input name="piscofins_cst" value="${esc(fs.piscofins_cst||"")}"></label>
+ </div></details>
+ <div class="full row"><button class="btn">Salvar</button><button type="button" class="btn gray" id="nfConfirmFiscal">Confirmar revisão</button></div>
  </form></div>`;
 }
 
@@ -639,31 +641,33 @@ async function nfse(){
  return `<style>
  .nf-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:14px 0}.nf-kpis .card{margin:0}.nf-kpis span{display:block;color:#817c72;font-size:12px}.nf-kpis b{display:block;font-size:25px;margin-top:5px}.nf-banner{display:flex;justify-content:space-between;gap:16px;align-items:center}.nf-banner .row{flex-wrap:wrap}.nf-party{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:8px 0 18px}.nf-party>div{background:#faf7f1;border:1px solid #e8dfd2;border-radius:10px;padding:10px}.nf-party span{display:block;color:#888277;font-size:11px;text-transform:uppercase;letter-spacing:.5px}.nf-party b{display:block;margin-top:4px}.nf-editor{margin-top:14px}.nf-actions{display:flex;gap:6px;flex-wrap:wrap}.badge.ready{background:#fff1c9;color:#7a5311}.badge.late{background:#fde0dc;color:#9b3025}.nf-num{font-family:ui-monospace,Consolas,monospace;font-size:12px;word-break:break-all}@media(max-width:900px){.nf-kpis,.nf-party{grid-template-columns:1fr 1fr}}@media(max-width:560px){.nf-kpis,.nf-party{grid-template-columns:1fr}}
  </style>
- <div class="top"><div><div class="page-kicker">Fiscal</div><h1>NFS-e</h1><p class="muted">Controle das notas fiscais do Solar Opará.</p></div></div>
- <div class="warnbox nf-banner"><div><b>Emissão Nacional — Pirapora/MG.</b><br><span>Modo atual: manual assistido. A emissão por API permanece bloqueada até credenciamento, certificado A1 e parâmetros fiscais validados.</span></div><div class="row"><a class="btn" target="_blank" rel="noopener" href="https://www.nfse.gov.br/EmissorNacional/">Abrir Emissor Nacional</a><a class="btn gray" target="_blank" rel="noopener" href="https://www.gov.br/pt-br/servicos/consultar-nota-fiscal-de-servico-eletronica">Consultar NFS-e</a></div></div>
+ <div class="top"><div><div class="page-kicker">Fiscal</div><h1>Notas fiscais</h1><p class="muted">Prepare, registre e acompanhe as NFS-e do Solar Opará.</p></div></div>
+ <div class="warnbox nf-banner"><div><b>Emissão de NFS-e — Pirapora/MG</b><br><span>Prepare os dados aqui e conclua a emissão no portal oficial quando necessário.</span></div><div class="row"><a class="btn" target="_blank" rel="noopener" href="https://www.nfse.gov.br/EmissorNacional/">Emitir NFS-e</a><a class="btn gray" target="_blank" rel="noopener" href="https://www.gov.br/pt-br/servicos/consultar-nota-fiscal-de-servico-eletronica">Consultar nota</a></div></div>
  <div class="nf-kpis"><div class="card"><span>Rascunhos</span><b>${draft}</b></div><div class="card"><span>Prontas</span><b>${ready}</b></div><div class="card"><span>Emitidas</span><b>${issued}</b></div><div class="card"><span>Valor emitido</span><b>${money(issuedValue)}</b></div></div>
- <div class="card"><h2>Notas e rascunhos</h2>${rows.length?`<div style="overflow:auto"><table><tr><th>Evento</th><th>Tomador</th><th>Competência</th><th>Valor</th><th>Status</th><th>NFS-e / chave</th><th>Ações</th></tr>
- ${rows.map(x=>{const c=x.so_contracts||{},cl=c.so_clients||{},amount=x.amount??nfContractTotal(c),competence=x.competence_date||c.event_date||"";return `<tr><td><b>${esc(c.event_name||"—")}</b></td><td>${esc(cl.name||"—")}<br><span class="muted">${esc(cl.document||"CPF/CNPJ não informado")}</span></td><td>${dateBR(competence)}</td><td>${money(amount)}</td><td><span class="badge ${nfStatusClass(x.status)}">${nfStatusLabel(x.status)}</span></td><td><span class="nf-num">${esc(x.nfse_number||x.number_key||"—")}</span>${x.access_key?`<br><span class="muted nf-num">${esc(x.access_key)}</span>`:""}</td><td><div class="nf-actions">${x.status!=="issued"?`<button class="btn small gray" data-nf-edit="${x.id}">Editar</button><button class="btn small gray" data-nf-copy="${x.id}">Copiar dados</button><a class="btn small" target="_blank" rel="noopener" href="https://www.nfse.gov.br/EmissorNacional/">Emitir no portal</a><button class="btn small" data-nf-issue="${x.id}">Registrar emitida</button>`:`<a class="btn small gray" target="_blank" rel="noopener" href="https://www.gov.br/pt-br/servicos/consultar-nota-fiscal-de-servico-eletronica">Consultar</a>`}</div></td></tr>`}).join("")}</table></div>`:'<div class="empty">Nenhuma NFS-e cadastrada.</div>'}</div>
+ <div class="card"><h2>Notas fiscais</h2>${rows.length?`<div style="overflow:auto"><table><tr><th>Evento</th><th>Cliente</th><th>Data</th><th>Valor</th><th>Status</th><th>Número / chave</th><th>Ações</th></tr>
+ ${rows.map(x=>{const c=x.so_contracts||{},cl=c.so_clients||{},amount=x.amount??nfContractTotal(c),competence=x.competence_date||c.event_date||"";return `<tr><td><b>${esc(c.event_name||"—")}</b></td><td>${esc(cl.name||"—")}<br><span class="muted">${esc(cl.document||"CPF/CNPJ não informado")}</span></td><td>${dateBR(competence)}</td><td>${money(amount)}</td><td><span class="badge ${nfStatusClass(x.status)}">${nfStatusLabel(x.status)}</span></td><td><span class="nf-num">${esc(x.nfse_number||x.number_key||"—")}</span>${x.access_key?`<br><span class="muted nf-num">${esc(x.access_key)}</span>`:""}</td><td><div class="nf-actions">${x.status!=="issued"?`<button class="btn small gray" data-nf-edit="${x.id}">Editar</button><button class="btn small gray" data-nf-copy="${x.id}">Copiar</button><a class="btn small" target="_blank" rel="noopener" href="https://www.nfse.gov.br/EmissorNacional/">Emitir</a><button class="btn small" data-nf-issue="${x.id}">Registrar</button>`:`<a class="btn small gray" target="_blank" rel="noopener" href="https://www.gov.br/pt-br/servicos/consultar-nota-fiscal-de-servico-eletronica">Consultar</a>`}</div></td></tr>`}).join("")}</table></div>`:'<div class="empty">Nenhuma NFS-e cadastrada.</div>'}</div>
  <div id="nfForm"></div>`;
 }
 async function usuarios(){
  if(profile?.role!=="admin")return `<h1>Usuários</h1><div class="warnbox">Somente administradores podem gerenciar acessos.</div>`;
  const {data,error}=await publicClient.rpc("so_local_list_users",{p_token:sessionToken});
  const users=error?[]:(data||[]);
- return `<div class="top"><div><div class="page-kicker">Acessos Google</div><h1>Usuários</h1><p class="muted">Somente contas Google autorizadas aqui conseguem entrar no sistema.</p></div></div>
- <div class="card"><h2>Liberar novo usuário</h2><form id="googleUserForm" class="form">
+ return `<div class="top"><div><div class="page-kicker">Administração</div><h1>Equipe e acessos</h1><p class="muted">Gerencie quem pode acessar o sistema e o nível de permissão de cada pessoa.</p></div></div>
+ <div class="card"><h2>Adicionar pessoa</h2><form id="googleUserForm" class="form">
  <label>Nome<input name="name" required></label>
- <label>E-mail Google<input name="email" type="email" required autocomplete="off" placeholder="usuario@gmail.com"></label>
+ <label>E-mail<input name="email" type="email" required autocomplete="off" placeholder="usuario@gmail.com"></label>
  <label>Perfil<select name="role"><option value="operator">Operador</option><option value="viewer">Consulta</option><option value="admin">Administrador</option></select></label>
- <div class="full"><button class="btn">Liberar acesso</button></div></form></div>
- <div class="card"><h2>Usuários autorizados</h2><table><tr><th>Nome</th><th>Conta Google</th><th>Perfil</th><th>Status</th><th>Emitir NFS-e</th><th>Ações</th></tr>
- ${users.map(x=>`<tr><td>${esc(x.name)}</td><td><div class="row"><input style="min-width:230px;margin:0" type="email" data-google-input="${x.id}" value="${esc(x.google_email||"")}" placeholder="Vincular e-mail Google"><button class="btn small gray" data-google-save="${x.id}">Salvar</button></div></td><td>${esc(x.role)}</td><td><span class="badge ${x.active?"paid":""}">${x.active?"ATIVO":"BLOQUEADO"}</span></td><td>${x.role==="operator"?`<label><input type="checkbox" data-nfse-permission="${x.id}" ${x.can_issue_nfse?"checked":""}> Autorizar</label>`:x.role==="admin"?"Administrador":"Sem acesso"}</td><td>${x.id!==me.id?`<button class="btn small gray" data-local-toggle="${x.id}" data-active="${x.active}">${x.active?"Bloquear":"Reativar"}</button>`:""}</td></tr>`).join("")}</table></div>`;
+ <div class="full"><button class="btn">Adicionar acesso</button></div></form></div>
+ <div class="card"><h2>Pessoas com acesso</h2><table><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Status</th><th>Emitir NFS-e</th><th>Ações</th></tr>
+ ${users.map(x=>`<tr><td>${esc(x.name)}</td><td><div class="row"><input style="min-width:230px;margin:0" type="email" data-google-input="${x.id}" value="${esc(x.google_email||"")}" placeholder="Vincular e-mail Google"><button class="btn small gray" data-google-save="${x.id}">Salvar</button></div></td><td>${esc(({operator:"Operador",viewer:"Consulta",admin:"Administrador"})[x.role]||x.role)}</td><td><span class="badge ${x.active?"paid":""}">${x.active?"ATIVO":"BLOQUEADO"}</span></td><td>${x.role==="operator"?`<label><input type="checkbox" data-nfse-permission="${x.id}" ${x.can_issue_nfse?"checked":""}> Autorizar</label>`:x.role==="admin"?"Administrador":"Sem acesso"}</td><td>${x.id!==me.id?`<button class="btn small gray" data-local-toggle="${x.id}" data-active="${x.active}">${x.active?"Bloquear":"Reativar"}</button>`:""}</td></tr>`).join("")}</table></div>`;
 }
 async function auditoria(){
- if(profile.role!=="admin")return `<h1>Auditoria</h1><div class=warnbox>Apenas administradores.</div>`;
+ if(profile.role!=="admin")return `<h1>Histórico</h1><div class=warnbox>Acesso exclusivo da administração.</div>`;
  const {data}=await sb.from("so_audit").select("*").order("created_at",{ascending:false}).limit(200);
- return `<h1>Auditoria</h1><table><tr><th>Data</th><th>Ação</th><th>Entidade</th><th>Detalhes</th></tr>${(data||[]).map(x=>`<tr><td>${dtBR(x.created_at)}</td><td>${esc(x.action)}</td><td>${esc(x.entity)}</td><td><code>${esc(JSON.stringify(x.details))}</code></td></tr>`).join("")}</table>`;
+ const actionLabel=v=>({create:"Criado",update:"Atualizado",issue:"Nota emitida",confirm_payment:"Pagamento confirmado",import:"Importado",export:"Exportado"}[v]||String(v||"Atividade"));
+ return `<div class="top"><div><div class="page-kicker">Administração</div><h1>Histórico de atividades</h1><p class="muted">Registro das principais ações realizadas no sistema.</p></div></div><table><tr><th>Data</th><th>Atividade</th><th>Área</th><th></th></tr>${(data||[]).map(x=>`<tr><td>${dtBR(x.created_at)}</td><td>${esc(actionLabel(x.action))}</td><td>${esc(x.entity||"Sistema")}</td><td><details><summary>Detalhes</summary><code>${esc(JSON.stringify(x.details))}</code></details></td></tr>`).join("")}</table>`;
 }
+
 function emv(i,v){return i+String(v.length).padStart(2,"0")+v}function crc(s){let c=65535;for(const h of s){c^=h.charCodeAt(0)<<8;for(let i=0;i<8;i++)c=(c&32768)?((c<<1)^4129)&65535:(c<<1)&65535}return c.toString(16).toUpperCase().padStart(4,"0")}
 function pixPayload(amount,tx){const ma=emv("00","br.gov.bcb.pix")+emv("01",PIX);let p=emv("00","01")+emv("26",ma)+emv("52","0000")+emv("53","986")+emv("54",Number(amount).toFixed(2))+emv("58","BR")+emv("59","SOLAR OPARA")+emv("60","PIRAPORA")+emv("62",emv("05",tx.slice(0,25)))+"6304";return p+crc(p)}
 async function openPix(rid){
@@ -832,4 +836,4 @@ function bindPage(){
  if($("#csvPay"))$("#csvPay").onclick=async()=>{const {data}=await sb.from("so_payments").select("*").eq("reversed",false);let csv="data,valor,metodo,referencia\n"+(data||[]).map(x=>[x.paid_at,x.amount,x.method,x.reference].map(v=>'"'+String(v??"").replaceAll('"','""')+'"').join(",")).join("\n");let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="recebimentos.csv";a.click()}
 }
 load();
-</script><script src="/enhance.js"></script><script src="/documents-fiel-core.js"></script><script src="/documents-fiel-render.js"></script><script src="/documents-fiel-words.js"></script><script src="/nfse-auto.js" defer></script></body></html>
+</script><script src="/documents-fiel-core.js"></script><script src="/documents-fiel-render.js"></script><script src="/documents-fiel-words.js"></script><script src="/nfse-auto.js" defer></script></body></html>
