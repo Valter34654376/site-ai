@@ -288,6 +288,87 @@ async function commitAgendaImport(file,p){
  await audit("import","agenda",file.name,{events:importedEvents.length,notes:importedNotes.length});
  return {events:importedEvents.length,notes:importedNotes.length};
 }
+async function ensureAgendaPDF(){
+ if(window.jspdf?.jsPDF)return window.jspdf.jsPDF;
+ await new Promise((ok,no)=>{
+  const x=document.createElement("script");
+  x.src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js";
+  x.onload=ok;
+  x.onerror=()=>no(new Error("Não foi possível carregar o gerador de PDF."));
+  document.head.appendChild(x);
+ });
+ if(!window.jspdf?.jsPDF)throw new Error("Gerador de PDF indisponível.");
+ return window.jspdf.jsPDF;
+}
+function agendaPeriodDefaults(){
+ const ref=window.solarAgendaMonth||new Date(),y=ref.getFullYear(),m=ref.getMonth();
+ const from=`${y}-${String(m+1).padStart(2,"0")}-01`;
+ const to=`${y}-${String(m+1).padStart(2,"0")}-${String(new Date(y,m+1,0).getDate()).padStart(2,"0")}`;
+ return {from,to};
+}
+function agendaPdfPanel(){
+ const {from,to}=agendaPeriodDefaults();
+ return `<div class="card"><div class="top"><div><div class="page-kicker">Relatório da diretoria</div><h2>Exportar agenda em PDF</h2><p class="muted">Escolha o período. O PDF reunirá eventos do sistema e compromissos importados em ordem cronológica.</p></div><button type="button" class="btn gray" id="agendaPdfClose">Fechar</button></div><form id="agendaPdfForm" class="form"><label>Data inicial<input type="date" name="from" required value="${from}"></label><label>Data final<input type="date" name="to" required value="${to}"></label><div class="full"><button class="btn" type="submit">Gerar PDF da diretoria</button></div></form></div>`;
+}
+async function exportAgendaPDF(from,to){
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(from)||!/^\d{4}-\d{2}-\d{2}$/.test(to))throw new Error("Informe as duas datas.");
+ if(from>to)throw new Error("A data inicial não pode ser maior que a data final.");
+ const events=(window.__solarAgendaEvents||[]).filter(x=>x.event_date>=from&&x.event_date<=to);
+ if(!events.length)throw new Error("Não há eventos no período selecionado.");
+ const JsPDF=await ensureAgendaPDF(),doc=new JsPDF({unit:"mm",format:"a4",orientation:"portrait"});
+ const W=210,H=297,M=16,contentW=W-M*2;
+ let y=18,page=1;
+ const total=events.length,system=events.filter(x=>x.origin==="system").length,legacy=total-system;
+ const generated=new Date().toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo"});
+ const range=`${dateBR(from)} a ${dateBR(to)}`;
+ const addHeader=()=>{
+  doc.setFont("helvetica","bold");doc.setFontSize(16);doc.text("SOLAR OPARÁ — AGENDA DA DIRETORIA",M,y);
+  y+=7;doc.setFont("helvetica","normal");doc.setFontSize(9);doc.text(`Período: ${range}   |   Página ${page}`,M,y);
+  y+=5;doc.setDrawColor(190);doc.line(M,y,W-M,y);y+=7;
+ };
+ const newPage=()=>{doc.addPage();page++;y=18;addHeader()};
+ const need=h=>{if(y+h>H-17)newPage()};
+ const block=(title,value,x,w)=>{
+  doc.setFillColor(247,244,238);doc.roundedRect(x,y,w,17,2,2,"F");
+  doc.setFont("helvetica","normal");doc.setFontSize(7.5);doc.text(title.toUpperCase(),x+3,y+5);
+  doc.setFont("helvetica","bold");doc.setFontSize(13);doc.text(String(value),x+3,y+12);
+ };
+ addHeader();
+ doc.setFont("helvetica","normal");doc.setFontSize(9);doc.text(`Gerado em ${generated}`,M,y);y+=7;
+ const gap=3,bw=(contentW-gap*2)/3;
+ block("Total de compromissos",total,M,bw);block("Eventos do sistema",system,M+bw+gap,bw);block("Itens importados",legacy,M+(bw+gap)*2,bw);y+=23;
+ doc.setFont("helvetica","bold");doc.setFontSize(11);doc.text("Agenda cronológica",M,y);y+=6;
+ let lastDate="";
+ for(const e of events){
+  if(e.event_date!==lastDate){
+   need(13);
+   doc.setFillColor(232,226,216);doc.rect(M,y-4,contentW,8,"F");
+   doc.setFont("helvetica","bold");doc.setFontSize(9.5);doc.text(dateBR(e.event_date),M+3,y+1);
+   y+=8;lastDate=e.event_date;
+  }
+  const origin=e.origin==="legacy"?"IMPORTADO":"SISTEMA";
+  const subtitle=e.subtitle||"";
+  const status=e.origin==="legacy"?"Importado":String(e.status||"").replace(/^./,c=>c.toUpperCase());
+  doc.setFont("helvetica","bold");doc.setFontSize(9.5);
+  const titleLines=doc.splitTextToSize(String(e.label||"Sem título"),contentW-6);
+  doc.setFont("helvetica","normal");doc.setFontSize(8);
+  const subText=[subtitle&&(`Cliente / referência: ${subtitle}`),`Origem: ${origin}   |   Status: ${status}`].filter(Boolean).join("\n");
+  const subLines=doc.splitTextToSize(subText,contentW-6);
+  const h=5+titleLines.length*4.2+subLines.length*3.8;
+  need(h+3);
+  doc.setDrawColor(224);doc.roundedRect(M,y-2,contentW,h,1.5,1.5,"S");
+  doc.setFont("helvetica","bold");doc.setFontSize(9.5);doc.text(titleLines,M+3,y+3);y+=titleLines.length*4.2+3;
+  doc.setFont("helvetica","normal");doc.setFontSize(8);doc.text(subLines,M+3,y+1);y+=subLines.length*3.8+5;
+ }
+ need(18);y+=2;doc.setDrawColor(190);doc.line(M,y,W-M,y);y+=6;
+ doc.setFont("helvetica","normal");doc.setFontSize(8);
+ const notes=doc.splitTextToSize("Relatório gerencial gerado pelo Solar Opará. Inclui eventos cadastrados no sistema e compromissos importados da planilha dentro do período selecionado.",contentW);
+ doc.text(notes,M,y);
+ const safeFrom=from.replaceAll("-",""),safeTo=to.replaceAll("-","");
+ doc.save(`solar-opara-agenda-${safeFrom}-a-${safeTo}.pdf`);
+ await audit("export","agenda_pdf",from+"_"+to,{from,to,total,system,imported:legacy});
+}
+
 async function agenda(){
  const [{data:c},{data:l}]=await Promise.all([
   sb.from("so_contracts").select("*,so_clients(name)").neq("status","cancelled").order("event_date"),
@@ -296,12 +377,14 @@ async function agenda(){
  const current=(c||[]).map(x=>({event_date:x.event_date,label:x.event_name,origin:"system",subtitle:x.so_clients?.name||"",status:x.status}));
  const legacy=(l||[]).map(x=>({event_date:String(x.event_date).slice(0,10),label:x.description,origin:"legacy",subtitle:x.source_sheet||"Planilha",status:"importado"}));
  const evs=[...current,...legacy].sort((a,b)=>String(a.event_date).localeCompare(String(b.event_date)));
+ window.__solarAgendaEvents=evs;
  const ref=window.solarAgendaMonth||new Date(),y=ref.getFullYear(),m=ref.getMonth(),days=new Date(y,m+1,0).getDate(),first=new Date(y,m,1).getDay();
  const cells=[...Array(first).fill(null),...Array.from({length:days},(_,i)=>i+1)];
  const monthPrefix=`${y}-${String(m+1).padStart(2,"0")}`;
  const monthEvents=evs.filter(x=>String(x.event_date).startsWith(monthPrefix));
  return `<div class="top"><div><div class="page-kicker">Programação</div><h1>Agenda</h1><p class="muted">Eventos do sistema + compromissos importados da planilha.</p></div>
- <div class="row"><button class="btn gray" id="agendaPrev">←</button><button class="btn gray" id="agendaToday">Hoje</button><button class="btn gray" id="agendaNext">→</button>${profile?.role==="admin"?'<button class="btn" id="agendaImportBtn">Importar arquivo</button><input type="file" id="agendaImportFile" accept=".xlsx,.xls,.csv" style="display:none">':""}</div></div>
+ <div class="row"><button class="btn gray" id="agendaPrev">←</button><button class="btn gray" id="agendaToday">Hoje</button><button class="btn gray" id="agendaNext">→</button><button class="btn gray" id="agendaPdfBtn">Exportar PDF</button>${profile?.role==="admin"?'<button class="btn" id="agendaImportBtn">Importar arquivo</button><input type="file" id="agendaImportFile" accept=".xlsx,.xls,.csv" style="display:none">':""}</div></div>
+ <div id="agendaPdfPanel"></div>
  <div id="agendaImportPreview"></div>
  <div class="card"><h2 style="text-transform:capitalize">${ref.toLocaleDateString("pt-BR",{month:"long",year:"numeric"})}</h2><div class="calendar">${["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"].map(d=>`<div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#8b877f;padding:4px">${d}</div>`).join("")}${cells.map(d=>{if(!d)return '<div class="day" style="opacity:.35"></div>';let iso=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;let dayEvents=evs.filter(x=>x.event_date===iso);return `<div class="day"><b>${d}</b>${dayEvents.map(x=>`<div class="evt ${x.origin==="legacy"?"imported":""}">${esc(x.label)}<br><span class="muted">${x.origin==="legacy"?"IMPORTADO · "+esc(x.subtitle):esc(x.subtitle)}</span></div>`).join("")}</div>`}).join("")}</div></div>
  <div class="card"><h2>Eventos do mês</h2>${monthEvents.length?`<table><tr><th>Data</th><th>Evento</th><th>Origem</th></tr>${monthEvents.map(x=>`<tr><td>${dateBR(x.event_date)}</td><td><b>${esc(x.label)}</b><br><span class="muted">${esc(x.subtitle)}</span></td><td>${x.origin==="legacy"?"PLANILHA":"SISTEMA"}</td></tr>`).join("")}</table>`:'<div class="empty">Nenhum evento neste mês.</div>'}</div>`;
@@ -679,6 +762,7 @@ function bindPage(){
  if($("#agendaPrev"))$("#agendaPrev").onclick=()=>{let d=window.solarAgendaMonth||new Date();window.solarAgendaMonth=new Date(d.getFullYear(),d.getMonth()-1,1);render()};
  if($("#agendaToday"))$("#agendaToday").onclick=()=>{let d=new Date();window.solarAgendaMonth=new Date(d.getFullYear(),d.getMonth(),1);render()};
  if($("#agendaNext"))$("#agendaNext").onclick=()=>{let d=window.solarAgendaMonth||new Date();window.solarAgendaMonth=new Date(d.getFullYear(),d.getMonth()+1,1);render()};
+ if($("#agendaPdfBtn"))$("#agendaPdfBtn").onclick=()=>{$("#agendaPdfPanel").innerHTML=agendaPdfPanel();$("#agendaPdfPanel").scrollIntoView({behavior:"smooth",block:"start"});$("#agendaPdfClose").onclick=()=>$("#agendaPdfPanel").innerHTML="";$("#agendaPdfForm").onsubmit=async e=>{e.preventDefault();const b=e.submitter||e.target.querySelector('button[type="submit"]'),f=new FormData(e.target),from=String(f.get("from")||""),to=String(f.get("to")||"");if(b){b.disabled=true;b.textContent="Gerando PDF..."}try{await exportAgendaPDF(from,to);toast("PDF da agenda gerado.")}catch(err){toast(err.message||String(err))}finally{if(b){b.disabled=false;b.textContent="Gerar PDF da diretoria"}}}};
  if($("#agendaImportBtn"))$("#agendaImportBtn").onclick=()=>$("#agendaImportFile").click();
  if($("#agendaImportFile"))$("#agendaImportFile").onchange=async e=>{
   const file=e.target.files?.[0];if(!file)return;
