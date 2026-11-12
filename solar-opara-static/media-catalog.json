@@ -76,6 +76,28 @@
       "source": "Oliver Fotos",
       "source_url": "https://www.oliverfotos.com.br/portfolio/casamento/516598-perssew-emanuely",
       "rights_status": "fotógrafo terceiro — autorização necessária"
+    },
+    {
+      "kind": "album",
+      "category": "casamento",
+      "title": "Bia e Lucas — Solar Opará — 28/09/2026",
+      "source": "Oliver Fotos",
+      "source_url": "https://www.oliverfotos.com.br/portfolio/casamento/1698839-bia-e",
+      "rights_status": "fotógrafo terceiro — usar apenas com autorização/licença",
+      "notes": "Álbum real recente no Solar Opará, Pirapora/MG."
+    },
+    {
+      "kind": "profile",
+      "category": "oficial",
+      "title": "Instagram oficial Solar Opará",
+      "source": "Solar Opará",
+      "source_url": "https://www.instagram.com/solaroparaoficial/",
+      "rights_status": "conteúdo do perfil oficial; confirmar reutilização dos arquivos originais antes de republicar fora da plataforma"
     }
-  ]
+  ],
+  "summary": {
+    "reference_items": 10,
+    "primary_albums": 4,
+    "goal": "20-40 fotos oficiais/licenciadas para a galeria final"
+  }
 }
