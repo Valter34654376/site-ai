@@ -21,7 +21,7 @@ button,input,select,textarea{font:inherit}#app{min-height:100vh}
 .side button{display:flex;width:100%;align-items:center;gap:11px;text-align:left;background:none;border:0;color:#c9c8c2;padding:10px 11px;border-radius:10px;cursor:pointer;font-size:14px;margin:2px 0;transition:.18s ease}
 .side button:hover{background:#292925;color:#fff;transform:translateX(2px)}.side button.active{background:linear-gradient(90deg,rgba(201,141,47,.24),rgba(201,141,47,.07));color:#f6d999;box-shadow:inset 3px 0 0 var(--gold)}
 .side .nav-icon{width:20px;height:20px;display:grid;place-items:center;font-size:15px;opacity:.95}
-.side .logout{margin-top:14px;border:1px solid #35352f;color:#aaa}
+.side .logout{margin-top:14px;border:1px solid #35352f;color:#aaa}.public-site-link{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 11px;border:1px solid #4a4437;border-radius:10px;color:#f0cf8e;text-decoration:none;font-size:13px}.public-site-link:hover{background:#2b2923}
 .main{margin-left:232px;padding:28px 32px 44px;width:calc(100% - 232px);max-width:1600px;min-width:0;overflow-x:hidden}
 .page-kicker{color:var(--gold);font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px}
 h1,h2,h3{font-family:'Playfair Display',serif;margin-top:0;color:#24231f}h1{font-size:31px;line-height:1.08;margin-bottom:6px}h2{font-size:24px}
@@ -114,7 +114,7 @@ const navMeta={
  dashboard:["Início","◫"],clientes:["Clientes","◎"],agenda:["Agenda","▦"],solicitacoes:["Solicitações","✉"],contratos:["Contratos","▤"],receber:["Cobranças","↙"],recebimentos:["Pagamentos","✓"],despesas:["Despesas","↗"],nfse:["Notas fiscais","N"],usuarios:["Equipe","♙"],auditoria:["Histórico","⌁"]
 };
 function nav(){return Object.entries(navMeta).filter(([x])=>profile?.role==="admin"||!["usuarios","auditoria"].includes(x)).map(([x,m])=>`<button data-route="${x}" class="${route===x?"active":""}"><span class="nav-icon">${m[1]}</span><span>${m[0]}</span></button>`).join("")}
-function shell(body){return `<div class="layout"><aside class="side"><div class="brand"><img src="/favicon.svg" alt=""><div class="brand-copy"><strong>Solar Opará</strong><span>Gestão de Eventos</span></div></div>${nav()}<button id="logout" class="logout"><span class="nav-icon">↪</span><span>Sair</span></button></aside><main class="main">${body}</main></div>`}
+function shell(body){return `<div class="layout"><aside class="side"><div class="brand"><img src="/favicon.svg" alt=""><div class="brand-copy"><strong>Solar Opará</strong><span>Gestão de Eventos</span></div></div>${nav()}<a class="public-site-link" href="/eventos.html" target="_blank" rel="noopener"><span class="nav-icon">↗</span><span>Abrir site público</span></a><button id="logout" class="logout"><span class="nav-icon">↪</span><span>Sair</span></button></aside><main class="main">${body}</main></div>`}
 function bindNav(){document.querySelectorAll("[data-route]").forEach(b=>b.onclick=()=>{route=b.dataset.route;render()});$("#logout").onclick=async()=>{if(sessionToken)await publicClient.rpc("so_local_logout",{p_token:sessionToken});await googleClient.auth.signOut();sessionStorage.removeItem("solar_session");sessionToken="";me=null;profile=null;location.reload()}}
 function setApp(h){$("#app").innerHTML=h}
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -211,13 +211,13 @@ async function render(){
  }catch(e){console.error(e);setApp(shell(`<div class=card><h2>Não foi possível carregar esta tela</h2><p class="muted">Atualize a página e tente novamente. Se o problema continuar, procure o administrador.</p><button class="btn" onclick="location.reload()">Atualizar</button></div>`));bindNav()}
 }
 async function dashboard(){
- const [{data:c},{data:r},{data:p},{data:e}]=await Promise.all([sb.from("so_contracts").select("*"),sb.from("so_receivables").select("*"),sb.from("so_payments").select("*").eq("reversed",false),sb.from("so_expenses").select("*")]);
+ const [{data:c},{data:r},{data:p},{data:e},{data:b}]=await Promise.all([sb.from("so_contracts").select("*"),sb.from("so_receivables").select("*"),sb.from("so_payments").select("*").eq("reversed",false),sb.from("so_expenses").select("*"),sb.from("so_booking_requests").select("id,status").eq("status","new")]);
  const total=(r||[]).reduce((a,x)=>a+Number(x.amount),0),paid=(p||[]).reduce((a,x)=>a+Number(x.amount),0),exp=(e||[]).reduce((a,x)=>a+Number(x.amount),0),saldo=paid-exp;
  return `<div class="dashboard-hero"><div><div class="page-kicker">Resumo</div><h1>Visão geral</h1><p>As principais informações do Solar Opará em um só lugar.</p></div><button class=btn data-route="contratos">＋ Novo contrato</button></div><div class=grid>
  <div class="card metric"><span>Contratos</span><b>${(c||[]).length}</b><small>eventos cadastrados</small></div>
  <div class="card metric"><span>Em aberto</span><b>${money(Math.max(0,total-paid))}</b><small>valores a receber</small></div>
  <div class="card metric"><span>Recebido</span><b>${money(paid)}</b><small>pagamentos registrados</small></div>
- <div class="card metric"><span>Despesas</span><b>${money(exp)}</b><small>saídas registradas</small></div></div>
+ <div class="card metric"><span>Despesas</span><b>${money(exp)}</b><small>saídas registradas</small></div><div class="card metric"><span>Novas solicitações</span><b>${(b||[]).length}</b><small>pedidos vindos do site</small></div></div>
  <div class="summary-strip"><div><span>Saldo registrado</span><br><strong>${money(saldo)}</strong></div><div><span>Pix oficial</span><br><b>33.958.617/0001-73</b></div></div>`;
 }
 async function clientes(){
