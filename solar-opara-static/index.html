@@ -111,7 +111,7 @@ async function passwordDigest(username,password){
  return Array.from(new Uint8Array(bits),b=>b.toString(16).padStart(2,"0")).join("");
 }
 const navMeta={
- dashboard:["Início","◫"],clientes:["Clientes","◎"],agenda:["Agenda","▦"],contratos:["Contratos","▤"],receber:["Cobranças","↙"],recebimentos:["Pagamentos","✓"],despesas:["Despesas","↗"],nfse:["Notas fiscais","N"],usuarios:["Equipe","♙"],auditoria:["Histórico","⌁"]
+ dashboard:["Início","◫"],clientes:["Clientes","◎"],agenda:["Agenda","▦"],solicitacoes:["Solicitações","✉"],contratos:["Contratos","▤"],receber:["Cobranças","↙"],recebimentos:["Pagamentos","✓"],despesas:["Despesas","↗"],nfse:["Notas fiscais","N"],usuarios:["Equipe","♙"],auditoria:["Histórico","⌁"]
 };
 function nav(){return Object.entries(navMeta).filter(([x])=>profile?.role==="admin"||!["usuarios","auditoria"].includes(x)).map(([x,m])=>`<button data-route="${x}" class="${route===x?"active":""}"><span class="nav-icon">${m[1]}</span><span>${m[0]}</span></button>`).join("")}
 function shell(body){return `<div class="layout"><aside class="side"><div class="brand"><img src="/favicon.svg" alt=""><div class="brand-copy"><strong>Solar Opará</strong><span>Gestão de Eventos</span></div></div>${nav()}<button id="logout" class="logout"><span class="nav-icon">↪</span><span>Sair</span></button></aside><main class="main">${body}</main></div>`}
@@ -199,6 +199,7 @@ async function render(){
  if(route==="dashboard")body=await dashboard();
  if(route==="clientes")body=await clientes();
  if(route==="agenda")body=await agenda();
+ if(route==="solicitacoes")body=await solicitacoes();
  if(route==="contratos")body=await contratos();
  if(route==="receber")body=await receber();
  if(route==="recebimentos")body=await recebimentos();
@@ -394,13 +395,86 @@ async function agenda(){
  <div class="card"><h2 style="text-transform:capitalize">${ref.toLocaleDateString("pt-BR",{month:"long",year:"numeric"})}</h2><div class="calendar">${["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"].map(d=>`<div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#8b877f;padding:4px">${d}</div>`).join("")}${cells.map(d=>{if(!d)return '<div class="day" style="opacity:.35"></div>';let iso=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;let dayEvents=evs.filter(x=>x.event_date===iso);return `<div class="day"><b>${d}</b>${dayEvents.map(x=>`<div class="evt ${x.origin==="legacy"?"imported":""}">${esc(x.label)}<br><span class="muted">${x.origin==="legacy"?"IMPORTADO · "+esc(x.subtitle):esc(x.subtitle)}</span></div>`).join("")}</div>`}).join("")}</div></div>
  <div class="card"><h2>Eventos do mês</h2>${monthEvents.length?`<table><tr><th>Data</th><th>Evento</th><th>Origem</th></tr>${monthEvents.map(x=>`<tr><td>${dateBR(x.event_date)}</td><td><b>${esc(x.label)}</b><br><span class="muted">${esc(x.subtitle)}</span></td><td>${x.origin==="legacy"?"PLANILHA":"SISTEMA"}</td></tr>`).join("")}</table>`:'<div class="empty">Nenhum evento neste mês.</div>'}</div>`;
 }
+function bookingStatus(v){
+ return ({new:["NOVA",""],approved:["APROVADA","paid"],rejected:["RECUSADA","late"],converted:["CONTRATO","paid"]})[v]||[String(v||"").toUpperCase(),""];
+}
+async function solicitacoes(){
+ const {data,error}=await sb.from("so_booking_requests").select("*").order("created_at",{ascending:false});
+ if(error)return `<h1>Solicitações</h1><div class="warnbox">Não foi possível carregar as solicitações.</div>`;
+ const rows=data||[];
+ const fresh=rows.filter(x=>x.status==="new").length,approved=rows.filter(x=>x.status==="approved").length,converted=rows.filter(x=>x.status==="converted").length;
+ return `<div class="top"><div><div class="page-kicker">Site público</div><h1>Solicitações de eventos</h1><p class="muted">Pedidos enviados pelo site. Aprovar reserva a data; criar contrato reaproveita os dados sem redigitação.</p></div></div>
+ <div class="grid"><div class="card metric"><span>Novas</span><b>${fresh}</b><small>aguardando retorno</small></div><div class="card metric"><span>Aprovadas</span><b>${approved}</b><small>datas reservadas</small></div><div class="card metric"><span>Convertidas</span><b>${converted}</b><small>viraram contrato</small></div><div class="card metric"><span>Total</span><b>${rows.length}</b><small>solicitações recebidas</small></div></div>
+ <div class="card"><div style="overflow:auto"><table><tr><th>Recebida</th><th>Data desejada</th><th>Cliente</th><th>Evento</th><th>Convidados</th><th>Status</th><th>Ações</th></tr>
+ ${rows.map(x=>{const [label,cls]=bookingStatus(x.status),contact=[x.phone,x.email].filter(Boolean).join(" · ");return `<tr><td>${dtBR(x.created_at)}</td><td><b>${dateBR(x.event_date)}</b></td><td><b>${esc(x.name)}</b><br><span class="muted">${esc(contact)}</span>${x.message?`<br><small class="muted">${esc(x.message)}</small>`:""}</td><td>${esc(x.event_type)}</td><td>${x.guest_count??"—"}</td><td><span class="badge ${cls}">${label}</span></td><td><div class="row">${x.status==="new"?`<button class="btn small" data-book-approve="${x.id}">Aprovar</button><button class="btn small gray" data-book-contract="${x.id}">Criar contrato</button><button class="btn small gray" data-book-reject="${x.id}">Recusar</button>`:x.status==="approved"?`<button class="btn small" data-book-contract="${x.id}">Criar contrato</button><button class="btn small gray" data-book-reject="${x.id}">Cancelar reserva</button>`:""}</div></td></tr>`}).join("")}
+ </table></div></div>`;
+}
+async function bookingDateBusy(date){
+ const {data,error}=await publicClient.from("so_public_busy_dates").select("event_date").eq("event_date",date).limit(1);
+ if(error)throw error;
+ return !!data?.length;
+}
+async function approveBooking(id){
+ const {data:req,error}=await sb.from("so_booking_requests").select("*").eq("id",id).single();
+ if(error||!req)return toast("Solicitação não encontrada.");
+ try{
+  if(await bookingDateBusy(req.event_date))return toast("Esta data já está ocupada. Revise a agenda antes de aprovar.");
+  const {error:u}=await sb.from("so_booking_requests").update({status:"approved",updated_at:new Date().toISOString()}).eq("id",id);
+  if(u)throw u;
+  await audit("approve","booking_request",id,{date:req.event_date,name:req.name});
+  toast("Solicitação aprovada. A data ficou reservada.");
+  render();
+ }catch(e){toast(e.message||"Não foi possível aprovar.")}
+}
+async function rejectBooking(id){
+ const {data:req,error}=await sb.from("so_booking_requests").select("event_date,status").eq("id",id).single();
+ if(error||!req)return toast("Solicitação não encontrada.");
+ const {error:u}=await sb.from("so_booking_requests").update({status:"rejected",updated_at:new Date().toISOString()}).eq("id",id);
+ if(u)return toast("Não foi possível atualizar a solicitação.");
+ await audit("reject","booking_request",id,{date:req.event_date,previous:req.status});
+ toast("Solicitação recusada/cancelada.");
+ render();
+}
+async function prepareBookingContract(id){
+ const {data:req,error}=await sb.from("so_booking_requests").select("*").eq("id",id).single();
+ if(error||!req)return toast("Solicitação não encontrada.");
+ try{
+  if(req.status==="new"){
+   if(await bookingDateBusy(req.event_date))return toast("Esta data já está ocupada. Não é possível reservar.");
+   const {error:u}=await sb.from("so_booking_requests").update({status:"approved",updated_at:new Date().toISOString()}).eq("id",id);
+   if(u)throw u;
+  }
+  let {data:client,error:findError}=await sb.from("so_clients").select("*").eq("email",req.email).limit(1).maybeSingle();
+  if(findError)throw findError;
+  if(!client){
+   const created=await sb.from("so_clients").insert({name:req.name,email:req.email,phone:req.phone,notes:"Cadastro criado a partir de solicitação enviada pelo site."}).select().single();
+   if(created.error)throw created.error;
+   client=created.data;
+   await audit("create","client",client.id,{source:"booking_request",request_id:id});
+  }else{
+   const patch={};
+   if(!client.phone&&req.phone)patch.phone=req.phone;
+   if(Object.keys(patch).length)await sb.from("so_clients").update(patch).eq("id",client.id);
+  }
+  window.__bookingPrefill={
+   requestId:id,client_id:client.id,event_name:req.event_type||"Evento",event_date:req.event_date,
+   capacity:req.guest_count||null,observations:req.message||"",rental_value:0,cleaning_fee:0,additional_value:0,payment_terms:"PIX"
+  };
+  window.__bookingContractRequestId=id;
+  route="contratos";
+  await audit("prepare_contract","booking_request",id,{client_id:client.id,date:req.event_date});
+  render();
+ }catch(e){toast(e.message||"Não foi possível preparar o contrato.")}
+}
+
 async function contratos(){
  const [{data:c},{data:cl}]=await Promise.all([
   sb.from("so_contracts").select("*,so_clients(name,email,document,address)").order("created_at",{ascending:false}),
   sb.from("so_clients").select("id,name").order("name")
  ]);
  window.__solarContracts=c||[];
- return `<div class=top><h1>Contratos</h1><button class=btn id="newContract">+ Novo contrato</button></div><div id=contractForm></div><table><tr><th>Evento</th><th>Cliente</th><th>Data</th><th>Total</th><th></th></tr>${(c||[]).map(x=>`<tr><td>${esc(x.event_name)}</td><td>${esc(x.so_clients?.name)}</td><td>${dateBR(x.event_date)}</td><td>${money(Number(x.rental_value)+Number(x.cleaning_fee)+Number(x.additional_value))}</td><td class=row><button class="btn small gray" data-edit-contract="${x.id}">Editar</button><button class="btn small" data-doc="${x.id}">Contrato</button><button class="btn small gray" data-manual="${x.id}">Manual</button><button class="btn small gray" data-payment-plan="${x.id}">Carnê</button></td></tr>`).join("")}</table><template id=clientOpts>${(cl||[]).map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join("")}</template>`;
+ const fromSite=window.__bookingPrefill?`<div class="warnbox" style="margin-bottom:12px"><b>Contrato iniciado a partir de uma solicitação do site.</b><br><span>Confira valores, horários e condições antes de salvar.</span></div>`:"";
+ return `<div class=top><h1>Contratos</h1><button class=btn id="newContract">+ Novo contrato</button></div>${fromSite}<div id=contractForm></div><table><tr><th>Evento</th><th>Cliente</th><th>Data</th><th>Total</th><th></th></tr>${(c||[]).map(x=>`<tr><td>${esc(x.event_name)}</td><td>${esc(x.so_clients?.name)}</td><td>${dateBR(x.event_date)}</td><td>${money(Number(x.rental_value)+Number(x.cleaning_fee)+Number(x.additional_value))}</td><td class=row><button class="btn small gray" data-edit-contract="${x.id}">Editar</button><button class="btn small" data-doc="${x.id}">Contrato</button><button class="btn small gray" data-manual="${x.id}">Manual</button><button class="btn small gray" data-payment-plan="${x.id}">Carnê</button></td></tr>`).join("")}</table><template id=clientOpts>${(cl||[]).map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join("")}</template>`;
 }
 function contractDateTimeInput(v){
  if(!v)return "";
@@ -541,6 +615,7 @@ async function saveContractForm(form){
    const {error:nfErr}=await sb.from("so_nfse").insert({contract_id:c.id,status:"draft",amount:total});
    if(nfErr)console.warn("NFS-e draft creation:",nfErr.message);
    await audit("create","contract",c.id,{event:o.event_name,total,method,installments:count});
+   if(window.__bookingContractRequestId){const requestId=window.__bookingContractRequestId;await sb.from("so_booking_requests").update({status:"converted",updated_at:new Date().toISOString()}).eq("id",requestId);await audit("convert","booking_request",requestId,{contract_id:c.id});window.__bookingContractRequestId=null;window.__bookingPrefill=null;}
    toast("Contrato criado com "+count+" cobrança(s).");
   }
   render();
@@ -788,6 +863,10 @@ function bindPage(){
  };
 
 
+ document.querySelectorAll("[data-book-approve]").forEach(b=>b.onclick=()=>approveBooking(b.dataset.bookApprove));
+ document.querySelectorAll("[data-book-reject]").forEach(b=>b.onclick=()=>rejectBooking(b.dataset.bookReject));
+ document.querySelectorAll("[data-book-contract]").forEach(b=>b.onclick=()=>prepareBookingContract(b.dataset.bookContract));
+
  if($("#googleUserForm"))$("#googleUserForm").onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target),email=String(f.get("email")||"").trim().toLowerCase(),name=String(f.get("name")||"").trim(),role=String(f.get("role")||"operator");const {data,error}=await publicClient.rpc("so_google_create_user",{p_token:sessionToken,p_email:email,p_name:name,p_role:role});if(error||!data?.ok)return toast(data?.error==="user_exists"?"E-mail já cadastrado":"Não foi possível liberar o usuário");toast("Acesso Google liberado");e.target.reset();render()};
  document.querySelectorAll("[data-google-save]").forEach(b=>b.onclick=async()=>{const id=b.dataset.googleSave,input=document.querySelector(`[data-google-input="${id}"]`),email=String(input?.value||"").trim().toLowerCase();if(!email)return toast("Informe o e-mail Google");b.disabled=true;const {data,error}=await publicClient.rpc("so_google_set_email",{p_token:sessionToken,p_user_id:id,p_email:email});b.disabled=false;if(error||!data?.ok)return toast(data?.error==="email_in_use"?"Este e-mail já está em uso":"Não foi possível vincular o e-mail");toast("Conta Google vinculada");render()});
  document.querySelectorAll("[data-nfse-permission]").forEach(box=>box.onchange=async()=>{
@@ -800,7 +879,8 @@ function bindPage(){
  document.querySelectorAll("[data-local-toggle]").forEach(b=>b.onclick=async()=>{const active=b.dataset.active!=="true";const {data,error}=await publicClient.rpc("so_local_set_active",{p_token:sessionToken,p_user_id:b.dataset.localToggle,p_active:active});if(error||!data?.ok)return toast("Não foi possível alterar o usuário");toast(active?"Usuário reativado":"Usuário bloqueado");render()});
 
  if($("#newClient"))$("#newClient").onclick=()=>{$("#clientForm").innerHTML=clientForm();$("#cf").onsubmit=async e=>{e.preventDefault();let o=Object.fromEntries(new FormData(e.target));let {data,error}=await sb.from("so_clients").insert(o).select().single();if(error)return toast(error.message);await audit("create","client",data.id,{name:data.name});toast("Cliente salvo");render()}};
- if($("#newContract"))$("#newContract").onclick=()=>{$("#contractForm").innerHTML=contractForm();bindPaymentPlan($("#ctf"));$("#ctf").onsubmit=async e=>{e.preventDefault();await saveContractForm(e.target)}};
+ if($("#newContract"))$("#newContract").onclick=()=>{window.__bookingPrefill=null;window.__bookingContractRequestId=null;$("#contractForm").innerHTML=contractForm();bindPaymentPlan($("#ctf"));$("#ctf").onsubmit=async e=>{e.preventDefault();await saveContractForm(e.target)}};
+ if(route==="contratos"&&window.__bookingPrefill&&$("#contractForm")){const p=window.__bookingPrefill;$("#contractForm").innerHTML=contractForm(p,p.event_date||"",1);bindPaymentPlan($("#ctf"));$("#contractForm").scrollIntoView({behavior:"smooth",block:"start"});$("#ctf").onsubmit=async e=>{e.preventDefault();await saveContractForm(e.target)}};
  document.querySelectorAll("[data-edit-contract]").forEach(b=>b.onclick=async()=>{
  const id=b.dataset.editContract;
  const item=(window.__solarContracts||[]).find(x=>String(x.id)===String(id));
