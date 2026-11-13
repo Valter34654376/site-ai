@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <defs>
+    <radialGradient id="light"><stop stop-color="#5a624b"/><stop offset="1" stop-color="#132c26"/></radialGradient>
+    <linearGradient id="gold" x2="1" y2="1"><stop stop-color="#e4d1a1"/><stop offset="1" stop-color="#a5804b"/></linearGradient>
+  </defs>
+  <path fill="url(#light)" d="M0 0h1600v1000H0z"/>
+  <g fill="none" stroke="url(#gold)" opacity=".35">
+    <path d="M500 1000V460a300 300 0 0 1 600 0v540M535 1000V460a265 265 0 0 1 530 0v540"/>
+    <circle cx="800" cy="500" r="180"/><circle cx="800" cy="500" r="212"/>
+    <path d="M800 220v70m0 420v70m-280-280h70m420 0h70M602 302l50 50m296 296 50 50M602 698l50-50m296-296 50-50"/>
+  </g>
+  <g fill="#e4d1a1" text-anchor="middle" font-family="Georgia,serif"><text x="800" y="530" font-size="120" letter-spacing="8">SO</text><text x="800" y="850" font-size="26" letter-spacing="12">SOLAR OPARÁ</text></g>
+</svg>

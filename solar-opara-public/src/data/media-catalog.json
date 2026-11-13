@@ -1,0 +1,453 @@
+{
+  "venue": "Solar Opará",
+  "updatedAt": "2026-11-13",
+  "officialInstagram": "https://www.instagram.com/solaroparaoficial/",
+  "instagramAudit": {
+    "checkedAt": "2026-11-13",
+    "status": "partial-access",
+    "completeInventory": false,
+    "verifiedPosts": 0,
+    "notes": "O perfil público foi consultado sem autenticação, scraping de APIs ou contorno de proteções. A página respondeu, mas não expôs links de publicações. A busca pública não retornou publicações verificáveis. O levantamento completo depende de acesso permitido ou exportação do titular. Nenhuma foto de Oliver Fotos foi apresentada como originária do Instagram oficial.",
+    "publicProfileReportedPosts": 173,
+    "reportedCountContext": "Contagem exposta no meta og:description; não equivale a fotos individuais inventariadas."
+  },
+  "authorization": {
+    "status": "owner-confirmed",
+    "confirmedAt": "2026-11-13",
+    "scope": "Somente as sete fotografias Oliver Fotos já utilizadas pelo site público no início desta tarefa.",
+    "evidence": "O responsável confirmou nesta conversa: Tenho autorização do Oliver Fotos para as fotos atuais.",
+    "additionalAlbumPhotosAuthorized": false
+  },
+  "media": [
+    {
+      "id": "solar-celebracao-01",
+      "slug": "solar-opara-casamento-luana-carlos-01",
+      "category": "casamentos",
+      "categories": [
+        "casamentos",
+        "eventos",
+        "decoracao",
+        "estrutura",
+        "noite"
+      ],
+      "sourceUrl": "https://storage.alboom.ninja/sites/27695/albuns/1015625/1v8a2351.jpg?t=1654179688",
+      "source": "Oliver Fotos — acervo já utilizado pelo projeto",
+      "sourcePage": "https://www.oliverfotos.com.br/portfolio/casamento/1015625-luana-e-carlos",
+      "instagramPost": null,
+      "caption": "Um sim, um cenário inteiro",
+      "alt": "Luana e Carlos sob um arco de madeira decorado com flores brancas no Solar Opará ao anoitecer",
+      "credit": "Oliver Fotos / Marcos Oliver",
+      "photographers": [
+        "Marcos Oliver"
+      ],
+      "approximateDate": "2022-06-02",
+      "dateContext": "Data de publicação do álbum; não confirma a data do evento.",
+      "rightsStatus": "owner-confirmed",
+      "orientation": "horizontal",
+      "featured": [
+        "wedding"
+      ],
+      "originalWidth": 1200,
+      "originalHeight": 800,
+      "variants": [
+        {
+          "src": "/media/casamentos/solar-opara-casamento-luana-carlos-01-480.webp",
+          "width": 480,
+          "height": 320,
+          "bytes": 31716
+        },
+        {
+          "src": "/media/casamentos/solar-opara-casamento-luana-carlos-01-800.webp",
+          "width": 800,
+          "height": 533,
+          "bytes": 69664
+        },
+        {
+          "src": "/media/casamentos/solar-opara-casamento-luana-carlos-01-1200.webp",
+          "width": 1200,
+          "height": 800,
+          "bytes": 127344
+        }
+      ],
+      "src": "/media/casamentos/solar-opara-casamento-luana-carlos-01-1200.webp",
+      "width": 1200,
+      "height": 800,
+      "fullSrc": "/media/casamentos/solar-opara-casamento-luana-carlos-01-1200.webp",
+      "objectPosition": "52% 50%"
+    },
+    {
+      "id": "solar-jardim-01",
+      "slug": "solar-opara-jardins-recepcao-noite-01",
+      "category": "jardins",
+      "categories": [
+        "jardins",
+        "estrutura",
+        "noite",
+        "casamentos",
+        "eventos"
+      ],
+      "sourceUrl": "https://storage.alboom.ninja/sites/27695/albuns/516598/img_1850.jpg?t=1568211185",
+      "source": "Oliver Fotos — acervo já utilizado pelo projeto",
+      "sourcePage": "https://www.oliverfotos.com.br/portfolio/casamento/516598-perssew-emanuely",
+      "instagramPost": null,
+      "caption": "O jardim encontra a noite",
+      "alt": "Jardim iluminado e salão envidraçado do Solar Opará durante uma recepção noturna",
+      "credit": "Oliver Fotos",
+      "photographers": [
+        "Marcos Oliver",
+        "Danylo Soares",
+        "Mateus Oliver"
+      ],
+      "creditContext": "Equipe creditada no álbum; autoria individual desta fotografia não especificada.",
+      "approximateDate": "2019-06-22",
+      "dateContext": "Data do evento informada na ficha técnica do álbum.",
+      "rightsStatus": "owner-confirmed",
+      "orientation": "horizontal",
+      "featured": [
+        "hero",
+        "garden"
+      ],
+      "originalWidth": 1200,
+      "originalHeight": 800,
+      "variants": [
+        {
+          "src": "/media/jardins/solar-opara-jardins-recepcao-noite-01-480.webp",
+          "width": 480,
+          "height": 320,
+          "bytes": 20852
+        },
+        {
+          "src": "/media/jardins/solar-opara-jardins-recepcao-noite-01-800.webp",
+          "width": 800,
+          "height": 533,
+          "bytes": 53094
+        },
+        {
+          "src": "/media/jardins/solar-opara-jardins-recepcao-noite-01-1200.webp",
+          "width": 1200,
+          "height": 800,
+          "bytes": 109690
+        }
+      ],
+      "src": "/media/jardins/solar-opara-jardins-recepcao-noite-01-1200.webp",
+      "width": 1200,
+      "height": 800,
+      "fullSrc": "/media/jardins/solar-opara-jardins-recepcao-noite-01-1200.webp",
+      "objectPosition": "48% 50%"
+    },
+    {
+      "id": "solar-detalhes-01",
+      "slug": "casamento-mariana-renato-preparativos-noiva-01",
+      "category": "detalhes",
+      "categories": [
+        "detalhes",
+        "casamentos"
+      ],
+      "sourceUrl": "https://storage.alboom.ninja/sites/27695/albuns/1421318/1v8a1325.jpg?t=1731964494",
+      "source": "Oliver Fotos — acervo já utilizado pelo projeto",
+      "sourcePage": "https://www.oliverfotos.com.br/portfolio/casamento/1421318-mariana-e-renato",
+      "instagramPost": null,
+      "caption": "A calma antes do sim",
+      "alt": "Noiva com buquê de rosas brancas junto a uma janela de madeira aberta para um jardim",
+      "credit": "Oliver Fotos / Marcos Oliver",
+      "photographers": [
+        "Marcos Oliver"
+      ],
+      "approximateDate": "2024-11-18",
+      "dateContext": "Data de publicação do álbum; não confirma a data do evento.",
+      "rightsStatus": "owner-confirmed",
+      "orientation": "horizontal",
+      "featured": [
+        "detail"
+      ],
+      "originalWidth": 1200,
+      "originalHeight": 800,
+      "variants": [
+        {
+          "src": "/media/detalhes/casamento-mariana-renato-preparativos-noiva-01-480.webp",
+          "width": 480,
+          "height": 320,
+          "bytes": 21746
+        },
+        {
+          "src": "/media/detalhes/casamento-mariana-renato-preparativos-noiva-01-800.webp",
+          "width": 800,
+          "height": 533,
+          "bytes": 43538
+        },
+        {
+          "src": "/media/detalhes/casamento-mariana-renato-preparativos-noiva-01-1200.webp",
+          "width": 1200,
+          "height": 800,
+          "bytes": 75250
+        }
+      ],
+      "src": "/media/detalhes/casamento-mariana-renato-preparativos-noiva-01-1200.webp",
+      "width": 1200,
+      "height": 800,
+      "fullSrc": "/media/detalhes/casamento-mariana-renato-preparativos-noiva-01-1200.webp",
+      "locationNote": "Preparativos de Mariana e Renato · local não confirmado como Solar Opará",
+      "objectPosition": "70% 50%"
+    },
+    {
+      "id": "solar-detalhes-02",
+      "slug": "casamento-perssew-emanuely-preparativos-noiva-01",
+      "category": "detalhes",
+      "categories": [
+        "detalhes",
+        "casamentos"
+      ],
+      "sourceUrl": "https://storage.alboom.ninja/sites/27695/albuns/516598/img_4025_cde3e3558271.jpg?t=1568210932",
+      "source": "Oliver Fotos — acervo já utilizado pelo projeto",
+      "sourcePage": "https://www.oliverfotos.com.br/portfolio/casamento/516598-perssew-emanuely",
+      "instagramPost": null,
+      "caption": "O tempo de sentir",
+      "alt": "Emanuely junto à janela com buquê de flores rosadas durante os preparativos do casamento",
+      "credit": "Oliver Fotos",
+      "photographers": [
+        "Marcos Oliver",
+        "Danylo Soares",
+        "Mateus Oliver"
+      ],
+      "creditContext": "Equipe creditada no álbum; autoria individual desta fotografia não especificada.",
+      "approximateDate": "2019-06-22",
+      "dateContext": "Data do evento informada na ficha técnica do álbum.",
+      "rightsStatus": "owner-confirmed",
+      "orientation": "horizontal",
+      "featured": [],
+      "originalWidth": 1200,
+      "originalHeight": 800,
+      "variants": [
+        {
+          "src": "/media/detalhes/casamento-perssew-emanuely-preparativos-noiva-01-480.webp",
+          "width": 480,
+          "height": 320,
+          "bytes": 15392
+        },
+        {
+          "src": "/media/detalhes/casamento-perssew-emanuely-preparativos-noiva-01-800.webp",
+          "width": 800,
+          "height": 533,
+          "bytes": 32992
+        },
+        {
+          "src": "/media/detalhes/casamento-perssew-emanuely-preparativos-noiva-01-1200.webp",
+          "width": 1200,
+          "height": 800,
+          "bytes": 60846
+        }
+      ],
+      "src": "/media/detalhes/casamento-perssew-emanuely-preparativos-noiva-01-1200.webp",
+      "width": 1200,
+      "height": 800,
+      "fullSrc": "/media/detalhes/casamento-perssew-emanuely-preparativos-noiva-01-1200.webp",
+      "locationNote": "Preparativos de Perssew e Emanuely · local não confirmado como Solar Opará",
+      "objectPosition": "64% 45%"
+    },
+    {
+      "id": "solar-celebracao-02",
+      "slug": "casamento-mariana-renato-chegada-cerimonia-01",
+      "category": "eventos",
+      "categories": [
+        "eventos",
+        "casamentos"
+      ],
+      "sourceUrl": "https://storage.alboom.ninja/sites/27695/albuns/1421318/img_0810.jpg?t=1731964628",
+      "source": "Oliver Fotos — acervo já utilizado pelo projeto",
+      "sourcePage": "https://www.oliverfotos.com.br/portfolio/casamento/1421318-mariana-e-renato",
+      "instagramPost": null,
+      "caption": "A chegada de um novo capítulo",
+      "alt": "Mariana e seu acompanhante ao lado de um carro branco na chegada à cerimônia",
+      "credit": "Oliver Fotos / Marcos Oliver",
+      "photographers": [
+        "Marcos Oliver"
+      ],
+      "approximateDate": "2024-11-18",
+      "dateContext": "Data de publicação do álbum.",
+      "rightsStatus": "owner-confirmed",
+      "orientation": "horizontal",
+      "featured": [],
+      "originalWidth": 1200,
+      "originalHeight": 800,
+      "variants": [
+        {
+          "src": "/media/eventos/casamento-mariana-renato-chegada-cerimonia-01-480.webp",
+          "width": 480,
+          "height": 320,
+          "bytes": 35030
+        },
+        {
+          "src": "/media/eventos/casamento-mariana-renato-chegada-cerimonia-01-800.webp",
+          "width": 800,
+          "height": 533,
+          "bytes": 80184
+        },
+        {
+          "src": "/media/eventos/casamento-mariana-renato-chegada-cerimonia-01-1200.webp",
+          "width": 1200,
+          "height": 800,
+          "bytes": 147976
+        }
+      ],
+      "src": "/media/eventos/casamento-mariana-renato-chegada-cerimonia-01-1200.webp",
+      "width": 1200,
+      "height": 800,
+      "fullSrc": "/media/eventos/casamento-mariana-renato-chegada-cerimonia-01-1200.webp",
+      "locationNote": "Chegada à cerimônia religiosa · registro fora do Solar Opará",
+      "objectPosition": "70% 40%"
+    },
+    {
+      "id": "solar-celebracao-03",
+      "slug": "casamento-mariana-renato-abraco-cerimonia-01",
+      "category": "casamentos",
+      "categories": [
+        "casamentos",
+        "eventos"
+      ],
+      "sourceUrl": "https://storage.alboom.ninja/sites/27695/albuns/1421318/016a5287.jpg?t=1731964541",
+      "source": "Oliver Fotos — acervo já utilizado pelo projeto",
+      "sourcePage": "https://www.oliverfotos.com.br/portfolio/casamento/1421318-mariana-e-renato",
+      "instagramPost": null,
+      "caption": "Abraços que ficam",
+      "alt": "Renato abraça uma convidada durante a cerimônia religiosa diante dos familiares",
+      "credit": "Oliver Fotos / Marcos Oliver",
+      "photographers": [
+        "Marcos Oliver"
+      ],
+      "approximateDate": "2024-11-18",
+      "dateContext": "Data de publicação do álbum.",
+      "rightsStatus": "owner-confirmed",
+      "orientation": "horizontal",
+      "featured": [],
+      "originalWidth": 1200,
+      "originalHeight": 800,
+      "variants": [
+        {
+          "src": "/media/casamentos/casamento-mariana-renato-abraco-cerimonia-01-480.webp",
+          "width": 480,
+          "height": 320,
+          "bytes": 29730
+        },
+        {
+          "src": "/media/casamentos/casamento-mariana-renato-abraco-cerimonia-01-800.webp",
+          "width": 800,
+          "height": 533,
+          "bytes": 56040
+        },
+        {
+          "src": "/media/casamentos/casamento-mariana-renato-abraco-cerimonia-01-1200.webp",
+          "width": 1200,
+          "height": 800,
+          "bytes": 91774
+        }
+      ],
+      "src": "/media/casamentos/casamento-mariana-renato-abraco-cerimonia-01-1200.webp",
+      "width": 1200,
+      "height": 800,
+      "fullSrc": "/media/casamentos/casamento-mariana-renato-abraco-cerimonia-01-1200.webp",
+      "locationNote": "Cerimônia religiosa de Mariana e Renato · registro fora do Solar Opará",
+      "objectPosition": "62% 40%"
+    },
+    {
+      "id": "solar-celebracao-04",
+      "slug": "casamento-perssew-emanuely-cerimonia-religiosa-01",
+      "category": "casamentos",
+      "categories": [
+        "casamentos",
+        "eventos"
+      ],
+      "sourceUrl": "https://storage.alboom.ninja/sites/27695/albuns/516598/img_4847.jpg?t=1590513143",
+      "source": "Oliver Fotos — acervo já utilizado pelo projeto",
+      "sourcePage": "https://www.oliverfotos.com.br/portfolio/casamento/516598-perssew-emanuely",
+      "instagramPost": null,
+      "caption": "Uma história cercada de afeto",
+      "alt": "Perssew e Emanuely caminham entre os convidados no interior da igreja",
+      "credit": "Oliver Fotos",
+      "photographers": [
+        "Marcos Oliver",
+        "Danylo Soares",
+        "Mateus Oliver"
+      ],
+      "creditContext": "Equipe creditada no álbum; autoria individual desta fotografia não especificada.",
+      "approximateDate": "2019-06-22",
+      "dateContext": "Data do evento informada na ficha técnica do álbum.",
+      "rightsStatus": "owner-confirmed",
+      "orientation": "horizontal",
+      "featured": [],
+      "originalWidth": 1200,
+      "originalHeight": 800,
+      "variants": [
+        {
+          "src": "/media/casamentos/casamento-perssew-emanuely-cerimonia-religiosa-01-480.webp",
+          "width": 480,
+          "height": 320,
+          "bytes": 29090
+        },
+        {
+          "src": "/media/casamentos/casamento-perssew-emanuely-cerimonia-religiosa-01-800.webp",
+          "width": 800,
+          "height": 533,
+          "bytes": 63310
+        },
+        {
+          "src": "/media/casamentos/casamento-perssew-emanuely-cerimonia-religiosa-01-1200.webp",
+          "width": 1200,
+          "height": 800,
+          "bytes": 119936
+        }
+      ],
+      "src": "/media/casamentos/casamento-perssew-emanuely-cerimonia-religiosa-01-1200.webp",
+      "width": 1200,
+      "height": 800,
+      "fullSrc": "/media/casamentos/casamento-perssew-emanuely-cerimonia-religiosa-01-1200.webp",
+      "locationNote": "Cerimônia religiosa · Igreja Nossa Senhora Aparecida, fora do Solar Opará",
+      "objectPosition": "50% 45%"
+    }
+  ],
+  "references": [
+    {
+      "url": "https://www.instagram.com/solaroparaoficial/",
+      "category": "oficial",
+      "source": "Instagram oficial Solar Opará",
+      "instagramPost": null,
+      "caption": "Acervo oficial — levantamento de publicações pendente de acesso permitido",
+      "alt": null,
+      "orientation": null,
+      "rightsStatus": "reference-only",
+      "approximateDate": null
+    },
+    {
+      "url": "https://images.mindtrip.ai/attractions/61f1/5200/ee79/d0b1/9b75/a8e4/f9d1/d3e2",
+      "sourcePage": "https://mindtrip.ai/",
+      "category": "estrutura",
+      "source": "Mindtrip — referência herdada do catálogo anterior",
+      "instagramPost": null,
+      "caption": "Fachada — substituir por original autorizado",
+      "alt": "Fachada do Solar Opará entre palmeiras",
+      "orientation": null,
+      "rightsStatus": "awaiting-authorization",
+      "approximateDate": null,
+      "publish": false
+    },
+    {
+      "url": "https://www.oliverfotos.com.br/portfolio/casamento/1698839-bia-e",
+      "category": "casamentos",
+      "source": "Oliver Fotos — álbum adicional fora da autorização confirmada",
+      "instagramPost": null,
+      "caption": "Bia e Lucas — referência de álbum",
+      "alt": null,
+      "orientation": null,
+      "rightsStatus": "awaiting-authorization",
+      "approximateDate": "2026-09-28",
+      "publish": false
+    }
+  ],
+  "socialImage": {
+    "src": "/media/hero/solar-opara-casamento-social.jpg",
+    "sourceMediaId": "solar-celebracao-01",
+    "width": 1200,
+    "height": 630,
+    "credit": "Oliver Fotos / Marcos Oliver",
+    "rightsStatus": "owner-confirmed"
+  }
+}

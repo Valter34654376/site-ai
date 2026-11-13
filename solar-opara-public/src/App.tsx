@@ -3,34 +3,19 @@ import { Gallery } from "@/components/site/Gallery";
 import { BookingFlow } from "@/components/site/BookingFlow";
 import { Reveal } from "@/components/site/Reveal";
 import { SiteEffects } from "@/components/site/SiteEffects";
-import { ADMIN_URL, INSTAGRAM_URL, gallery, images } from "@/lib/site-content";
+import { SafeImage } from "@/components/site/SafeImage";
+import { ADMIN_URL, INSTAGRAM_URL, gallery, media } from "@/lib/site-content";
 
 const experiences = [
-  { title: "Casamentos", kicker: "01 · O grande dia", text: "Uma atmosfera que muda com a luz, valoriza a cerimônia e transforma cada entrada em cena.", img: images.wedding, alt: "Casamento realizado no Solar Opará" },
-  { title: "Celebrações", kicker: "02 · Sua história", text: "Aniversários, bodas e encontros com uma linguagem visual elegante, quente e nada genérica.", img: images.table, alt: "Celebração realizada no Solar Opará" },
-  { title: "Eventos especiais", kicker: "03 · Fora do comum", text: "Um espaço que aceita diferentes composições, experiências e formatos sem perder identidade.", img: images.garden, alt: "Estrutura do Solar Opará" },
+  { title: "Casamentos", kicker: "01 · Para o seu sim", text: "A madeira, as flores e a luz do fim de tarde. Um cenário que acolhe o começo da sua história.", image: media.wedding, position: "52% 50%" },
+  { title: "Celebrações", kicker: "02 · Para reunir quem importa", text: "Aniversários, bodas e encontros que ganham outro ritmo entre o jardim e o salão.", image: media.garden, position: "35% 50%" },
+  { title: "Eventos especiais", kicker: "03 · Para criar possibilidades", text: "Arquitetura e paisagismo em diálogo, prontos para receber a identidade do seu evento.", image: media.garden, position: "78% 40%" },
 ];
-
-function SafeImage({ src, fallback, alt, className, ...rest }: React.ImgHTMLAttributes<HTMLImageElement> & { fallback: string }) {
-  return (
-    <img
-      {...rest}
-      src={src}
-      alt={alt}
-      className={className}
-      onError={(e) => {
-        const el = e.currentTarget;
-        if (el.dataset.fallbackApplied) return;
-        el.dataset.fallbackApplied = "1";
-        el.src = fallback;
-      }}
-    />
-  );
-}
 
 export default function App() {
   return (
     <>
+      <a className="skip-link" href="#espaco">Pular para o conteúdo</a>
       <SiteEffects />
       <Header />
 
@@ -38,36 +23,36 @@ export default function App() {
         <section id="inicio" className="hero-cinematic">
           <div className="hero-media-frame" aria-hidden="true">
             <SafeImage
-              src={images.hero}
-              fallback={images.heroFallback}
+              item={media.hero}
+              fallback={media.fallback}
               alt=""
               fetchPriority="high"
+              loading="eager"
+              sizes="(max-width: 640px) 150vw, 104vw"
               className="hero-media"
             />
           </div>
           <div className="hero-vignette" />
           <div className="hero-light hero-light-a" />
           <div className="hero-light hero-light-b" />
-          <div className="hero-grid" />
-
-          <div className="hero-ghost" aria-hidden="true">OPARÁ</div>
+          <div className="hero-ghost" aria-hidden="true">Est. Pirapora</div>
 
           <div className="hero-content">
             <div className="hero-copy">
               <div className="hero-kicker">
                 <span className="hero-kicker-dot" />
-                Pirapora · Minas Gerais
+                Solar Opará · Pirapora, MG
               </div>
 
               <h1 className="hero-title">
-                Eventos que
+                Onde a vida
                 <span className="hero-title-line">
-                  parecem <em>cinema.</em>
+                  vira <em>memória.</em>
                 </span>
               </h1>
 
               <p className="hero-lead">
-                Arquitetura, jardins, luz e atmosfera para transformar uma data importante em uma experiência que ninguém esquece.
+                Um lugar para celebrar com tempo, natureza e presença. Seu próximo grande momento começa aqui.
               </p>
 
               <div className="hero-actions">
@@ -80,22 +65,23 @@ export default function App() {
               </div>
             </div>
 
-            <aside className="hero-side-note">
-              <span className="hero-side-line" />
-              <p>Espaço de eventos<br />em Pirapora / MG</p>
-            </aside>
+            <a href="#galeria" className="hero-side-note" aria-label="Conheça a coleção de fotografias do Solar Opará">
+              <SafeImage item={media.wedding} loading="lazy" sizes="180px" alt="" />
+              <span><small>Histórias reais</small>Um olhar mais perto <i aria-hidden="true">↗</i></span>
+            </a>
           </div>
 
           <div className="hero-scroll">
-            <span>Scroll</span>
+            <span>Explore o Solar</span>
             <i />
           </div>
+          <div className="hero-photo-caption"><span>O jardim, à noite.</span><span>Fotografia · Oliver Fotos</span></div>
         </section>
 
         <div className="marquee" aria-hidden="true">
           <div className="marquee-track">
-            <span>CASAMENTOS</span><b>✦</b><span>CELEBRAÇÕES</span><b>✦</b><span>EXPERIÊNCIAS</span><b>✦</b><span>SOLAR OPARÁ</span><b>✦</b>
-            <span>CASAMENTOS</span><b>✦</b><span>CELEBRAÇÕES</span><b>✦</b><span>EXPERIÊNCIAS</span><b>✦</b><span>SOLAR OPARÁ</span><b>✦</b>
+            <span>NATUREZA</span><b>✳</b><span>ARQUITETURA</span><b>✳</b><span>ENCONTROS</span><b>✳</b><span>MEMÓRIAS</span><b>✳</b>
+            <span>NATUREZA</span><b>✳</b><span>ARQUITETURA</span><b>✳</b><span>ENCONTROS</span><b>✳</b><span>MEMÓRIAS</span><b>✳</b>
           </div>
         </div>
 
@@ -110,22 +96,19 @@ export default function App() {
             </Reveal>
 
             <Reveal className="manifesto-copy">
-              <p className="manifesto-statement">
-                Não é só um espaço.
-                <span>É a atmosfera inteira trabalhando a favor do seu evento.</span>
-              </p>
+              <h2 className="manifesto-statement">O espaço acolhe.<span>A sua história<br />dá vida.</span></h2>
               <div className="manifesto-body">
-                <p>Texturas quentes, paisagismo, arquitetura e iluminação se misturam para criar uma presença visual forte antes mesmo da decoração entrar em cena.</p>
-                <p>O objetivo é simples: fazer o convidado sentir que chegou a um lugar especial.</p>
+                <p>Em Pirapora, a madeira encontra o verde. O salão se abre para o jardim, e a luz desenha novas atmosferas ao longo da celebração.</p>
+                <p>Um lugar que recebe a sua ideia, aproxima as pessoas e deixa espaço para aquilo que torna cada encontro único.</p>
               </div>
             </Reveal>
 
             <Reveal className="manifesto-image-wrap">
               <div className="image-ribbon">SOLAR · OPARÁ · PIRAPORA</div>
-              <SafeImage src={images.garden} fallback={images.wedding} alt="Estrutura e paisagismo do Solar Opará" loading="lazy" className="manifesto-image" />
+              <SafeImage item={media.wedding} fallback={media.garden} loading="lazy" sizes="(max-width: 900px) 94vw, 780px" className="manifesto-image" />
               <div className="image-glass-card">
-                <span>Arquitetura</span>
-                <strong>Identidade que aparece em cada enquadramento.</strong>
+                <span>Madeira, flores & luz</span>
+                <strong>O cenário faz parte<br />da lembrança.</strong>
               </div>
             </Reveal>
           </div>
@@ -138,7 +121,7 @@ export default function App() {
                 <p className="eyebrow text-gold">Experiências</p>
                 <h2>Três formas de<br /><em>viver o Solar.</em></h2>
               </div>
-              <p className="experiences-intro">Passe o mouse pelos cartões. A ideia aqui é trazer profundidade e movimento sem perder a elegância.</p>
+              <p className="experiences-intro">Há muitas maneiras de celebrar. Encontre a sua e deixe o Solar fazer parte desse momento.</p>
             </Reveal>
 
             <div className="experience-grid">
@@ -146,7 +129,7 @@ export default function App() {
                 <Reveal key={item.title} className={i === 1 ? "experience-offset" : ""}>
                   <article className="experience-card">
                     <div className="experience-media">
-                      <SafeImage src={item.img} fallback={images.heroFallback} alt={item.alt} loading="lazy" />
+                      <SafeImage item={item.image} fallback={media.wedding} loading="lazy" sizes="(max-width: 640px) 94vw, (max-width: 900px) 50vw, 400px" style={{ objectPosition: item.position }} />
                       <div className="experience-shine" />
                       <span className="experience-number">0{i + 1}</span>
                     </div>
@@ -154,6 +137,7 @@ export default function App() {
                       <p>{item.kicker}</p>
                       <h3>{item.title}</h3>
                       <span>{item.text}</span>
+                      <a href="#contato" className="experience-link" aria-label={`Conversar sobre ${item.title.toLowerCase()}`}>Imagine o seu evento <i aria-hidden="true">↗</i></a>
                     </div>
                   </article>
                 </Reveal>
@@ -163,13 +147,15 @@ export default function App() {
         </section>
 
         <section className="interlude">
-          <div className="interlude-word" aria-hidden="true">MEMÓRIAS</div>
+          <SafeImage item={media.wedding} fallback={media.garden} alt="" aria-hidden="true" loading="lazy" sizes="100vw" className="interlude-photo" />
+          <div className="interlude-shade" />
+          <div className="interlude-word" aria-hidden="true">celebrar</div>
           <div className="section-wrap interlude-inner">
             <Reveal>
-              <p className="eyebrow text-gold">O efeito certo</p>
+              <p className="eyebrow text-gold">Presentes no que importa</p>
               <blockquote>
-                “O lugar não precisa competir com o evento.
-                <em> Ele precisa amplificar o momento.</em>”
+                Da primeira luz
+                <em> ao último abraço.</em>
               </blockquote>
             </Reveal>
           </div>
@@ -179,13 +165,14 @@ export default function App() {
           <div className="section-wrap">
             <Reveal className="gallery-heading">
               <div>
-                <p className="eyebrow text-primary">Galeria</p>
-                <h2>O Solar em<br /><em>movimento.</em></h2>
+                <p className="eyebrow text-primary">Coleção de momentos</p>
+                <h2>O lugar. As pessoas.<br /><em>O que fica.</em></h2>
               </div>
               <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="text-link">
-                Ver Instagram <span>↗</span>
+                @solaroparaoficial <span>↗</span>
               </a>
             </Reveal>
+            <p className="gallery-intro">Um passeio pelo Solar e pelas histórias de casamento que passam por aqui. Fotografias de Oliver Fotos, com os contextos de cada registro na coleção.</p>
             <div className="gallery-stage">
               <Gallery items={gallery} />
             </div>
@@ -193,13 +180,13 @@ export default function App() {
         </section>
 
         <section className="visit-cinematic">
-          <SafeImage src={images.wedding} fallback={images.heroFallback} alt="" aria-hidden="true" loading="lazy" className="visit-bg" />
+          <SafeImage item={media.garden} fallback={media.wedding} alt="" aria-hidden="true" loading="lazy" sizes="100vw" className="visit-bg" />
           <div className="visit-overlay" />
           <div className="visit-glow" />
           <Reveal className="visit-content">
             <p className="eyebrow text-gold">Conheça pessoalmente</p>
-            <h2>Alguns lugares você vê.<br /><em>Outros você sente.</em></h2>
-            <p>Agende uma visita, caminhe pelo espaço e veja como a luz, os jardins e a arquitetura funcionam ao vivo.</p>
+            <h2>O próximo capítulo<br /><em>pode ser o seu.</em></h2>
+            <p>Caminhe pelo jardim. Entre no salão. Imagine as pessoas que você quer ter por perto. Venha sentir o Solar.</p>
             <a href="#contato" className="button-lux button-lux-primary">
               <span>Solicitar visita</span><i aria-hidden="true">↗</i>
             </a>
@@ -216,6 +203,7 @@ export default function App() {
           <div>
             <p className="lux-footer-logo">Solar Opará</p>
             <p className="eyebrow opacity-60">Pirapora · Minas Gerais</p>
+            <p className="footer-address">Rua Homero Nunes Macedo, 1208<br />Sagrada Família · Pirapora, MG</p>
           </div>
           <div className="lux-footer-links">
             <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">Instagram ↗</a>
@@ -224,6 +212,7 @@ export default function App() {
           </div>
           <div className="lux-footer-meta">
             <p>© {new Date().getFullYear()} Solar Opará.</p>
+            <p>Fotografias: Oliver Fotos.</p>
             <a href={ADMIN_URL} rel="noopener">Acesso administrativo</a>
           </div>
         </div>

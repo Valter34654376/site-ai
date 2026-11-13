@@ -1,69 +1,141 @@
-import { useCallback, useEffect, useState } from "react";
-import type { MediaItem } from "@/lib/site-content";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { categories, type Category, type MediaItem } from "@/lib/site-content";
+import { SafeImage } from "./SafeImage";
+
+const PAGE_SIZE = 6;
 
 export function Gallery({ items }: { items: MediaItem[] }) {
-  const [idx, setIdx] = useState<number | null>(null);
-  const close = useCallback(() => setIdx(null), []);
-  const step = useCallback((d: number) => setIdx((i) => (i === null ? i : (i + d + items.length) % items.length)), [items.length]);
+  const [category, setCategory] = useState<Category>("todos");
+  const [visible, setVisible] = useState(PAGE_SIZE);
+  const [index, setIndex] = useState<number | null>(null);
+  const dialog = useRef<HTMLDialogElement>(null);
+  const grid = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLElement | null>(null);
+  const touch = useRef<{ x: number; y: number } | null>(null);
+  const filtered = useMemo(() => items.filter((item) => category === "todos" || item.categories.includes(category)), [items, category]);
+  const current = index === null ? null : filtered[index];
+  const isOpen = index !== null;
+  const close = useCallback(() => setIndex(null), []);
+  const step = useCallback((direction: number) => {
+    setIndex((value) => value === null || filtered.length === 0 ? null : (value + direction + filtered.length) % filtered.length);
+  }, [filtered.length]);
 
   useEffect(() => {
-    if (idx === null) return;
-    const k = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
-      if (e.key === "ArrowRight") step(1);
-      if (e.key === "ArrowLeft") step(-1);
-    };
+    const modal = dialog.current;
+    if (!isOpen || !modal) return;
+    const overflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", k);
-    return () => { window.removeEventListener("keydown", k); document.body.style.overflow = ""; };
-  }, [idx, close, step]);
+    modal.showModal();
+    return () => {
+      modal.close();
+      document.body.style.overflow = overflow;
+      trigger.current?.focus({ preventScroll: true });
+    };
+  }, [isOpen]);
 
-  const cur = idx !== null ? items[idx] : null;
+  useEffect(() => {
+    if (index === null || filtered.length < 2) return;
+    const next = new Image();
+    next.src = filtered[(index + 1) % filtered.length].fullSrc;
+  }, [index, filtered]);
+
+  function filter(next: Category) {
+    setCategory(next);
+    setVisible(PAGE_SIZE);
+    close();
+  }
+
+  function showMore() {
+    const previous = visible;
+    setVisible((value) => value + PAGE_SIZE);
+    requestAnimationFrame(() => grid.current?.querySelectorAll<HTMLButtonElement>(".gallery-open")[previous]?.focus({ preventScroll: true }));
+  }
 
   return (
     <>
-      <div className="columns-1 gap-4 sm:columns-2 lg:columns-3 [&>*]:mb-4">
-        {items.map((m, i) => (
-          <figure key={i} className="group break-inside-avoid">
-            <button onClick={() => setIdx(i)} className="relative block w-full overflow-hidden" aria-label={`Ampliar: ${m.caption}`}>
-              <img
-                src={m.type === "image" ? m.src : m.poster}
-                alt={m.alt}
-                loading="lazy"
-                decoding="async"
-                className={`w-full object-cover transition-transform duration-[1200ms] group-hover:scale-[1.04] ${m.tall ? "aspect-[4/5]" : "aspect-[4/3]"}`}
-              />
-              {m.type === "video" && <span className="eyebrow absolute left-4 top-4 bg-ink/70 px-3 py-1.5 text-ink-foreground">Vídeo</span>}
+      <div className="gallery-toolbar">
+        <div className="gallery-filters" role="group" aria-label="Filtrar fotografias">
+          {categories.map((entry) => {
+            const count = entry.id === "todos" ? items.length : items.filter((item) => item.categories.includes(entry.id)).length;
+            return (
+              <button key={entry.id} type="button" aria-pressed={category === entry.id} aria-controls="gallery-collection" onClick={() => filter(entry.id)}>
+                {entry.label}<span aria-hidden="true">{String(count).padStart(2, "0")}</span>
+              </button>
+            );
+          })}
+        </div>
+        <p className="gallery-count" role="status" aria-live="polite">{filtered.length} {filtered.length === 1 ? "fotografia" : "fotografias"}</p>
+      </div>
+
+      <div id="gallery-collection" ref={grid} className="gallery-editorial" key={category}>
+        {filtered.slice(0, visible).map((item, position) => (
+          <figure key={item.id} className="gallery-card">
+            <button type="button" className="gallery-open" aria-label={`Ampliar: ${item.caption}`} aria-haspopup="dialog" onClick={(event) => { trigger.current = event.currentTarget; setIndex(position); }}>
+              <SafeImage item={item} loading="lazy" sizes="(max-width: 640px) calc(100vw - 40px), (max-width: 1000px) 50vw, 700px" className="gallery-image" />
+              <span className="gallery-photo-shade" />
+              <span className="gallery-photo-number" aria-hidden="true">{String(position + 1).padStart(2, "0")}</span>
+              <span className="gallery-expand" aria-hidden="true">↗</span>
+              <span className="gallery-photo-category">{item.locationNote ? "Histórias de casamento" : categories.find((entry) => entry.id === item.category)?.label}</span>
             </button>
-            <figcaption className="eyebrow mt-3 text-muted-foreground">{m.caption}</figcaption>
+            <figcaption>
+              <span>{item.caption}</span>
+              <span className="gallery-caption-credit">{item.locationNote ? "Acervo de casamento" : "Solar Opará"} · Oliver Fotos</span>
+            </figcaption>
           </figure>
         ))}
       </div>
 
-      {cur && (
-        <div role="dialog" aria-modal="true" aria-label={cur.caption} className="fixed inset-0 z-50 flex flex-col bg-ink/95 text-ink-foreground animate-in fade-in" onClick={close}>
-          <div className="flex items-center justify-between px-6 py-5">
-            <span className="eyebrow opacity-70">{(idx ?? 0) + 1} / {items.length}</span>
-            <button className="eyebrow" onClick={close} autoFocus>Fechar</button>
+      {filtered.length === 0 && <p className="gallery-empty">Novos olhares estão a caminho. Explore as outras coleções.</p>}
+      <div className="gallery-bottom">
+        <p aria-live="polite">Exibindo {Math.min(visible, filtered.length)} de {filtered.length} fotografias</p>
+        {visible < filtered.length && <button type="button" className="button-lux button-lux-outline" onClick={showMore}>Ver mais fotografias <span aria-hidden="true">↓</span></button>}
+      </div>
+
+      <dialog ref={dialog} className="lightbox" aria-labelledby="lightbox-title" aria-describedby="lightbox-caption" onCancel={(event) => { event.preventDefault(); close(); }} onClick={(event) => { if (event.target === event.currentTarget) close(); }} onKeyDown={(event) => {
+        if (event.key === "ArrowRight") { event.preventDefault(); step(1); }
+        if (event.key === "ArrowLeft") { event.preventDefault(); step(-1); }
+        if (event.key === "Tab") {
+          const controls = event.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled), a[href]');
+          const first = controls[0];
+          const last = controls[controls.length - 1];
+          if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+          else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+        }
+      }}>
+        {current && (
+          <div className="lightbox-shell">
+            <div className="lightbox-top">
+              <span className="lightbox-brand">Solar Opará <span>/ Coleção</span></span>
+              <span className="lightbox-counter" aria-live="polite">{String((index ?? 0) + 1).padStart(2, "0")} <span>/ {String(filtered.length).padStart(2, "0")}</span></span>
+              <button type="button" className="lightbox-close" onClick={close} aria-label="Fechar galeria" autoFocus>Fechar <span aria-hidden="true">×</span></button>
+            </div>
+            <div className="lightbox-stage" onClick={(event) => { if (event.target === event.currentTarget) close(); }} onTouchStart={(event) => {
+              const start = event.touches[0];
+              if (start) touch.current = { x: start.clientX, y: start.clientY };
+            }} onTouchEnd={(event) => {
+              const end = event.changedTouches[0];
+              if (touch.current && end) {
+                const dx = end.clientX - touch.current.x;
+                const dy = end.clientY - touch.current.y;
+                if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.5) step(dx < 0 ? 1 : -1);
+              }
+              touch.current = null;
+            }} onTouchCancel={() => { touch.current = null; }}>
+              <button type="button" className="lightbox-arrow lightbox-prev" onClick={() => step(-1)} aria-label="Fotografia anterior">←</button>
+              <SafeImage key={current.id} item={current} full className="lightbox-image" />
+              <button type="button" className="lightbox-arrow lightbox-next" onClick={() => step(1)} aria-label="Próxima fotografia">→</button>
+            </div>
+            <div className="lightbox-bottom">
+              <div>
+                <h3 id="lightbox-title">{current.caption}</h3>
+                <p id="lightbox-caption">{current.locationNote ?? "Solar Opará · Pirapora, Minas Gerais"}</p>
+              </div>
+              <a href={current.sourcePage} target="_blank" rel="noopener noreferrer" className="lightbox-credit">Fotografia: {current.credit} <span aria-hidden="true">↗</span></a>
+              <span className="lightbox-hint">← → para navegar · Esc para fechar</span>
+            </div>
           </div>
-          <div className="flex flex-1 items-center justify-center gap-4 px-4 pb-6" onClick={(e) => e.stopPropagation()}>
-            <button className="eyebrow hidden p-4 sm:block" onClick={() => step(-1)} aria-label="Anterior">←</button>
-            <figure className="flex max-h-full max-w-5xl flex-col items-center">
-              {cur.type === "image" ? (
-                <img src={cur.src} alt={cur.alt} className="max-h-[78vh] w-auto object-contain" />
-              ) : (
-                <video src={cur.src} poster={cur.poster} controls autoPlay playsInline className="max-h-[78vh] w-auto" aria-label={cur.alt} />
-              )}
-              <figcaption className="mt-4 font-display text-xl italic opacity-90">{cur.caption}</figcaption>
-            </figure>
-            <button className="eyebrow hidden p-4 sm:block" onClick={() => step(1)} aria-label="Próxima">→</button>
-          </div>
-          <div className="flex justify-center gap-10 pb-6 sm:hidden" onClick={(e) => e.stopPropagation()}>
-            <button className="eyebrow p-3" onClick={() => step(-1)}>Anterior</button>
-            <button className="eyebrow p-3" onClick={() => step(1)}>Próxima</button>
-          </div>
-        </div>
-      )}
+        )}
+      </dialog>
     </>
   );
 }
