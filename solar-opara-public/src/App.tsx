@@ -2,75 +2,159 @@ import { Header } from "@/components/site/Header";
 import { Gallery } from "@/components/site/Gallery";
 import { BookingFlow } from "@/components/site/BookingFlow";
 import { Reveal } from "@/components/site/Reveal";
-import { ADMIN_URL, HERO_VIDEO_SRC, INSTAGRAM_URL, gallery, images } from "@/lib/site-content";
+import { SiteEffects } from "@/components/site/SiteEffects";
+import { ADMIN_URL, INSTAGRAM_URL, gallery, images } from "@/lib/site-content";
 
 const experiences = [
-  { title: "Casamentos", text: "Da cerimônia à última dança, um cenário que acolhe cada etapa do dia com naturalidade e beleza.", img: images.wedding, alt: "Pavilhão preparado para recepção de casamento à noite" },
-  { title: "Celebrações", text: "Aniversários, bodas e encontros de família em um ambiente que convida a permanecer.", img: images.table, alt: "Mesa posta com detalhes dourados e luz de velas" },
-  { title: "Eventos sociais e corporativos", text: "Um endereço diferente para reunir pessoas, longe do comum e perto do que importa.", img: images.garden, alt: "Caminho entre jardins tropicais e paredes terracota" },
+  { title: "Casamentos", kicker: "01 · O grande dia", text: "Uma atmosfera que muda com a luz, valoriza a cerimônia e transforma cada entrada em cena.", img: images.wedding, alt: "Casamento realizado no Solar Opará" },
+  { title: "Celebrações", kicker: "02 · Sua história", text: "Aniversários, bodas e encontros com uma linguagem visual elegante, quente e nada genérica.", img: images.table, alt: "Celebração realizada no Solar Opará" },
+  { title: "Eventos especiais", kicker: "03 · Fora do comum", text: "Um espaço que aceita diferentes composições, experiências e formatos sem perder identidade.", img: images.garden, alt: "Estrutura do Solar Opará" },
 ];
+
+function SafeImage({ src, fallback, alt, className, ...rest }: React.ImgHTMLAttributes<HTMLImageElement> & { fallback: string }) {
+  return (
+    <img
+      {...rest}
+      src={src}
+      alt={alt}
+      className={className}
+      onError={(e) => {
+        const el = e.currentTarget;
+        if (el.dataset.fallbackApplied) return;
+        el.dataset.fallbackApplied = "1";
+        el.src = fallback;
+      }}
+    />
+  );
+}
 
 export default function App() {
   return (
     <>
+      <SiteEffects />
       <Header />
-      <main>
-        {/* Hero */}
-        <section id="inicio" className="relative flex min-h-[100svh] items-end overflow-hidden bg-ink text-ink-foreground">
-          {HERO_VIDEO_SRC ? (
-            <video className="absolute inset-0 h-full w-full object-cover" autoPlay muted loop playsInline poster={images.hero} aria-hidden="true">
-              <source src={HERO_VIDEO_SRC} />
-            </video>
-          ) : (
-            <img src={images.hero} alt="Fachada do Solar Opará ao entardecer, com jardins tropicais iluminados" width={1920} height={1088} fetchPriority="high" className="animate-slow-zoom absolute inset-0 h-full w-full object-cover" />
-          )}
-          <div className="hero-overlay absolute inset-0" />
-          <div className="relative mx-auto w-full max-w-7xl px-6 pb-20 pt-40 lg:px-10 lg:pb-28">
-            <p className="eyebrow mb-6 text-gold">Pirapora · Minas Gerais</p>
-            <h1 className="max-w-4xl text-5xl leading-[1.02] sm:text-7xl lg:text-8xl">Um cenário para momentos que <em>ficam.</em></h1>
-            <p className="mt-8 max-w-lg text-base leading-relaxed opacity-90 sm:text-lg">Casamentos, celebrações e encontros em um ambiente marcante, onde arquitetura, jardins e luz se encontram.</p>
-            <div className="mt-10 flex flex-wrap gap-4">
-              <a href="#espaco" className="eyebrow border border-ink-foreground/60 px-8 py-4 transition-colors hover:bg-ink-foreground hover:text-ink">Conhecer o espaço</a>
-              <a href="#datas" className="eyebrow bg-primary px-8 py-4 text-primary-foreground transition-colors hover:bg-primary/85">Ver datas disponíveis</a>
+
+      <main className="site-shell">
+        <section id="inicio" className="hero-cinematic">
+          <div className="hero-media-frame" aria-hidden="true">
+            <SafeImage
+              src={images.hero}
+              fallback={images.heroFallback}
+              alt=""
+              fetchPriority="high"
+              className="hero-media"
+            />
+          </div>
+          <div className="hero-vignette" />
+          <div className="hero-light hero-light-a" />
+          <div className="hero-light hero-light-b" />
+          <div className="hero-grid" />
+
+          <div className="hero-ghost" aria-hidden="true">OPARÁ</div>
+
+          <div className="hero-content">
+            <div className="hero-copy">
+              <div className="hero-kicker">
+                <span className="hero-kicker-dot" />
+                Pirapora · Minas Gerais
+              </div>
+
+              <h1 className="hero-title">
+                Eventos que
+                <span className="hero-title-line">
+                  parecem <em>cinema.</em>
+                </span>
+              </h1>
+
+              <p className="hero-lead">
+                Arquitetura, jardins, luz e atmosfera para transformar uma data importante em uma experiência que ninguém esquece.
+              </p>
+
+              <div className="hero-actions">
+                <a href="#datas" className="button-lux button-lux-primary">
+                  <span>Ver datas disponíveis</span><i aria-hidden="true">↗</i>
+                </a>
+                <a href="#espaco" className="button-lux button-lux-ghost">
+                  <span>Explorar o Solar</span><i aria-hidden="true">↓</i>
+                </a>
+              </div>
             </div>
+
+            <aside className="hero-side-note">
+              <span className="hero-side-line" />
+              <p>Espaço de eventos<br />em Pirapora / MG</p>
+            </aside>
+          </div>
+
+          <div className="hero-scroll">
+            <span>Scroll</span>
+            <i />
           </div>
         </section>
 
-        {/* O espaço */}
-        <section id="espaco" className="mx-auto grid max-w-7xl gap-14 px-6 py-24 lg:grid-cols-12 lg:gap-20 lg:px-10 lg:py-36">
-          <Reveal className="lg:col-span-5 lg:pt-16">
-            <p className="eyebrow text-primary">O Solar Opará</p>
-            <h2 className="mt-6 text-4xl leading-tight sm:text-5xl">Um lugar pensado para receber bem.</h2>
-            <div className="mt-8 space-y-5 leading-relaxed text-muted-foreground">
-              <p>Em Pirapora, o Solar Opará reúne arquitetura de tons terrosos, paisagismo tropical e uma atmosfera calorosa que se transforma ao longo do dia.</p>
-              <p>Um espaço versátil, que se adapta ao caráter de cada evento — do encontro intimista à grande celebração.</p>
-            </div>
-            <dl className="mt-12 grid grid-cols-2 gap-x-8 gap-y-8 border-t border-border pt-10">
-              {[["Arquitetura", "Linhas e texturas que acolhem"], ["Paisagismo", "Jardins tropicais em volta"], ["Atmosfera", "Luz quente ao entardecer"], ["Versatilidade", "Formatos diversos de evento"]].map(([t, d]) => (
-                <div key={t}><dt className="font-display text-2xl">{t}</dt><dd className="mt-1 text-sm text-muted-foreground">{d}</dd></div>
-              ))}
-            </dl>
-          </Reveal>
-          <Reveal className="lg:col-span-7">
-            <img src={images.garden} alt="Caminho de pedras entre jardins tropicais e paredes terracota" width={1600} height={1200} loading="lazy" className="aspect-[4/5] w-full object-cover sm:aspect-[5/4] lg:aspect-[4/5]" />
-          </Reveal>
+        <div className="marquee" aria-hidden="true">
+          <div className="marquee-track">
+            <span>CASAMENTOS</span><b>✦</b><span>CELEBRAÇÕES</span><b>✦</b><span>EXPERIÊNCIAS</span><b>✦</b><span>SOLAR OPARÁ</span><b>✦</b>
+            <span>CASAMENTOS</span><b>✦</b><span>CELEBRAÇÕES</span><b>✦</b><span>EXPERIÊNCIAS</span><b>✦</b><span>SOLAR OPARÁ</span><b>✦</b>
+          </div>
+        </div>
+
+        <section id="espaco" className="manifesto-section">
+          <div className="manifesto-orbit manifesto-orbit-a" />
+          <div className="manifesto-orbit manifesto-orbit-b" />
+
+          <div className="section-wrap manifesto-grid">
+            <Reveal className="manifesto-label">
+              <p className="eyebrow text-primary">O Solar Opará</p>
+              <span className="manifesto-index">01</span>
+            </Reveal>
+
+            <Reveal className="manifesto-copy">
+              <p className="manifesto-statement">
+                Não é só um espaço.
+                <span>É a atmosfera inteira trabalhando a favor do seu evento.</span>
+              </p>
+              <div className="manifesto-body">
+                <p>Texturas quentes, paisagismo, arquitetura e iluminação se misturam para criar uma presença visual forte antes mesmo da decoração entrar em cena.</p>
+                <p>O objetivo é simples: fazer o convidado sentir que chegou a um lugar especial.</p>
+              </div>
+            </Reveal>
+
+            <Reveal className="manifesto-image-wrap">
+              <div className="image-ribbon">SOLAR · OPARÁ · PIRAPORA</div>
+              <SafeImage src={images.garden} fallback={images.wedding} alt="Estrutura e paisagismo do Solar Opará" loading="lazy" className="manifesto-image" />
+              <div className="image-glass-card">
+                <span>Arquitetura</span>
+                <strong>Identidade que aparece em cada enquadramento.</strong>
+              </div>
+            </Reveal>
+          </div>
         </section>
 
-        {/* Experiências */}
-        <section id="experiencias" className="bg-forest py-24 text-ink-foreground lg:py-36">
-          <div className="mx-auto max-w-7xl px-6 lg:px-10">
-            <Reveal className="max-w-2xl">
-              <p className="eyebrow text-gold">Experiências</p>
-              <h2 className="mt-6 text-4xl leading-tight sm:text-5xl">Cada ocasião, com a sua própria atmosfera.</h2>
+        <section id="experiencias" className="experiences-section">
+          <div className="section-wrap">
+            <Reveal className="experiences-head">
+              <div>
+                <p className="eyebrow text-gold">Experiências</p>
+                <h2>Três formas de<br /><em>viver o Solar.</em></h2>
+              </div>
+              <p className="experiences-intro">Passe o mouse pelos cartões. A ideia aqui é trazer profundidade e movimento sem perder a elegância.</p>
             </Reveal>
-            <div className="mt-16 grid gap-12 md:grid-cols-3 md:gap-8">
-              {experiences.map((x, i) => (
-                <Reveal key={x.title} className={i === 1 ? "md:mt-20" : ""}>
-                  <article>
-                    <div className="overflow-hidden"><img src={x.img} alt={x.alt} loading="lazy" className="aspect-[3/4] w-full object-cover transition-transform duration-[1200ms] hover:scale-105" /></div>
-                    <p className="eyebrow mt-6 text-gold">0{i + 1}</p>
-                    <h3 className="mt-2 text-3xl">{x.title}</h3>
-                    <p className="mt-3 leading-relaxed opacity-80">{x.text}</p>
+
+            <div className="experience-grid">
+              {experiences.map((item, i) => (
+                <Reveal key={item.title} className={i === 1 ? "experience-offset" : ""}>
+                  <article className="experience-card">
+                    <div className="experience-media">
+                      <SafeImage src={item.img} fallback={images.heroFallback} alt={item.alt} loading="lazy" />
+                      <div className="experience-shine" />
+                      <span className="experience-number">0{i + 1}</span>
+                    </div>
+                    <div className="experience-copy">
+                      <p>{item.kicker}</p>
+                      <h3>{item.title}</h3>
+                      <span>{item.text}</span>
+                    </div>
                   </article>
                 </Reveal>
               ))}
@@ -78,44 +162,69 @@ export default function App() {
           </div>
         </section>
 
-        {/* Galeria */}
-        <section id="galeria" className="mx-auto max-w-7xl px-6 py-24 lg:px-10 lg:py-36">
-          <Reveal className="mb-14 flex flex-col justify-between gap-6 md:flex-row md:items-end">
-            <div>
-              <p className="eyebrow text-primary">Galeria</p>
-              <h2 className="mt-6 text-4xl sm:text-5xl">Olhares sobre o Solar.</h2>
-            </div>
-            <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="eyebrow border-b border-foreground pb-1 self-start md:self-auto">Mais no Instagram</a>
-          </Reveal>
-          <Gallery items={gallery} />
-        </section>
-
-        {/* Visita */}
-        <section className="relative overflow-hidden bg-ink text-ink-foreground">
-          <img src={images.wedding} alt="" aria-hidden="true" loading="lazy" className="absolute inset-0 h-full w-full object-cover opacity-40" />
-          <div className="relative mx-auto max-w-4xl px-6 py-28 text-center lg:py-40">
+        <section className="interlude">
+          <div className="interlude-word" aria-hidden="true">MEMÓRIAS</div>
+          <div className="section-wrap interlude-inner">
             <Reveal>
-              <p className="eyebrow text-gold">Pirapora · Minas Gerais</p>
-              <h2 className="mt-6 text-4xl leading-tight sm:text-6xl">Visite o Solar Opará.</h2>
-              <p className="mx-auto mt-6 max-w-xl leading-relaxed opacity-90">Nada substitui caminhar pelo espaço. Agende uma visita e imagine seu evento no lugar onde ele vai acontecer.</p>
-              <a href="#contato" className="eyebrow mt-10 inline-block bg-primary px-10 py-4 text-primary-foreground transition-colors hover:bg-primary/85">Solicitar visita</a>
+              <p className="eyebrow text-gold">O efeito certo</p>
+              <blockquote>
+                “O lugar não precisa competir com o evento.
+                <em> Ele precisa amplificar o momento.</em>”
+              </blockquote>
             </Reveal>
           </div>
         </section>
 
-        <BookingFlow />
+        <section id="galeria" className="gallery-section">
+          <div className="section-wrap">
+            <Reveal className="gallery-heading">
+              <div>
+                <p className="eyebrow text-primary">Galeria</p>
+                <h2>O Solar em<br /><em>movimento.</em></h2>
+              </div>
+              <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="text-link">
+                Ver Instagram <span>↗</span>
+              </a>
+            </Reveal>
+            <div className="gallery-stage">
+              <Gallery items={gallery} />
+            </div>
+          </div>
+        </section>
+
+        <section className="visit-cinematic">
+          <SafeImage src={images.wedding} fallback={images.heroFallback} alt="" aria-hidden="true" loading="lazy" className="visit-bg" />
+          <div className="visit-overlay" />
+          <div className="visit-glow" />
+          <Reveal className="visit-content">
+            <p className="eyebrow text-gold">Conheça pessoalmente</p>
+            <h2>Alguns lugares você vê.<br /><em>Outros você sente.</em></h2>
+            <p>Agende uma visita, caminhe pelo espaço e veja como a luz, os jardins e a arquitetura funcionam ao vivo.</p>
+            <a href="#contato" className="button-lux button-lux-primary">
+              <span>Solicitar visita</span><i aria-hidden="true">↗</i>
+            </a>
+          </Reveal>
+        </section>
+
+        <div className="booking-shell">
+          <BookingFlow />
+        </div>
       </main>
 
-      <footer className="bg-ink text-ink-foreground">
-        <div className="mx-auto flex max-w-7xl flex-col gap-10 px-6 py-16 md:flex-row md:items-end md:justify-between lg:px-10">
+      <footer className="lux-footer">
+        <div className="section-wrap lux-footer-grid">
           <div>
-            <p className="font-display text-4xl">Solar Opará</p>
-            <p className="eyebrow mt-3 opacity-70">Pirapora / MG</p>
+            <p className="lux-footer-logo">Solar Opará</p>
+            <p className="eyebrow opacity-60">Pirapora · Minas Gerais</p>
           </div>
-          <div className="flex flex-col gap-3 md:items-end">
-            <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="eyebrow hover:text-gold">Instagram oficial</a>
-            <p className="text-xs opacity-60">© {new Date().getFullYear()} Solar Opará. Todos os direitos reservados.</p>
-            <a href={ADMIN_URL} rel="noopener" className="text-xs opacity-40 hover:opacity-80">Acesso administrativo</a>
+          <div className="lux-footer-links">
+            <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">Instagram ↗</a>
+            <a href="#datas">Datas</a>
+            <a href="#contato">Contato</a>
+          </div>
+          <div className="lux-footer-meta">
+            <p>© {new Date().getFullYear()} Solar Opará.</p>
+            <a href={ADMIN_URL} rel="noopener">Acesso administrativo</a>
           </div>
         </div>
       </footer>
