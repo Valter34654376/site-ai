@@ -4,60 +4,78 @@ import { Icon } from "./Icon";
 const questions = [
   [
     "Como consultar uma data?",
-    "Escolha um dia disponível no calendário e envie sua solicitação. A equipe confirma os detalhes antes de efetivar a reserva.",
+    "Escolha um dia disponível no calendário acima e envie sua solicitação pelo formulário. Nossa equipe entrará em contato para informar condições e valores.",
   ],
   [
-    "Como agendar uma visita?",
-    "Use o formulário ou o Instagram oficial para solicitar uma visita. A equipe combina o dia e o horário com você.",
+    "Como agendar uma visita presencial?",
+    "Envie uma solicitação pelo formulário ou entre em contato pelo Instagram oficial @solaroparaoficial para agendar um horário de visita em Pirapora.",
   ],
   [
-    "O formulário já reserva a data?",
-    "O envio inicia uma conversa. A reserva depende da confirmação direta da equipe e do alinhamento dos detalhes do evento.",
+    "O envio do formulário já reserva a data?",
+    "Não. O formulário registra seu interesse inicial. A reserva efetiva da data ocorre mediante confirmação da equipe e assinatura do contrato de locação.",
   ],
 ];
 
 export function Footer() {
   return (
     <>
-      <section className="faq-section section-wrap" aria-labelledby="faq-title">
-        <h2 id="faq-title">
-          Antes da
-          <br />
-          <em>nossa conversa.</em>
-        </h2>
-        <div className="faq-list">
-          {questions.map(([title, text]) => (
-            <details key={title}>
-              <summary>
-                {title}
-                <Icon name="plus" />
-              </summary>
-              <p>{text}</p>
-            </details>
-          ))}
+      <section className="faq-section" aria-labelledby="faq-title">
+        <div className="section-wrap faq-grid">
+          <div className="faq-intro">
+            <span className="eyebrow">Informações úteis</span>
+            <h2 id="faq-title">Perguntas frequentes.</h2>
+          </div>
+          <div className="faq-list">
+            {questions.map(([title, text]) => (
+              <details key={title}>
+                <summary>
+                  <span>{title}</span>
+                  <Icon name="plus" />
+                </summary>
+                <p>{text}</p>
+              </details>
+            ))}
+          </div>
         </div>
       </section>
+
       <footer className="site-footer">
-        <div className="section-wrap footer-top">
-          <p>
-            O próximo encontro
-            <br />
-            pode ser aqui.
-          </p>
-          <a href="#datas" className="text-link">
-            Encontre a sua data <Icon name="arrow" />
-          </a>
-        </div>
-        <a
-          href="#inicio"
-          className="footer-wordmark"
-          aria-label="Solar Opará, voltar ao início"
-        >
-          Solar Opará<span aria-hidden="true">✳</span>
-        </a>
         <div className="section-wrap footer-main">
-          <div>
-            <span className="footer-label">O nosso endereço</span>
+          <div className="footer-brand-col">
+            <a
+              href="#inicio"
+              className="footer-brand"
+              aria-label="Solar Opará, voltar ao início"
+            >
+              Solar Opará
+            </a>
+            <p className="footer-desc">
+              Espaço para casamentos, celebrações e eventos em Pirapora, Minas
+              Gerais.
+            </p>
+          </div>
+
+          <div className="footer-col">
+            <span className="footer-label">Navegação</span>
+            <a href="#espaco" className="footer-link">
+              O Espaço
+            </a>
+            <a href="#experiencias" className="footer-link">
+              Experiências
+            </a>
+            <a href="#galeria" className="footer-link">
+              Galeria
+            </a>
+            <a href="#datas" className="footer-link">
+              Disponibilidade
+            </a>
+            <a href="#contato" className="footer-link">
+              Contato
+            </a>
+          </div>
+
+          <div className="footer-col">
+            <span className="footer-label">Endereço</span>
             <address>
               Rua Homero Nunes Macedo, 1208
               <br />
@@ -69,30 +87,28 @@ export function Footer() {
               rel="noopener noreferrer"
               className="footer-link"
             >
-              Como chegar ↗
+              Abrir no Google Maps ↗
             </a>
           </div>
-          <div>
-            <span className="footer-label">O Solar, de perto</span>
+
+          <div className="footer-col">
+            <span className="footer-label">Canais</span>
             <a
               href={INSTAGRAM_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="footer-link"
             >
-              @solaroparaoficial ↗
+              Instagram @solaroparaoficial ↗
             </a>
-            <a href="#contato" className="footer-link">
-              Fale com a equipe
+            <a href="#datas" className="footer-link">
+              Consultar datas disponíveis
             </a>
           </div>
-          <p className="footer-signature">
-            Madeira, verde
-            <br />e gente por perto.
-          </p>
         </div>
+
         <div className="section-wrap footer-bottom">
-          <p>© {new Date().getFullYear()} Solar Opará.</p>
+          <p>© {new Date().getFullYear()} Solar Opará Turismo e Hotéis.</p>
           <p>Fotografias: Oliver Fotos.</p>
           <a href={ADMIN_URL} rel="noopener">
             Acesso administrativo

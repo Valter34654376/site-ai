@@ -1,5 +1,6 @@
 import { Icon } from "./Icon";
 import { Reveal } from "./Reveal";
+import { MAP_URL } from "@/lib/site-content";
 
 export function Visit() {
   return (
@@ -8,28 +9,39 @@ export function Visit() {
       className="visit-section"
       aria-labelledby="visit-title"
     >
-      <div className="section-wrap visit-inner">
-        <span className="chapter-label">Uma visita ao Solar</span>
-        <Reveal>
-          <h2 id="visit-title">
-            Tem coisas
-            <br />
-            que a gente
-            <br />
-            <em>precisa sentir.</em>
-          </h2>
-        </Reveal>
-        <div className="visit-invitation">
-          <span className="visit-arch" aria-hidden="true" />
+      <div className="section-wrap visit-panel">
+        <div className="visit-copy">
+          <span className="eyebrow">Visita presencial</span>
+          <Reveal>
+            <h2 id="visit-title">Conheça o Solar Opará pessoalmente.</h2>
+          </Reveal>
           <p>
-            O jardim, a luz, a escala do lugar.
-            <br />
-            Venha ver de perto, antes de imaginar o seu dia.
+            Agende um horário com a nossa equipe para percorrer o jardim,
+            conhecer o salão principal e avaliar a configuração ideal para o seu
+            evento em Pirapora.
           </p>
-          <a href="#contato" className="button-lux button-lux-light">
-            Quero agendar uma visita <Icon name="arrow" />
-          </a>
-          <span>Pirapora, Minas Gerais</span>
+        </div>
+
+        <div className="visit-details">
+          <address className="visit-address">
+            <strong>Endereço</strong>
+            <span>Rua Homero Nunes Macedo, 1208</span>
+            <span>Bairro Sagrada Família · Pirapora, MG</span>
+          </address>
+          <div className="visit-actions">
+            <a href="#contato" className="btn-primary">
+              <span>Agendar uma visita</span>
+              <Icon name="arrow" />
+            </a>
+            <a
+              href={MAP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-secondary"
+            >
+              <span>Ver localização no mapa</span>
+            </a>
+          </div>
         </div>
       </div>
     </section>

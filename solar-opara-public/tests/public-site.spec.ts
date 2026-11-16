@@ -60,7 +60,7 @@ test("layout, media and booking controls fit the viewport", async ({
     if (message.type() === "error") failures.push(message.text());
   });
   await ready(page);
-  await expect(page.locator("h1")).toHaveText("A vida pede encontro.");
+  await expect(page.locator("h1")).toHaveText("Solar Opará");
   const hero = await page.locator(".hero-title").boundingBox();
   expect(hero!.x).toBeGreaterThanOrEqual(0);
   expect(hero!.x + hero!.width).toBeLessThanOrEqual(page.viewportSize()!.width);

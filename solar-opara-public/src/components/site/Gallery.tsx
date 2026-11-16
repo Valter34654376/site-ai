@@ -9,12 +9,12 @@ import { SafeImage } from "./SafeImage";
 
 const PAGE_SIZE = 6;
 const IMAGE_SIZES = [
-  "(max-width: 700px) calc(100vw - 40px), (min-width: 1720px) 1060px, 62vw",
-  "(max-width: 700px) calc(80vw - 32px), (max-width: 1100px) 32vw, (min-width: 1720px) 390px, 24vw",
-  "(max-width: 700px) calc(85vw - 34px), (max-width: 1100px) 40vw, (min-width: 1720px) 520px, 33vw",
-  "(max-width: 700px) calc(100vw - 40px), (min-width: 1720px) 800px, 48vw",
-  "(max-width: 700px) calc(100vw - 40px), (min-width: 1720px) 930px, 56vw",
-  "(max-width: 700px) calc(80vw - 32px), (min-width: 1720px) 520px, 33vw",
+  "(max-width: 700px) calc(100vw - 32px), (min-width: 1600px) 920px, 58vw",
+  "(max-width: 700px) calc(100vw - 32px), (min-width: 1600px) 580px, 38vw",
+  "(max-width: 700px) calc(100vw - 32px), (min-width: 1600px) 480px, 31vw",
+  "(max-width: 700px) calc(100vw - 32px), (min-width: 1600px) 480px, 31vw",
+  "(max-width: 700px) calc(100vw - 32px), (min-width: 1600px) 480px, 31vw",
+  "(max-width: 700px) calc(100vw - 32px), (min-width: 1600px) 920px, 58vw",
 ];
 
 export function Gallery({ items }: { items: MediaItem[] }) {
@@ -25,6 +25,7 @@ export function Gallery({ items }: { items: MediaItem[] }) {
   const grid = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLElement | null>(null);
   const touch = useRef<{ x: number; y: number } | null>(null);
+
   const filtered = useMemo(
     () =>
       items.filter(
@@ -88,17 +89,15 @@ export function Gallery({ items }: { items: MediaItem[] }) {
       aria-labelledby="gallery-title"
     >
       <div className="section-wrap">
-        <div className="gallery-heading">
-          <span className="chapter-label">03 / Caderno de imagens</span>
-          <h2 id="gallery-title">
-            Cenas.
-            <br />
-            <em>Presenças.</em>
-          </h2>
-          <div>
+        <div className="gallery-header">
+          <div className="gallery-header-main">
+            <span className="eyebrow">Galeria</span>
+            <h2 id="gallery-title">Fotografias de eventos e do espaço.</h2>
+          </div>
+          <div className="gallery-header-side">
             <p>
-              O Solar e histórias de casamento pelo olhar de Oliver Fotos. Cada
-              fotografia guarda um lugar, uma luz, um instante.
+              Registros no Solar Opará e cobertura de casamentos de clientes por
+              Oliver Fotos. Clique em qualquer imagem para ampliar.
             </p>
             <a
               href={INSTAGRAM_URL}
@@ -106,10 +105,12 @@ export function Gallery({ items }: { items: MediaItem[] }) {
               rel="noopener noreferrer"
               className="text-link"
             >
-              Siga os próximos encontros <span aria-hidden="true">↗</span>
+              <span>Instagram @solaroparaoficial</span>
+              <span aria-hidden="true">↗</span>
             </a>
           </div>
         </div>
+
         <div className="gallery-toolbar">
           <div
             className="gallery-filters"
@@ -129,10 +130,8 @@ export function Gallery({ items }: { items: MediaItem[] }) {
                   aria-controls="gallery-collection"
                   onClick={() => filter(entry.id)}
                 >
-                  {entry.label}
-                  <span aria-hidden="true">
-                    {String(count).padStart(2, "0")}
-                  </span>
+                  <span>{entry.label}</span>
+                  <small aria-hidden="true">{count}</small>
                 </button>
               );
             })}
@@ -146,13 +145,13 @@ export function Gallery({ items }: { items: MediaItem[] }) {
         <div
           id="gallery-collection"
           ref={grid}
-          className="gallery-editorial"
+          className="gallery-grid"
           key={category}
         >
           {filtered.slice(0, visible).map((item, position) => (
             <figure
               key={item.id}
-              className={`gallery-card gallery-position-${position % 6}`}
+              className={`gallery-card gallery-slot-${position % 6}`}
             >
               <button
                 type="button"
@@ -170,20 +169,11 @@ export function Gallery({ items }: { items: MediaItem[] }) {
                   sizes={IMAGE_SIZES[position % IMAGE_SIZES.length]}
                   className="gallery-image"
                 />
-                <span className="gallery-photo-shade" />
-                <span className="gallery-expand" aria-hidden="true">
-                  Ampliar <span>↗</span>
-                </span>
               </button>
-              <figcaption>
-                <span className="gallery-caption-number" aria-hidden="true">
-                  {String(position + 1).padStart(2, "0")}
-                </span>
-                <span>
-                  {item.caption}
-                  <span className="gallery-caption-credit">
-                    {item.locationNote ?? "Solar Opará · Pirapora"}
-                  </span>
+              <figcaption className="gallery-caption">
+                <span className="gallery-caption-title">{item.caption}</span>
+                <span className="gallery-caption-meta">
+                  {item.locationNote ?? "Solar Opará · Pirapora, MG"}
                 </span>
               </figcaption>
             </figure>
@@ -192,21 +182,22 @@ export function Gallery({ items }: { items: MediaItem[] }) {
 
         {filtered.length === 0 && (
           <p className="gallery-empty">
-            Novos olhares estão a caminho. Explore as outras coleções.
+            Nenhuma fotografia nesta categoria no momento.
           </p>
         )}
-        <div className="gallery-bottom">
+
+        <div className="gallery-footer">
           <p aria-live="polite">
-            {Math.min(visible, filtered.length)} de {filtered.length}{" "}
-            fotografias <span>· Oliver Fotos</span>
+            Exibindo {Math.min(visible, filtered.length)} de {filtered.length}{" "}
+            fotografias · Créditos: Oliver Fotos
           </p>
           {visible < filtered.length && (
             <button
               type="button"
-              className="button-lux button-lux-outline"
+              className="btn-secondary"
               onClick={showMore}
             >
-              Ver mais fotografias <span aria-hidden="true">↓</span>
+              Ver mais fotografias
             </button>
           )}
         </div>
@@ -252,12 +243,10 @@ export function Gallery({ items }: { items: MediaItem[] }) {
         {current && (
           <div className="lightbox-shell">
             <div className="lightbox-top">
-              <span className="lightbox-brand">
-                Solar Opará <span>/ Coleção</span>
-              </span>
+              <span className="lightbox-brand">Solar Opará</span>
               <span className="lightbox-counter" aria-live="polite">
-                {String((index ?? 0) + 1).padStart(2, "0")}{" "}
-                <span>/ {String(filtered.length).padStart(2, "0")}</span>
+                {String((index ?? 0) + 1).padStart(2, "0")} /{" "}
+                {String(filtered.length).padStart(2, "0")}
               </span>
               <button
                 type="button"
@@ -269,6 +258,7 @@ export function Gallery({ items }: { items: MediaItem[] }) {
                 Fechar <span aria-hidden="true">×</span>
               </button>
             </div>
+
             <div
               className="lightbox-stage"
               onClick={(event) => {
@@ -316,6 +306,7 @@ export function Gallery({ items }: { items: MediaItem[] }) {
                 →
               </button>
             </div>
+
             <div className="lightbox-bottom">
               <div>
                 <h3 id="lightbox-title">{current.caption}</h3>
@@ -332,9 +323,6 @@ export function Gallery({ items }: { items: MediaItem[] }) {
               >
                 Fotografia: {current.credit} <span aria-hidden="true">↗</span>
               </a>
-              <span className="lightbox-hint">
-                ← → para navegar · Esc para fechar
-              </span>
             </div>
           </div>
         )}

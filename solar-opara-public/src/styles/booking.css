@@ -1,566 +1,487 @@
-/* The reservation area is a continuation of the editorial page. */
+/* 06 & 07 — AVAILABILITY CALENDAR & CONTACT FORM */
 .dates-section {
-  padding: 115px 0 100px;
-  background: #f4f0e8;
+  padding: 96px 0;
   border-bottom: 1px solid var(--border);
 }
+
 .dates-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 11%;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 64px;
   align-items: start;
 }
-.dates-copy > .chapter-label {
-  margin-bottom: 35px;
-}
-.dates-copy h2 {
-  font-size: clamp(3.4rem, 5.7vw, 6.7rem);
-  line-height: 1.13;
-}
-.dates-copy h2 em {
-  color: #788160;
-}
-.dates-copy > p:not(.chapter-label) {
-  max-width: 360px;
-  margin-top: 28px;
-  font-size: 14px;
-  line-height: 1.95;
-  color: var(--muted-foreground);
-}
-.booking-steps {
-  display: grid;
-  list-style: none;
-  margin: 34px 0 0;
-  padding: 0;
-  gap: 22px;
-}
-.booking-steps li {
+
+.dates-copy {
   display: flex;
-  align-items: baseline;
-  gap: 22px;
+  flex-direction: column;
+  gap: 18px;
 }
-.booking-steps li > span {
-  font-family: var(--font-display);
-  font-size: 25px;
-  color: #717957;
+
+.dates-copy > p {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--muted-foreground);
+  max-width: 46ch;
 }
-.booking-steps h3 {
-  font-family: var(--font-sans);
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 1.7;
-  letter-spacing: 0;
-  margin-bottom: 5px;
+
+.booking-steps {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0;
+  border-top: 1px solid var(--border);
 }
-.booking-steps p {
+
+.booking-steps li {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 12px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.step-number {
   font-size: 11px;
-  line-height: 1.9;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  padding-top: 2px;
+}
+
+.booking-steps h3 {
+  font-size: 15px;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.booking-steps p {
+  font-size: 13px;
   color: var(--muted-foreground);
 }
-.dates-copy p.booking-note {
-  max-width: 340px;
-  border-top: 1px solid var(--border);
-  padding-top: 19px;
-  margin-top: 25px;
-  font-size: 11px;
-  line-height: 1.9;
+
+.booking-note {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--muted-foreground);
 }
-.calendar-wrap {
-  width: 100%;
-}
+
+/* Calendar Widget */
 .availability-calendar {
-  padding: 30px 0 0;
-  background: transparent;
-  border-top: 1px solid #8b967e;
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 32px;
 }
+
 .calendar-caption {
   display: flex;
   justify-content: space-between;
-  gap: 20px;
-  margin-bottom: 32px;
-  font-size: 10px;
+  align-items: center;
+  padding-bottom: 16px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  line-height: 1.7;
-  color: #5b6752;
+  color: var(--muted-foreground);
 }
+
 .calendar-heading {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 15px;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
 }
-.calendar-heading > p {
-  font-family: var(--font-display);
-  font-size: 32px;
-  line-height: 1.4;
-  letter-spacing: -0.04em;
+
+.calendar-heading p {
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
 }
-.calendar-heading > button {
-  width: 44px;
-  height: 44px;
-  border: 1px solid #bfc5b5;
+
+.calendar-heading button {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
   background: transparent;
-  color: var(--primary);
-  font-size: 22px;
+  border: 1px solid var(--border-strong);
+  color: var(--foreground);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
-.calendar-heading > button:disabled {
+
+.calendar-heading button:hover:not(:disabled) {
+  background: var(--surface);
+  border-color: var(--foreground);
+}
+
+.calendar-heading button:disabled {
   opacity: 0.35;
 }
-.calendar-heading > button:hover:not(:disabled) {
-  background: #e0e3d5;
-  border-color: #8b967e;
-}
+
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 4px;
-  margin-top: 28px;
+  gap: 6px;
 }
+
 .calendar-weekday {
   text-align: center;
   font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--muted-foreground);
-  padding-bottom: 16px;
+  padding: 8px 0;
 }
+
 .calendar-day {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
+  position: relative;
   aspect-ratio: 1;
   min-height: 44px;
-  min-width: 0;
-  border: 1px solid transparent;
-  color: var(--foreground);
-  background: none;
-  font-size: 16px;
-  line-height: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: var(--background);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
   transition:
-    background 0.2s,
-    border-color 0.2s;
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
 }
+
 .calendar-day i {
-  width: 3px;
-  height: 3px;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
-  background: currentColor;
 }
-.calendar-day.is-unknown {
-  color: #9da38f;
-}
-.calendar-day.is-busy {
-  color: #727a66;
-  background: #e3e4d9;
-  text-decoration: line-through;
-}
+
 .calendar-day.is-available {
-  border-color: #d6d9ca;
+  color: var(--foreground);
 }
+
+.calendar-day.is-available i {
+  background: var(--accent);
+}
+
 .calendar-day.is-available:hover {
-  border-color: var(--primary);
-  background: #dce2d2;
+  border-color: var(--foreground);
+  background: var(--surface);
 }
+
 .calendar-day.is-selected {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: #fff9ef;
+  background: var(--foreground);
+  border-color: var(--foreground);
+  color: var(--background);
 }
+
+.calendar-day.is-selected i {
+  background: var(--background);
+}
+
+.calendar-day.is-busy {
+  background: var(--surface);
+  color: var(--muted-foreground);
+  text-decoration: line-through;
+  opacity: 0.65;
+}
+
+.calendar-day.is-busy i {
+  background: var(--border-strong);
+}
+
+.calendar-day.is-unknown {
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted-foreground);
+  opacity: 0.4;
+}
+
 .calendar-legend {
   display: flex;
-  gap: 20px;
   flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 20px;
+  padding-top: 16px;
   border-top: 1px solid var(--border);
-  padding-top: 22px;
-  margin-top: 27px;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted-foreground);
-  line-height: 1.7;
 }
-.calendar-legend > span {
-  display: flex;
+
+.calendar-legend span {
+  display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
 }
+
 .calendar-legend i {
   width: 8px;
   height: 8px;
-  border: 1px solid #8b987c;
+  border-radius: 50%;
+  display: inline-block;
 }
-.calendar-legend .legend-busy {
-  background: #c1c9b3;
-  border-color: #c1c9b3;
+
+.legend-free {
+  background: var(--accent);
 }
-.calendar-legend .legend-selected {
-  background: var(--primary);
-  border-color: var(--primary);
+
+.legend-busy {
+  background: var(--border-strong);
 }
+
+.legend-selected {
+  background: var(--foreground);
+}
+
 .calendar-status {
-  min-height: 24px;
-  margin-top: 20px;
-  font-size: 11px;
-  line-height: 1.85;
+  margin-top: 14px;
+  font-size: 13px;
   color: var(--muted-foreground);
 }
-.calendar-status button {
-  display: inline-flex;
-  align-items: center;
-  gap: 22px;
-  min-height: 44px;
-  padding: 8px 0;
-  margin-top: 12px;
-  border: 0;
-  border-bottom: 1px solid var(--primary);
-  background: none;
-  color: var(--primary);
-  font-weight: 600;
-}
-.contact-section {
-  display: grid;
-  grid-template-columns: 0.95fr 1.15fr;
-  align-items: start;
-  gap: 10%;
-  padding-block: 115px 105px;
-}
-.contact-copy {
-  position: sticky;
-  top: 120px;
-}
-.contact-copy .chapter-label {
-  margin-bottom: 33px;
-}
-.contact-copy h2 {
-  font-size: clamp(3.3rem, 5.7vw, 6rem);
-  line-height: 1.13;
-}
-.contact-copy > p:not(.chapter-label) {
-  max-width: 370px;
-  margin-top: 28px;
-  font-size: 14px;
-  line-height: 1.95;
-  color: var(--muted-foreground);
-}
-.contact-location {
+
+.calendar-status [role="status"] {
   display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  padding-top: 28px;
-  margin-top: 32px;
-  border-top: 1px solid var(--border);
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  background: var(--surface);
+  border-left: 2px solid var(--accent);
 }
-.contact-location > .site-icon {
-  margin-top: 2px;
-}
-.contact-location strong {
-  font-weight: 500;
+
+.calendar-status button {
+  width: fit-content;
+  padding: 6px 12px;
+  background: var(--foreground);
+  color: var(--background);
+  border: 0;
   font-size: 12px;
+  font-weight: 500;
 }
+
+/* Contact Section */
+.contact-section {
+  padding: 96px 0;
+}
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 64px;
+  align-items: start;
+}
+
+.contact-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.contact-copy > p {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--muted-foreground);
+  max-width: 44ch;
+}
+
+.contact-location {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: 14px;
+  padding: 20px 0;
+  margin-top: 8px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.contact-location strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
 .contact-location address {
   font-style: normal;
-  margin-top: 12px;
+  font-size: 13px;
+  line-height: 1.6;
   color: var(--muted-foreground);
-  font-size: 12px;
-  line-height: 1.95;
+  margin-bottom: 8px;
 }
+
 .contact-location a {
-  display: inline-block;
-  min-height: 44px;
-  padding-top: 18px;
-  font-size: 11px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--foreground);
+  border-bottom: 1px solid var(--border-strong);
+  padding-bottom: 2px;
 }
-.contact-copy > .text-link {
-  font-size: 11px;
-  margin-top: 15px;
-}
+
 .contact-panel {
-  min-width: 0;
-  padding: 40px;
-  background: #e9e3d7;
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 36px;
 }
+
 .contact-panel-heading {
-  border-bottom: 1px solid #c5c9b8;
-  padding-bottom: 24px;
-  margin-bottom: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  padding-bottom: 20px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border);
 }
-.contact-panel-heading > p {
-  font-family: var(--font-display);
-  font-size: 31px;
-  line-height: 1.4;
-  letter-spacing: -0.04em;
-  margin-top: 13px;
+
+.contact-panel-heading p {
+  font-size: 14px;
+  color: var(--muted-foreground);
 }
+
 .contact-form {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 27px 25px;
-}
-.contact-form label {
-  min-width: 0;
-}
-.contact-form .eyebrow {
-  font-size: 10px;
-  line-height: 1.8;
-  letter-spacing: 0.07em;
-  color: #5c6753;
-}
-.form-control {
-  display: block;
-  width: 100%;
-  min-width: 0;
-  min-height: 46px;
-  border: 0;
-  border-bottom: 1px solid #9ba58e;
-  padding: 11px 0;
-  background: transparent;
-  color: var(--foreground);
-  font-size: 15px;
-  outline-offset: 3px;
-}
-.form-control:focus {
-  border-color: var(--primary);
-}
-.form-control::placeholder {
-  color: #6e7763;
-}
-.contact-form textarea {
-  min-height: 100px;
-  resize: vertical;
-}
-.contact-form select {
-  min-height: 46px;
-}
-.form-privacy {
-  font-size: 11px;
-  line-height: 1.85;
-  color: #5d6655;
-}
-.form-submit {
-  align-self: start;
-}
-.form-submit:disabled {
-  opacity: 0.6;
-  cursor: wait;
-}
-.contact-form [role="alert"] {
-  font-size: 11px;
-  line-height: 1.8;
+  gap: 20px;
 }
 
-@media (max-width: 1100px) {
+.form-span-full {
+  grid-column: 1 / -1;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.form-control {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 14px;
+  background: var(--background);
+  border: 1px solid var(--border-strong);
+  font-size: 14px;
+  color: var(--foreground);
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.form-control:focus {
+  border-color: var(--foreground);
+  background: var(--card);
+  outline: none;
+}
+
+.form-control[aria-invalid="true"] {
+  border-color: var(--destructive);
+}
+
+.form-control.has-value {
+  border-color: var(--foreground);
+  font-weight: 500;
+}
+
+.form-textarea {
+  min-height: 108px;
+  resize: vertical;
+}
+
+.selected-date-pill {
+  margin-top: 8px;
+  display: inline-block;
+  padding: 6px 12px;
+  background: var(--surface);
+  border-left: 2px solid var(--accent);
+  font-size: 13px;
+}
+
+.form-error {
+  font-size: 12px;
+  color: var(--destructive);
+}
+
+.form-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 8px;
+}
+
+.form-privacy {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--muted-foreground);
+}
+
+.form-submit {
+  width: 100%;
+}
+
+.form-notice {
+  padding: 14px;
+  background: var(--surface);
+  border-left: 2px solid var(--accent);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.form-success {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 0;
+}
+
+.form-success h3 {
+  font-size: 26px;
+}
+
+.form-success p {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--muted-foreground);
+}
+
+.form-success-note {
+  padding-left: 14px;
+  border-left: 2px solid var(--accent);
+}
+
+@media (max-width: 1024px) {
   .dates-grid,
-  .contact-section {
-    gap: 6%;
-  }
-  .dates-copy h2 {
-    font-size: 58px;
-  }
-  .calendar-heading > p {
-    font-size: 26px;
-  }
-  .calendar-grid {
-    gap: 3px;
-  }
-  .calendar-day {
-    font-size: 14px;
-  }
-  .calendar-legend {
-    gap: 13px;
-    font-size: 9px;
-  }
-  .contact-copy h2 {
-    font-size: 54px;
-  }
-  .contact-panel {
-    padding: 28px;
-  }
-  .contact-form {
-    gap: 24px 20px;
+  .contact-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
   }
 }
-@media (max-width: 850px) {
-  .dates-section {
-    padding-block: 80px;
-  }
-  .dates-grid {
-    grid-template-columns: 1fr;
-    gap: 42px;
-  }
-  .dates-copy h2 {
-    font-size: 65px;
-  }
-  .booking-steps {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 20px;
-  }
-  .booking-steps li {
-    display: block;
-  }
-  .booking-steps li > span {
-    display: block;
-    margin-bottom: 10px;
-  }
-  .dates-copy p.booking-note {
-    max-width: 100%;
-  }
-  .calendar-wrap {
-    max-width: 600px;
-    margin: auto;
-  }
-  .calendar-heading > p {
-    font-size: 32px;
-  }
-  .calendar-day {
-    font-size: 16px;
-  }
+
+@media (max-width: 640px) {
+  .dates-section,
   .contact-section {
-    grid-template-columns: 1fr;
-    gap: 35px;
-    padding-block: 80px;
+    padding: 56px 0;
   }
-  .contact-copy {
-    position: static;
-  }
-  .contact-copy > p:not(.chapter-label) {
-    max-width: 500px;
-  }
-}
-@media (max-width: 700px) {
-  .dates-section {
-    padding-block: 65px 60px;
-  }
-  .dates-grid {
-    gap: 35px;
-  }
-  .dates-copy > .chapter-label {
-    font-size: 9px;
-    margin-bottom: 25px;
-  }
-  .dates-copy h2 {
-    font-size: clamp(2.7rem, 11.5vw, 3.8rem);
-  }
-  .dates-copy > p:not(.chapter-label) {
-    font-size: 12px;
-    margin-top: 23px;
-  }
-  .booking-steps {
-    grid-template-columns: 1fr;
-    gap: 21px;
-    margin-top: 28px;
-  }
-  .booking-steps li {
-    display: flex;
-    gap: 18px;
-  }
-  .booking-steps li > span {
-    margin: 0;
-    font-size: 25px;
-  }
-  .booking-steps h3 {
-    font-size: 11px;
-  }
-  .booking-steps p {
-    font-size: 10px;
-  }
-  .dates-copy p.booking-note {
-    font-size: 10px;
-  }
-  .availability-calendar {
-    padding-top: 24px;
-  }
-  .calendar-caption {
-    font-size: 9px;
-    margin-bottom: 25px;
-  }
-  .calendar-heading > p {
-    font-size: 28px;
-  }
-  .calendar-heading > button {
-    width: 44px;
-    height: 44px;
-  }
-  .calendar-grid {
-    gap: 3px;
-    margin-top: 25px;
-  }
-  .calendar-weekday {
-    font-size: 10px;
-    padding-bottom: 12px;
-  }
-  .calendar-day {
-    font-size: 14px;
-  }
-  .calendar-legend {
-    font-size: 9px;
-    gap: 18px;
-    margin-top: 22px;
-    padding-top: 18px;
-  }
-  .calendar-status {
-    font-size: 10px;
-    margin-top: 16px;
-  }
-  .contact-section {
-    padding-block: 65px;
-    gap: 32px;
-  }
-  .contact-copy .chapter-label {
-    margin-bottom: 24px;
-  }
-  .contact-copy h2 {
-    font-size: 12vw;
-  }
-  .contact-copy > p:not(.chapter-label) {
-    font-size: 12px;
-    margin-top: 24px;
-  }
-  .contact-location {
-    padding-top: 24px;
-    margin-top: 25px;
-  }
-  .contact-location address {
-    font-size: 11px;
-  }
+
+  .availability-calendar,
   .contact-panel {
-    padding: 26px 20px;
+    padding: 20px 16px;
   }
-  .contact-panel-heading > .chapter-label {
-    font-size: 9px;
-  }
-  .contact-panel-heading > p {
-    font-size: 29px;
-  }
+
   .contact-form {
     grid-template-columns: 1fr;
-    gap: 24px;
   }
-  .contact-form > div,
-  .contact-form > label {
-    grid-column: 1;
-  }
-  .contact-form .eyebrow {
-    font-size: 10px;
-  }
-  .form-control {
-    font-size: 16px;
-    min-height: 48px;
-  }
-  .form-submit {
-    width: 100%;
-  }
-  .form-privacy {
-    font-size: 10px;
-  }
-}
-@media (max-width: 360px) {
-  .calendar-heading > p {
-    font-size: 24px;
-  }
-  .calendar-legend {
-    gap: 13px;
-    font-size: 8px;
-  }
-  .contact-panel {
-    padding-inline: 16px;
+
+  .calendar-day {
+    min-height: 38px;
+    font-size: 12px;
   }
 }

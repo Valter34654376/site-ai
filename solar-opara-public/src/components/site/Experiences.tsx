@@ -5,20 +5,20 @@ import { Reveal } from "./Reveal";
 const occasions = [
   {
     title: "Casamentos",
-    lead: "O sim é só o começo.",
-    text: "A chegada, a cerimônia, a primeira dança. Conte como você imagina o dia; a conversa começa por vocês.",
-    action: "Conversar sobre meu casamento",
+    lead: "Cerimônia ao ar livre e recepção no mesmo endereço.",
+    text: "O gramado recebe o altar e os convidados para a cerimônia, enquanto o salão coberto acomoda o jantar, a festa e a estrutura de som e buffet sem necessidade de deslocamento.",
+    action: "Solicitar orçamento de casamento",
   },
   {
     title: "Celebrações",
-    lead: "Há encontros que pedem mais tempo.",
-    text: "Uma nova idade. Mais um ano juntos. A família inteira à mesa. O motivo é seu; o endereço pode ser o Solar.",
+    lead: "Aniversários, bodas e encontros familiares.",
+    text: "A família inteira à mesa com circulação livre entre o salão e os jardins. O espaço se adapta tanto a celebrações diurnas quanto a recepções noturnas.",
     action: "Planejar uma celebração",
   },
   {
     title: "Eventos especiais",
-    lead: "Uma ideia pode reunir muita gente.",
-    text: "Da ocasião da empresa ao encontro entre amigos. Compartilhe o formato e os detalhes para conversar sobre as possibilidades.",
+    lead: "Recepções corporativas, formaturas e encontros.",
+    text: "Locação exclusiva por evento com liberdade para projetos personalizados de decoração, iluminação, gastronomia e montagem.",
     action: "Conversar sobre meu evento",
   },
 ];
@@ -31,25 +31,25 @@ export function Experiences() {
       className="experiences-section"
       aria-labelledby="experiences-title"
     >
-      <div className="section-wrap experiences-grid">
+      <div className="section-wrap experiences-layout">
         <div className="experiences-intro">
-          <span className="chapter-label">02 / Experiências</span>
+          <span className="eyebrow">Formatos de evento</span>
           <Reveal>
             <h2 id="experiences-title">
-              Cada motivo,
-              <br />
-              <em>um encontro.</em>
+              Um espaço adaptável a diferentes celebrações.
             </h2>
           </Reveal>
           <p>
-            Não existe um único jeito de celebrar.
-            <br />
-            Existe o seu.
+            Cada locação é exclusiva para a data contratada, permitindo
+            organizar os ambientes internos e externos conforme o porte e o
+            formato do seu evento.
           </p>
-          <span className="experiences-mark" aria-hidden="true">
-            S<span>O</span>
-          </span>
+          <a href="#datas" className="text-link">
+            <span>Consultar calendário de disponibilidade</span>
+            <Icon name="arrow" />
+          </a>
         </div>
+
         <div className="occasion-list">
           {occasions.map((item, index) => (
             <article
@@ -67,7 +67,7 @@ export function Experiences() {
                   }
                 >
                   <span className="occasion-index">0{index + 1}</span>
-                  <span>{item.title}</span>
+                  <span className="occasion-name">{item.title}</span>
                   <Icon name="plus" />
                 </button>
               </h3>
@@ -81,17 +81,13 @@ export function Experiences() {
                 <p className="occasion-lead">{item.lead}</p>
                 <p>{item.text}</p>
                 <a href="#contato" className="text-link">
-                  {item.action}
+                  <span>{item.action}</span>
                   <Icon name="arrow" />
                 </a>
               </div>
             </article>
           ))}
         </div>
-      </div>
-      <div className="experiences-baseline section-wrap">
-        <span>O seu jeito de estar junto.</span>
-        <span>Pirapora / MG</span>
       </div>
     </section>
   );

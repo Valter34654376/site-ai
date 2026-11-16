@@ -4,49 +4,65 @@ import { media } from "@/lib/site-content";
 
 export function Hero() {
   return (
-    <section id="inicio" className="hero-cinema" aria-labelledby="hero-title">
-      <div className="hero-overline">
-        <span>Pirapora, Minas Gerais</span>
-        <span>Casamentos & celebrações</span>
-      </div>
-      <h1 id="hero-title" className="hero-title">
-        <span className="hero-title-first">A vida pede</span>{" "}
-        <em className="hero-title-last">encontro.</em>
-      </h1>
-      <figure className="hero-visual">
-        <div className="hero-image-window">
-          <SafeImage
-            item={media.hero}
-            fallback={media.garden}
-            fetchPriority="high"
-            loading="eager"
-            sizes="(min-width: 1101px) 74vw, (min-width: 701px) 90vw, calc(100vw - 40px)"
-            className="hero-media"
-          />
+    <section id="inicio" className="hero-section" aria-labelledby="hero-title">
+      <div className="section-wrap hero-grid">
+        <div className="hero-content">
+          <div className="hero-meta">
+            <span className="eyebrow">Pirapora · Minas Gerais</span>
+            <span className="hero-meta-divider" aria-hidden="true" />
+            <span className="eyebrow">Espaço para celebrações e eventos</span>
+          </div>
+
+          <h1 id="hero-title" className="hero-title">
+            <span className="hero-title-first">Solar</span>{" "}
+            <span className="hero-title-last">Opará</span>
+          </h1>
+
+          <p className="hero-lead">
+            Arquitetura integrada ao jardim, salão em madeira e vidro e áreas ao
+            ar livre preparados para receber casamentos, celebrações e eventos
+            especiais em Pirapora.
+          </p>
+
+          <div className="hero-actions">
+            <a href="#datas" className="btn-primary">
+              <span>Ver datas</span>
+              <Icon name="arrow" />
+            </a>
+            <a href="#espaco" className="btn-secondary">
+              <span>Conhecer o espaço</span>
+            </a>
+          </div>
+
+          <dl className="hero-facts">
+            <div>
+              <dt>Ambientes</dt>
+              <dd>Jardim, gramado, altar e salão coberto</dd>
+            </div>
+            <div>
+              <dt>Endereço</dt>
+              <dd>Bairro Sagrada Família · Pirapora, MG</dd>
+            </div>
+          </dl>
         </div>
-        <figcaption>Solar Opará / Fotografia: Oliver Fotos</figcaption>
-      </figure>
-      <div className="hero-bottom">
-        <a href="#datas" className="date-orbit">
-          <span>Ver datas</span>
-          <Icon name="arrow" />
-          <span className="orbit-label" aria-hidden="true">
-            O seu próximo capítulo
-          </span>
-        </a>
-        <p className="hero-lead">
-          Jardim, madeira, gente por perto.
-          <br />
-          Solar Opará. Um espaço para celebrar em Pirapora.
-        </p>
-        <a href="#espaco" className="hero-scroll">
-          <span>Entre, o Solar é seu.</span>
-          <span aria-hidden="true">↓</span>
-        </a>
+
+        <figure className="hero-visual">
+          <div className="hero-image-frame">
+            <SafeImage
+              item={media.hero}
+              fallback={media.garden}
+              fetchPriority="high"
+              loading="eager"
+              sizes="(min-width: 1101px) 62vw, (min-width: 701px) 92vw, calc(100vw - 32px)"
+              className="hero-media"
+            />
+          </div>
+          <figcaption className="hero-caption">
+            <span>Casamento de Luana & Carlos no Solar Opará</span>
+            <span>Fotografia: Oliver Fotos / Marcos Oliver</span>
+          </figcaption>
+        </figure>
       </div>
-      <span className="hero-edition" aria-hidden="true">
-        S / O
-      </span>
     </section>
   );
 }

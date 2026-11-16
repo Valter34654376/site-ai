@@ -7,14 +7,14 @@ import { fetchBusyDates } from "@/lib/booking";
 import { INSTAGRAM_URL, MAP_URL } from "@/lib/site-content";
 
 const steps = [
-  ["Consulte a data", "Veja a disponibilidade no calendário ao lado."],
+  ["Escolha a data", "Verifique os dias livres no calendário ao lado."],
   [
-    "Conte seus planos",
-    "Compartilhe a ideia e os primeiros detalhes do evento.",
+    "Envie os dados do evento",
+    "Informe o tipo de celebração e a estimativa de convidados.",
   ],
   [
-    "Converse com a equipe",
-    "Alinhamos as informações para orçamento ou visita.",
+    "Confirmação com a equipe",
+    "Retornamos para apresentar orçamento ou agendar sua visita.",
   ],
 ];
 
@@ -24,6 +24,7 @@ export function BookingFlow() {
   const [date, setDate] = useState("");
   const section = useRef<HTMLElement>(null);
   const controller = useRef<AbortController | null>(null);
+
   const load = useCallback(() => {
     controller.current?.abort();
     const active = new AbortController();
@@ -38,6 +39,7 @@ export function BookingFlow() {
         if (!active.signal.aborted) setFailed(true);
       });
   }, []);
+
   useEffect(() => {
     if (!("IntersectionObserver" in window)) {
       load();
@@ -61,38 +63,36 @@ export function BookingFlow() {
 
   function pick(iso: string) {
     setDate(iso);
-    document
-      .getElementById("dados-evento")
-      ?.scrollIntoView({
-        behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
-          ? "auto"
-          : "smooth",
-        block: "start",
-      });
+    document.getElementById("dados-evento")?.scrollIntoView({
+      behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "auto"
+        : "smooth",
+      block: "start",
+    });
   }
 
   return (
     <>
-      <section ref={section} id="datas" className="dates-section">
+      <section
+        ref={section}
+        id="datas"
+        className="dates-section"
+        aria-labelledby="dates-title"
+      >
         <div className="section-wrap dates-grid">
           <Reveal className="dates-copy">
-            <p className="chapter-label">04 / O próximo capítulo</p>
-            <h2>
-              Todo encontro
-              <br />
-              começa com
-              <br />
-              <em>um dia.</em>
-            </h2>
+            <span className="eyebrow">Disponibilidade</span>
+            <h2 id="dates-title">Consulte as datas disponíveis.</h2>
             <p>
-              Encontre o seu no calendário.
-              <br />
-              Depois, conte o que você tem em mente.
+              Selecione um dia disponível no calendário para preencher sua
+              solicitação de orçamento ou visita.
             </p>
             <ol className="booking-steps">
               {steps.map(([title, text], index) => (
                 <li key={title}>
-                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <span className="step-number">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
                   <div>
                     <h3>{title}</h3>
                     <p>{text}</p>
@@ -101,10 +101,11 @@ export function BookingFlow() {
               ))}
             </ol>
             <p className="booking-note">
-              A consulta é o início da conversa. A reserva depende da
-              confirmação da equipe.
+              A consulta online inicia o atendimento. A reserva da data é
+              confirmada após o alinhamento e formalização com a equipe.
             </p>
           </Reveal>
+
           <Reveal className="calendar-wrap">
             <AvailabilityCalendar
               busy={busy}
@@ -116,47 +117,58 @@ export function BookingFlow() {
           </Reveal>
         </div>
       </section>
-      <section id="contato" className="contact-section section-wrap">
-        <Reveal className="contact-copy">
-          <p className="chapter-label">Vamos conversar</p>
-          <h2>
-            Agora,
-            <br />
-            <em>a sua história.</em>
-          </h2>
-          <p>
-            Uma data, uma ideia ou uma visita. Deixe os primeiros detalhes; a
-            equipe do Solar Opará retorna para conversar com você.
-          </p>
-          <div className="contact-location">
-            <Icon name="pin" />
-            <div>
-              <strong>O Solar fica aqui</strong>
-              <address>
-                Rua Homero Nunes Macedo, 1208
-                <br />
-                Sagrada Família · Pirapora, MG
-              </address>
-              <a href={MAP_URL} target="_blank" rel="noopener noreferrer">
-                Abrir no mapa <span aria-hidden="true">↗</span>
-              </a>
+
+      <section
+        id="contato"
+        className="contact-section"
+        aria-labelledby="contact-title"
+      >
+        <div className="section-wrap contact-grid">
+          <Reveal className="contact-copy">
+            <span className="eyebrow">Contato e orçamento</span>
+            <h2 id="contact-title">Solicite informações para o seu evento.</h2>
+            <p>
+              Preencha os dados ao lado com a data pretendida e o formato da
+              celebração. A equipe do Solar Opará entrará em contato.
+            </p>
+
+            <div className="contact-location">
+              <Icon name="pin" />
+              <div>
+                <strong>Solar Opará</strong>
+                <address>
+                  Rua Homero Nunes Macedo, 1208
+                  <br />
+                  Sagrada Família · Pirapora, MG
+                </address>
+                <a href={MAP_URL} target="_blank" rel="noopener noreferrer">
+                  Abrir no Google Maps <span aria-hidden="true">↗</span>
+                </a>
+              </div>
             </div>
+
+            <a
+              href={INSTAGRAM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-link"
+            >
+              <span>@solaroparaoficial</span>
+              <span aria-hidden="true">↗</span>
+            </a>
+          </Reveal>
+
+          <div id="dados-evento" className="contact-panel">
+            <div className="contact-panel-heading">
+              <span className="eyebrow">Formulário de solicitação</span>
+              <p>Dados do evento e contato</p>
+            </div>
+            <ContactForm
+              date={date}
+              onDateChange={setDate}
+              onDateTaken={load}
+            />
           </div>
-          <a
-            href={INSTAGRAM_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-link"
-          >
-            @solaroparaoficial <span aria-hidden="true">↗</span>
-          </a>
-        </Reveal>
-        <div id="dados-evento" className="contact-panel">
-          <div className="contact-panel-heading">
-            <span className="chapter-label">Sua solicitação</span>
-            <p>O que vamos celebrar?</p>
-          </div>
-          <ContactForm date={date} onDateChange={setDate} onDateTaken={load} />
         </div>
       </section>
     </>

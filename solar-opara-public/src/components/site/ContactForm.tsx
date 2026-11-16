@@ -75,13 +75,13 @@ export function ContactForm({ date, onDateChange, onDateTaken }: Props) {
 
   if (sent) {
     return (
-      <div role="status" className="border border-border bg-card p-8 sm:p-12">
-        <p className="eyebrow text-primary">Recebido</p>
-        <h3 className="mt-4 text-3xl sm:text-4xl">Solicitação enviada.</h3>
-        <p className="mt-5 leading-relaxed text-muted-foreground">
+      <div role="status" className="form-success">
+        <p className="eyebrow">Recebido</p>
+        <h3>Solicitação enviada.</h3>
+        <p>
           A equipe do Solar Opará vai analisar sua data e entrar em contato.
         </p>
-        <p className="mt-4 border-l-2 border-gold pl-4 text-sm">
+        <p className="form-success-note">
           Lembre-se: o envio não reserva a data automaticamente. A reserva só é
           feita após a confirmação da equipe.
         </p>
@@ -89,9 +89,10 @@ export function ContactForm({ date, onDateChange, onDateTaken }: Props) {
           href={INSTAGRAM_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="eyebrow mt-8 inline-block border-b border-foreground pb-1"
+          className="text-link"
         >
-          Acompanhe no Instagram
+          <span>Acompanhe no Instagram</span>
+          <span aria-hidden="true">↗</span>
         </a>
       </div>
     );
@@ -99,25 +100,27 @@ export function ContactForm({ date, onDateChange, onDateTaken }: Props) {
 
   return (
     <form onSubmit={onSubmit} noValidate className="contact-form">
-      <div className="sm:col-span-2">
+      <div className="form-span-full">
         <Field error={errors["data"]} label="Data desejada">
           <input
             name="data"
             type="date"
             value={date}
             onChange={(e) => onDateChange(e.target.value)}
-            className={`${field} ${date ? "border-primary font-medium" : ""}`}
+            className={`${field} ${date ? "has-value" : ""}`}
           />
         </Field>
         {date && (
-          <p className="mt-3 inline-block bg-primary/10 px-3 py-2 text-sm">
+          <p className="selected-date-pill">
             Data selecionada: <strong>{formatBR(date)}</strong>
           </p>
         )}
       </div>
-      <Field error={errors["nome"]} label="Nome">
+
+      <Field error={errors["nome"]} label="Nome completo">
         <input name="nome" autoComplete="name" className={field} />
       </Field>
+
       <Field error={errors["telefone"]} label="WhatsApp / telefone">
         <input
           name="telefone"
@@ -127,6 +130,7 @@ export function ContactForm({ date, onDateChange, onDateTaken }: Props) {
           className={field}
         />
       </Field>
+
       <Field error={errors["email"]} label="E-mail">
         <input
           name="email"
@@ -135,6 +139,7 @@ export function ContactForm({ date, onDateChange, onDateTaken }: Props) {
           className={field}
         />
       </Field>
+
       <Field error={errors["tipo"]} label="Tipo de evento">
         <select name="tipo" defaultValue="" className={field}>
           <option value="" disabled>
@@ -145,35 +150,35 @@ export function ContactForm({ date, onDateChange, onDateTaken }: Props) {
           ))}
         </select>
       </Field>
+
       <Field error={errors["convidados"]} label="Convidados (aprox.)">
         <input name="convidados" inputMode="numeric" className={field} />
       </Field>
-      <div className="sm:col-span-2">
-        <Field error={errors["mensagem"]} label="Mensagem">
+
+      <div className="form-span-full">
+        <Field error={errors["mensagem"]} label="Mensagem ou observações">
           <textarea
             name="mensagem"
             rows={4}
-            className={`${field} resize-none`}
+            className={`${field} form-textarea`}
           />
         </Field>
       </div>
-      <div className="flex flex-col gap-5 sm:col-span-2">
+
+      <div className="form-actions form-span-full">
         <p className="form-privacy">
-          Seus dados serão usados pela equipe para responder a esta solicitação.
-          O envio não reserva a data automaticamente.
+          Seus dados serão utilizados exclusivamente para responder a esta
+          solicitação. O envio não reserva a data automaticamente.
         </p>
         <button
           type="submit"
           disabled={sending}
-          className="button-lux button-lux-primary form-submit"
+          className="btn-primary form-submit"
         >
-          {sending ? "Enviando…" : "Enviar solicitação"}
+          <span>{sending ? "Enviando…" : "Enviar solicitação"}</span>
         </button>
         {notice && (
-          <p
-            role="alert"
-            className="border-l-2 border-gold bg-card p-4 text-sm leading-relaxed"
-          >
+          <p role="alert" className="form-notice">
             {notice}
           </p>
         )}
@@ -202,15 +207,11 @@ function Field({
       })
     : children;
   return (
-    <label className="block">
-      <span className="eyebrow text-muted-foreground">{label}</span>
+    <label className="form-field">
+      <span className="form-label">{label}</span>
       {input}
       {error && (
-        <span
-          id={errorId}
-          role="alert"
-          className="mt-1 block text-sm text-destructive"
-        >
+        <span id={errorId} role="alert" className="form-error">
           {error}
         </span>
       )}

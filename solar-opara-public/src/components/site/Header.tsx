@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Icon } from "./Icon";
 
 const links = [
-  { href: "#espaco", label: "O espaço" },
+  { href: "#espaco", label: "Espaço" },
   { href: "#experiencias", label: "Experiências" },
   { href: "#galeria", label: "Galeria" },
   { href: "#datas", label: "Datas" },
@@ -14,12 +14,14 @@ export function Header() {
   const [open, setOpen] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
   const header = useRef<HTMLElement>(null);
+
   useEffect(() => {
-    const sync = () => setSolid(window.scrollY > 16);
+    const sync = () => setSolid(window.scrollY > 12);
     sync();
     window.addEventListener("scroll", sync, { passive: true });
     return () => window.removeEventListener("scroll", sync);
   }, []);
+
   useEffect(() => {
     if (!open) return;
     const escape = (event: KeyboardEvent) => {
@@ -32,10 +34,11 @@ export function Header() {
       if (
         event.target instanceof Node &&
         !header.current?.contains(event.target)
-      )
+      ) {
         setOpen(false);
+      }
     };
-    const desktop = matchMedia("(min-width: 1101px)");
+    const desktop = matchMedia("(min-width: 1025px)");
     const resize = () => {
       if (desktop.matches) setOpen(false);
     };
@@ -48,70 +51,85 @@ export function Header() {
       desktop.removeEventListener("change", resize);
     };
   }, [open]);
+
   return (
     <header
       ref={header}
-      className={`lux-header ${solid ? "is-solid" : ""} ${open ? "is-open" : ""}`}
+      className={`site-header ${solid ? "is-solid" : ""} ${open ? "is-open" : ""}`}
     >
-      <div className="lux-nav">
+      <div className="site-nav">
         <a
           href="#inicio"
-          className="lux-brand"
+          className="site-brand"
           aria-label="Solar Opará, início"
           onClick={() => setOpen(false)}
         >
-          <span>
-            Solar Opará<small>Espaço de eventos · Pirapora</small>
-          </span>
+          <span className="brand-name">Solar Opará</span>
+          <span className="brand-location">Pirapora · MG</span>
         </a>
-        <nav className="lux-nav-links" aria-label="Principal">
+
+        <nav className="site-nav-links" aria-label="Principal">
           {links.map((link) => (
             <a key={link.href} href={link.href}>
               {link.label}
             </a>
           ))}
         </nav>
-        <a href="#datas" className="lux-nav-cta">
-          Ver datas <Icon name="arrow" />
-        </a>
-        <button
-          type="button"
-          ref={menuButton}
-          className="lux-menu-button"
-          onClick={() => setOpen((value) => !value)}
-          aria-expanded={open}
-          aria-controls="menu-mobile"
-          aria-label={open ? "Fechar menu" : "Abrir menu"}
-        >
-          <span>{open ? "Fechar" : "Menu"}</span>
-          <span
-            className={`menu-symbol ${open ? "is-open" : ""}`}
-            aria-hidden="true"
+
+        <div className="site-nav-actions">
+          <a href="#datas" className="site-nav-cta">
+            Ver disponibilidade
+          </a>
+          <button
+            type="button"
+            ref={menuButton}
+            className="site-menu-button"
+            onClick={() => setOpen((value) => !value)}
+            aria-expanded={open}
+            aria-controls="menu-mobile"
+            aria-label={open ? "Fechar menu" : "Abrir menu"}
           >
-            <i />
-            <i />
-          </span>
-        </button>
+            <span>{open ? "Fechar" : "Menu"}</span>
+            <span
+              className={`menu-lines ${open ? "is-open" : ""}`}
+              aria-hidden="true"
+            >
+              <i />
+              <i />
+            </span>
+          </button>
+        </div>
       </div>
+
       <nav
         id="menu-mobile"
         aria-label="Menu móvel"
         hidden={!open}
-        className="lux-mobile-menu"
+        className="site-mobile-menu"
       >
-        {links.map((link) => (
-          <a key={link.href} href={link.href} onClick={() => setOpen(false)}>
-            {link.label}
-            <span aria-hidden="true">↗</span>
+        <div className="mobile-menu-list">
+          {links.map((link) => (
+            <a
+              key={link.href}
+              href={link.href}
+              onClick={() => setOpen(false)}
+            >
+              <span>{link.label}</span>
+              <Icon name="arrow" />
+            </a>
+          ))}
+        </div>
+        <div className="mobile-menu-footer">
+          <p>Rua Homero Nunes Macedo, 1208 · Pirapora, MG</p>
+          <a
+            href="#datas"
+            onClick={() => setOpen(false)}
+            className="btn-primary mobile-cta"
+          >
+            Ver disponibilidade
+            <Icon name="arrow" />
           </a>
-        ))}
-        <a
-          href="#contato"
-          onClick={() => setOpen(false)}
-          className="mobile-contact"
-        >
-          Fale com o Solar <Icon name="arrow" />
-        </a>
+        </div>
       </nav>
     </header>
   );
