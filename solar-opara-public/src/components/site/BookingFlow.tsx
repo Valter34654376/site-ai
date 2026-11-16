@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AvailabilityCalendar } from "./AvailabilityCalendar";
 import { ContactForm } from "./ContactForm";
 import { Reveal } from "./Reveal";
@@ -11,11 +11,22 @@ export function BookingFlow() {
   const [busy, setBusy] = useState<Set<string> | null>(null);
   const [failed, setFailed] = useState(false);
   const [date, setDate] = useState("");
+  const section = useRef<HTMLElement>(null);
+  const controller = useRef<AbortController | null>(null);
   const load = useCallback(() => {
+    const signal = controller.current?.signal;
     setFailed(false);
-    fetchBusyDates().then(setBusy).catch(() => setFailed(true));
+    fetchBusyDates(signal).then(value => { if (!signal?.aborted) setBusy(value); }).catch(() => { if (!signal?.aborted) setFailed(true); });
   }, []);
-  useEffect(load, [load]);
+  useEffect(() => {
+    controller.current = new AbortController();
+    if (!('IntersectionObserver' in window)) { load(); return () => controller.current?.abort(); }
+    const observer = new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) { observer.disconnect(); load(); }
+    }, {rootMargin: '300px 0px'});
+    if (section.current) observer.observe(section.current);
+    return () => { observer.disconnect(); controller.current?.abort(); };
+  }, [load]);
 
   function pick(iso: string) {
     setDate(iso);
@@ -24,7 +35,7 @@ export function BookingFlow() {
 
   return (
     <>
-      <section id="datas" className="scroll-mt-20 border-t border-border bg-secondary/40">
+      <section ref={section} id="datas" className="scroll-mt-20 border-t border-border bg-secondary/40">
         <div className="mx-auto grid max-w-7xl gap-14 px-6 py-24 lg:grid-cols-12 lg:px-10 lg:py-32">
           <Reveal className="lg:col-span-5">
             <p className="eyebrow text-primary">Datas</p>

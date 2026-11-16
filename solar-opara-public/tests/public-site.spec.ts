@@ -24,6 +24,18 @@ async function ready(page: Page) {
   await expect(page.locator(".hero-media")).toHaveJSProperty("complete", true);
 }
 
+test("availability loads only when the calendar approaches the viewport", async ({page}) => {
+  await isolatedBooking(page);
+  const calls: string[] = [];
+  page.on('request', request => {if (request.url().includes('/rest/v1/so_public_busy_dates')) calls.push(request.url());});
+  await ready(page);
+  await page.waitForTimeout(250);
+  expect(calls).toHaveLength(0);
+  await page.locator('#datas').scrollIntoViewIfNeeded();
+  await expect.poll(() => calls.length).toBe(1);
+  await expect(page.getByLabel('20 de Novembro, Ocupado', {exact:true})).toBeDisabled();
+});
+
 test("layout, media and booking controls fit the viewport", async ({ page }, info) => {
   await isolatedBooking(page);
   const failures: string[] = [];
@@ -211,6 +223,7 @@ test("unavailable calendar keeps unknown dates disabled", async ({ page }, info)
   test.skip(info.project.name !== "desktop");
   await page.route("**/rest/v1/**", (route) => route.fulfill({ status: 503, json: { message: "Offline" } }));
   await ready(page);
+  await page.locator('#datas').scrollIntoViewIfNeeded();
   await expect(page.getByRole("status").filter({ hasText: "Não foi possível carregar as datas" })).toBeVisible();
   await expect(page.locator("#datas .grid-cols-7 button:enabled")).toHaveCount(0);
 });

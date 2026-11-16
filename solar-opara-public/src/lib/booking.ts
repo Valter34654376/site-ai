@@ -1,13 +1,15 @@
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 export const SUPABASE_URL = "https://bdfojankowlfuezdhdjl.supabase.co";
 /** Public (publishable/anon) key only. Never a service_role key. */
 const PUBLIC_KEY = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined) ?? "";
 
-let client: SupabaseClient | null = null;
-function db() {
+let client: Promise<SupabaseClient> | null = null;
+async function db() {
   if (!PUBLIC_KEY) return null;
-  client ??= createClient(SUPABASE_URL, PUBLIC_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+  client ??= import('@supabase/supabase-js')
+    .then(({ createClient }) => createClient(SUPABASE_URL, PUBLIC_KEY, { auth: { persistSession: false, autoRefreshToken: false } }))
+    .catch(error => { client = null; throw error; });
   return client;
 }
 export const bookingConfigured = () => !!PUBLIC_KEY;
@@ -20,10 +22,11 @@ export function formatBR(iso: string) {
   return `${d}/${m}/${y}`;
 }
 
-export async function fetchBusyDates(): Promise<Set<string>> {
-  const c = db();
+export async function fetchBusyDates(signal?: AbortSignal): Promise<Set<string>> {
+  const c = await db();
   if (!c) throw new Error("unavailable");
-  const { data, error } = await c.from("so_public_busy_dates").select("event_date");
+  const request = c.from("so_public_busy_dates").select("event_date");
+  const { data, error } = await (signal ? request.abortSignal(signal) : request);
   if (error) throw error;
   return new Set((data ?? []).map((r: { event_date: string }) => r.event_date));
 }
@@ -35,7 +38,7 @@ export type BookingInput = {
 export type BookingResult = "ok" | "date_unavailable" | "recent_request_exists" | "error";
 
 export async function sendBookingRequest(input: BookingInput): Promise<BookingResult> {
-  const c = db();
+  const c = await db();
   if (!c) return "error";
   // No .select(): public reads are blocked by design.
   const { error } = await c.from("so_booking_requests").insert(input);

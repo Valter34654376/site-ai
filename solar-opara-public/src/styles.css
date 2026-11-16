@@ -70,8 +70,8 @@ section[id] { scroll-margin-top: 90px; }
 @utility eyebrow { font-family: var(--font-sans); font-size: .65rem; font-weight: 600; letter-spacing: .23em; text-transform: uppercase; }
 
 .global-noise { position: fixed; inset: 0; z-index: 900; pointer-events: none; opacity: .023; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
-.cursor-aura { position: fixed; width: 520px; height: 520px; left: var(--pointer-x); top: var(--pointer-y); transform: translate(-50%, -50%); z-index: 2; pointer-events: none; border-radius: 50%; background: radial-gradient(circle, #d8c49c09, transparent 65%); }
-.page-progress { position: fixed; inset: 0 auto auto 0; height: 2px; width: calc(var(--page-progress) * 100%); z-index: 1100; background: #d8c49c; }
+.cursor-aura { position: fixed; width: 520px; height: 520px; left: 0; top: 0; transform: translate3d(var(--pointer-x), var(--pointer-y), 0) translate(-50%, -50%); z-index: 2; pointer-events: none; border-radius: 50%; background: radial-gradient(circle, #d8c49c09, transparent 65%); }
+.page-progress { position: fixed; inset: 0 auto auto 0; height: 2px; width: 100%; transform: scaleX(0); transform-origin: left; z-index: 1100; background: #d8c49c; }
 
 .lux-header { position: fixed; inset: 0 0 auto; z-index: 1000; color: #fffaf0; transition: background .4s, border-color .4s; border-bottom: 1px solid #fff2; }
 .lux-header.is-solid { background: #152b23ed; backdrop-filter: blur(18px); border-bottom-color: #d8c49c26; }
