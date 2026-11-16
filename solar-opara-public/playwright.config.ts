@@ -12,21 +12,51 @@ export default defineConfig({
     locale: "pt-BR",
     timezoneId: "America/Sao_Paulo",
     reducedMotion: "reduce",
-    launchOptions: { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH },
+    launchOptions: {
+      executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
+    },
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },
   projects: [
     { name: "desktop", use: { viewport: { width: 1920, height: 1080 } } },
     { name: "notebook", use: { viewport: { width: 1366, height: 768 } } },
-    { name: "tablet", use: { viewport: { width: 820, height: 1180 }, hasTouch: true } },
-    { name: "mobile", use: { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true } },
-    { name: "compact", use: { viewport: { width: 320, height: 740 }, isMobile: true, hasTouch: true } },
+    { name: "editorial", use: { viewport: { width: 1440, height: 900 } } },
+    {
+      name: "tablet",
+      use: { viewport: { width: 768, height: 1024 }, hasTouch: true },
+    },
+    {
+      name: "mobile",
+      use: {
+        viewport: { width: 390, height: 844 },
+        isMobile: true,
+        hasTouch: true,
+      },
+    },
+    {
+      name: "mobile-plus",
+      use: {
+        viewport: { width: 430, height: 932 },
+        isMobile: true,
+        hasTouch: true,
+      },
+    },
+    {
+      name: "compact",
+      use: {
+        viewport: { width: 320, height: 740 },
+        isMobile: true,
+        hasTouch: true,
+      },
+    },
   ],
-  webServer: process.env.BASE_URL ? undefined : {
-    command: "node scripts/preview-for-tests.mjs",
-    url: "http://127.0.0.1:4173",
-    reuseExistingServer: false,
-    timeout: 30_000,
-  },
+  webServer: process.env.BASE_URL
+    ? undefined
+    : {
+        command: "node scripts/preview-for-tests.mjs",
+        url: "http://127.0.0.1:4173",
+        reuseExistingServer: false,
+        timeout: 30_000,
+      },
 });

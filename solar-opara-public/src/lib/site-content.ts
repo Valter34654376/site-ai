@@ -3,15 +3,27 @@ import catalog from "@/data/media-catalog.json";
 export const INSTAGRAM_URL = catalog.officialInstagram;
 export const ADMIN_URL = "https://solar-opara-web-production.up.railway.app";
 export const BRAND_FALLBACK = "/media/solar-opara-monogram.svg";
+export const MAP_URL =
+  "https://www.google.com/maps/search/?api=1&query=Rua+Homero+Nunes+Macedo+1208+Pirapora+MG";
 
 export const categories = [
-  { id: "solar", label: "O espaço" },
-  { id: "historias", label: "Histórias de casamento" },
-  { id: "todos", label: "Todas as fotos" },
+  { id: "todos", label: "Todos" },
+  { id: "casamentos", label: "Casamentos" },
+  { id: "estrutura", label: "Estrutura" },
+  { id: "jardins", label: "Jardins" },
+  { id: "eventos", label: "Eventos" },
+  { id: "decoracao", label: "Decoração" },
+  { id: "noite", label: "Noite" },
+  { id: "detalhes", label: "Detalhes" },
 ] as const;
 
 export type Category = (typeof categories)[number]["id"];
-export type MediaVariant = { src: string; width: number; height: number; bytes: number };
+export type MediaVariant = {
+  src: string;
+  width: number;
+  height: number;
+  bytes: number;
+};
 export type MediaItem = {
   id: string;
   src: string;
@@ -33,7 +45,9 @@ export type MediaItem = {
 
 // Unverified references never enter the public gallery. Authorizations stay in the catalogue.
 export const gallery: MediaItem[] = catalog.media
-  .filter((item) => ["owner-confirmed", "owned", "licensed"].includes(item.rightsStatus))
+  .filter((item) =>
+    ["owner-confirmed", "owned", "licensed"].includes(item.rightsStatus),
+  )
   .map((item) => item as MediaItem);
 
 function featured(slot: string): MediaItem {
@@ -51,7 +65,15 @@ export const media = {
 };
 
 export function mediaSrcSet(item: MediaItem) {
-  return item.variants.map((variant) => `${variant.src} ${variant.width}w`).join(", ");
+  return item.variants
+    .map((variant) => `${variant.src} ${variant.width}w`)
+    .join(", ");
 }
 
-export const eventTypes = ["Casamento", "Celebração", "Evento social", "Evento corporativo", "Outro"];
+export const eventTypes = [
+  "Casamento",
+  "Celebração",
+  "Evento social",
+  "Evento corporativo",
+  "Outro",
+];
