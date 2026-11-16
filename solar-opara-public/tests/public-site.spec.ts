@@ -22,6 +22,7 @@ async function ready(page: Page) {
   await page.goto("/");
   await page.evaluate(() => document.fonts.ready);
   await expect(page.locator(".hero-media")).toHaveJSProperty("complete", true);
+  await page.locator(".hero-media").evaluate((image: HTMLImageElement) => image.decode());
 }
 
 test("availability loads only when the calendar approaches the viewport", async ({page}) => {
@@ -41,7 +42,8 @@ test("layout, media and booking controls fit the viewport", async ({ page }, inf
   const failures: string[] = [];
   page.on("pageerror", (error) => failures.push(error.message));
   await ready(page);
-  await expect(page.locator("h1")).toHaveText("Onde a vidavira memória.");
+  await expect(page.locator("h1")).toContainText("Para celebrar");
+  await expect(page.locator("h1")).toContainText("o que importa.");
   const hero = await page.locator(".hero-title").boundingBox();
   expect(hero!.x).toBeGreaterThanOrEqual(0);
   expect(hero!.x + hero!.width).toBeLessThanOrEqual(page.viewportSize()!.width);
@@ -86,17 +88,19 @@ test("editorial gallery filters, incremental loading and fullscreen navigation",
   await isolatedBooking(page);
   await ready(page);
   await page.locator("#galeria").scrollIntoViewIfNeeded();
+  await expect(page.locator(".gallery-card")).toHaveCount(catalog.media.filter(item => !item.locationNote).length);
+  await page.getByRole("group", { name: "Filtrar fotografias" }).getByRole("button", { name: /^Todas as fotos/ }).click();
   await expect(page.locator(".gallery-card")).toHaveCount(6);
   await page.getByRole("button", { name: "Ver mais fotografias" }).click();
   await expect(page.locator(".gallery-card")).toHaveCount(catalog.media.length);
   await expect(page.locator(".gallery-open").nth(6)).toBeFocused();
-  for (const [id, label] of Object.entries({ casamentos: "Casamentos", estrutura: "Estrutura", jardins: "Jardins", eventos: "Eventos", decoracao: "Decoração", noite: "Noite", detalhes: "Detalhes" })) {
+  for (const [id, label] of Object.entries({ solar: "O espaço", historias: "Histórias de casamento", todos: "Todas as fotos" })) {
     const filter = page.getByRole("group", { name: "Filtrar fotografias" }).getByRole("button", { name: new RegExp(`^${label}`) });
     await filter.click();
     await expect(filter).toHaveAttribute("aria-pressed", "true");
-    await expect(page.locator(".gallery-card")).toHaveCount(Math.min(catalog.media.filter((item) => item.categories.includes(id)).length, 6));
+    await expect(page.locator(".gallery-card")).toHaveCount(Math.min(catalog.media.filter((item) => id === "todos" || (id === "solar" ? !item.locationNote : !!item.locationNote)).length, 6));
   }
-  await page.getByRole("group", { name: "Filtrar fotografias" }).getByRole("button", { name: /^Noite/ }).click();
+  await page.getByRole("group", { name: "Filtrar fotografias" }).getByRole("button", { name: /^O espaço/ }).click();
   const opener = page.locator(".gallery-open").first();
   await opener.click();
   const modal = page.getByRole("dialog");
@@ -133,9 +137,9 @@ test("touch swipes move within the filtered collection", async ({ page }, info) 
 test("local photographic fallback survives a missing hero", async ({ page }, info) => {
   test.skip(!["desktop", "mobile"].includes(info.project.name));
   await isolatedBooking(page);
-  await page.route("**/media/jardins/*.webp", (route) => route.abort());
+  await page.route("**/media/casamentos/solar-opara-casamento-luana-carlos-*.webp", (route) => route.abort());
   await ready(page);
-  await expect(page.locator(".hero-media")).toHaveAttribute("src", catalog.media[0].src);
+  await expect(page.locator(".hero-media")).toHaveAttribute("src", catalog.media[1].src);
   expect(await page.locator(".hero-media").evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0);
 });
 
@@ -156,10 +160,8 @@ test("reduced motion disables decorative movement", async ({ page }, info) => {
   await isolatedBooking(page);
   await ready(page);
   await expect(page.locator(".hero-media")).toHaveCSS("animation-name", "none");
-  await expect(page.locator(".marquee-track")).toHaveCSS("animation-name", "none");
-  await expect(page.locator(".cursor-aura")).toHaveCSS("display", "none");
-  await page.locator("#galeria").scrollIntoViewIfNeeded();
-  expect(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--hero-shift"))).toBe("0px");
+  await expect(page.locator(".marquee-track,.cursor-aura,.global-noise")).toHaveCount(0);
+  await expect(page.locator(".hero-media")).toHaveCSS("transform", "none");
 });
 
 test("normal motion reveals content and keeps the hero responsive", async ({ page }, info) => {
@@ -228,6 +230,37 @@ test("unavailable calendar keeps unknown dates disabled", async ({ page }, info)
   await expect(page.locator("#datas .grid-cols-7 button:enabled")).toHaveCount(0);
 });
 
+test("calendar recovers after a failed availability request", async ({ page }, info) => {
+  test.skip(!["desktop", "mobile"].includes(info.project.name));
+  await page.clock.setFixedTime(new Date("2026-11-13T15:00:00-03:00"));
+  let attempts = 0;
+  let connectionRestored = false;
+  await page.route("**/rest/v1/**", route => {
+    attempts += 1;
+    return connectionRestored ? route.fulfill({status:200,json:[{event_date:busyDate}]}) : route.fulfill({status:503,json:{message:"Offline"}});
+  });
+  await ready(page);
+  await page.locator("#datas").scrollIntoViewIfNeeded();
+  await expect(page.getByRole("button",{name:"Tentar novamente"})).toBeVisible();
+  await expect(page.locator(".calendar-grid button:enabled")).toHaveCount(0);
+  const attemptsBeforeRetry = attempts;
+  connectionRestored = true;
+  await page.getByRole("button",{name:"Tentar novamente"}).click();
+  await expect(page.getByLabel("20 de Novembro, Ocupado",{exact:true})).toBeDisabled();
+  await expect(page.getByLabel("21 de Novembro, Disponível",{exact:true})).toBeEnabled();
+  expect(attempts).toBe(attemptsBeforeRetry + 1);
+});
+
+test("wedding archive keeps the photograph location visible", async ({page},info) => {
+  test.skip(info.project.name !== "desktop");
+  await isolatedBooking(page);
+  await ready(page);
+  await page.locator("#galeria").scrollIntoViewIfNeeded();
+  await page.getByRole("group",{name:"Filtrar fotografias"}).getByRole("button",{name:/^Histórias de casamento/}).click();
+  await page.locator(".gallery-open").first().click();
+  await expect(page.locator("#lightbox-caption")).toContainText("local não confirmado como Solar Opará");
+});
+
 test("main page and fullscreen gallery pass accessibility checks", async ({ page }, info) => {
   test.skip(!["desktop", "mobile"].includes(info.project.name));
   await isolatedBooking(page);
@@ -241,9 +274,10 @@ test("main page and fullscreen gallery pass accessibility checks", async ({ page
 });
 
 test("production exposes real availability and local social media", async ({ page, request }, info) => {
-  test.skip(!process.env.BASE_URL || info.project.name !== "desktop");
+  test.skip(!process.env.BASE_URL || ["localhost", "127.0.0.1"].includes(new URL(process.env.BASE_URL).hostname) || info.project.name !== "desktop");
   const responsePromise = page.waitForResponse((response) => response.url().includes("/rest/v1/so_public_busy_dates"));
   await ready(page);
+  await page.locator('#datas').scrollIntoViewIfNeeded();
   const availability = await responsePromise;
   expect(availability.status()).toBe(200);
   expect(Array.isArray(await availability.json())).toBe(true);

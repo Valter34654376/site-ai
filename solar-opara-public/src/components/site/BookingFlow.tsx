@@ -2,10 +2,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AvailabilityCalendar } from "./AvailabilityCalendar";
 import { ContactForm } from "./ContactForm";
 import { Reveal } from "./Reveal";
+import { Icon } from "./Icon";
 import { fetchBusyDates } from "@/lib/booking";
 import { INSTAGRAM_URL } from "@/lib/site-content";
 
-const steps = ["Escolha uma data disponível", "Preencha seus dados", "A equipe confirma com você"];
+const steps = [
+  ["Consulte a data", "Veja a disponibilidade no calendário ao lado."],
+  ["Conte seus planos", "Compartilhe a ideia e os primeiros detalhes do evento."],
+  ["Converse com a equipe", "Alinhamos as informações para orçamento ou visita."],
+];
 
 export function BookingFlow() {
   const [busy, setBusy] = useState<Set<string> | null>(null);
@@ -14,57 +19,52 @@ export function BookingFlow() {
   const section = useRef<HTMLElement>(null);
   const controller = useRef<AbortController | null>(null);
   const load = useCallback(() => {
-    const signal = controller.current?.signal;
+    controller.current?.abort();
+    const active = new AbortController();
+    controller.current = active;
+    setBusy(null);
     setFailed(false);
-    fetchBusyDates(signal).then(value => { if (!signal?.aborted) setBusy(value); }).catch(() => { if (!signal?.aborted) setFailed(true); });
+    fetchBusyDates(active.signal)
+      .then(value => { if (!active.signal.aborted) setBusy(value); })
+      .catch(() => { if (!active.signal.aborted) setFailed(true); });
   }, []);
   useEffect(() => {
-    controller.current = new AbortController();
-    if (!('IntersectionObserver' in window)) { load(); return () => controller.current?.abort(); }
+    if (!("IntersectionObserver" in window)) { load(); return () => controller.current?.abort(); }
     const observer = new IntersectionObserver(entries => {
       if (entries.some(entry => entry.isIntersecting)) { observer.disconnect(); load(); }
-    }, {rootMargin: '300px 0px'});
+    }, { rootMargin: "300px 0px" });
     if (section.current) observer.observe(section.current);
     return () => { observer.disconnect(); controller.current?.abort(); };
   }, [load]);
 
   function pick(iso: string) {
     setDate(iso);
-    document.getElementById("dados-evento")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    document.getElementById("dados-evento")?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
   }
 
   return (
     <>
-      <section ref={section} id="datas" className="scroll-mt-20 border-t border-border bg-secondary/40">
-        <div className="mx-auto grid max-w-7xl gap-14 px-6 py-24 lg:grid-cols-12 lg:px-10 lg:py-32">
-          <Reveal className="lg:col-span-5">
-            <p className="eyebrow text-primary">Datas</p>
-            <h2 className="mt-6 text-4xl leading-tight sm:text-5xl">Consulte sua data.</h2>
-            <p className="mt-6 leading-relaxed text-muted-foreground">Escolha uma data disponível e envie sua solicitação. A equipe confirma os detalhes antes de reservar.</p>
-            <ol className="mt-10 space-y-6">
-              {steps.map((s, i) => (
-                <li key={s} className="flex items-baseline gap-5 border-b border-border pb-5">
-                  <span className="font-display text-3xl text-primary">{i + 1}</span><span>{s}</span>
-                </li>
-              ))}
-            </ol>
+      <section ref={section} id="datas" className="dates-section">
+        <div className="section-wrap dates-grid">
+          <Reveal className="dates-copy">
+            <p className="eyebrow">O primeiro passo</p>
+            <h2>Grandes momentos<br /><em>começam com uma data.</em></h2>
+            <p>Encontre uma possibilidade no calendário e conte para a gente o que você tem em mente.</p>
+            <ol className="booking-steps">{steps.map(([title,text],index) => <li key={title}><span>{String(index+1).padStart(2,"0")}</span><div><h3>{title}</h3><p>{text}</p></div></li>)}</ol>
+            <p className="booking-note">A consulta é o início da conversa. A reserva depende da confirmação da equipe.</p>
           </Reveal>
-          <Reveal className="lg:col-span-7">
-            <AvailabilityCalendar busy={busy} failed={failed} selected={date} onSelect={pick} />
-          </Reveal>
+          <Reveal className="calendar-wrap"><AvailabilityCalendar busy={busy} failed={failed} selected={date} onSelect={pick} onRetry={load} /></Reveal>
         </div>
       </section>
-
-      <section id="contato" className="mx-auto grid max-w-7xl scroll-mt-20 gap-16 px-6 py-24 lg:grid-cols-12 lg:px-10 lg:py-36">
-        <Reveal className="lg:col-span-4">
-          <p className="eyebrow text-primary">Solicitação</p>
-          <h2 className="mt-6 text-4xl leading-tight sm:text-5xl">Vamos conversar sobre a sua data.</h2>
-          <p className="mt-6 leading-relaxed text-muted-foreground">Conte um pouco sobre o seu evento. A equipe do Solar Opará retorna com as informações para orçamento ou visita.</p>
-          <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="eyebrow mt-10 inline-block border border-foreground px-8 py-4 transition-colors hover:bg-foreground hover:text-background">@solaroparaoficial</a>
+      <section id="contato" className="contact-section section-wrap">
+        <Reveal className="contact-copy">
+          <p className="eyebrow">Vamos planejar?</p>
+          <h2>O próximo encontro<br /><em>começa aqui.</em></h2>
+          <p>Para orçamento, informações ou uma visita ao espaço, deixe seus dados. A equipe do Solar Opará retorna para conversar com você.</p>
+          <div className="contact-location"><Icon name="pin" /><div><strong>Venha conhecer o Solar</strong><address>Rua Homero Nunes Macedo, 1208<br />Sagrada Família · Pirapora, MG</address><a href="https://www.google.com/maps/search/?api=1&query=Rua+Homero+Nunes+Macedo+1208+Pirapora+MG" target="_blank" rel="noopener noreferrer">Abrir no mapa <span aria-hidden="true">↗</span></a></div></div>
+          <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="text-link">@solaroparaoficial <span aria-hidden="true">↗</span></a>
         </Reveal>
-        <div id="dados-evento" className="scroll-mt-24 lg:col-span-8">
-          <ContactForm date={date} onDateChange={setDate} onDateTaken={load} />
-        </div>
+        <div id="dados-evento" className="contact-panel"><div className="contact-panel-heading"><span className="eyebrow">Sua solicitação</span><p>Conte um pouco sobre o seu momento.</p></div><ContactForm date={date} onDateChange={setDate} onDateTaken={load} /></div>
       </section>
     </>
   );

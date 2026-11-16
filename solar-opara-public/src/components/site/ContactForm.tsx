@@ -3,7 +3,7 @@ import { contactSchema } from "@/lib/contact-schema";
 import { eventTypes, INSTAGRAM_URL } from "@/lib/site-content";
 import { formatBR, sendBookingRequest } from "@/lib/booking";
 
-const field = "w-full border-0 border-b border-input bg-transparent px-0 py-3 text-base outline-none transition-colors focus:border-primary placeholder:text-muted-foreground/60";
+const field = "form-control";
 
 type Props = { date: string; onDateChange: (iso: string) => void; onDateTaken: () => void };
 
@@ -15,6 +15,7 @@ export function ContactForm({ date, onDateChange, onDateTaken }: Props) {
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (sending) return;
     setNotice("");
     const data = Object.fromEntries(new FormData(e.currentTarget)) as Record<string, string>;
     const r = contactSchema.safeParse({ tipo: "", ...data, data: date });
@@ -22,6 +23,8 @@ export function ContactForm({ date, onDateChange, onDateTaken }: Props) {
       const errs: Record<string, string> = {};
       r.error.issues.forEach((i) => { errs[String(i.path[0])] = i.message; });
       setErrors(errs);
+      const first = e.currentTarget.elements.namedItem(Object.keys(errs)[0] ?? "");
+      if (first instanceof HTMLElement) first.focus();
       return;
     }
     setErrors({});
@@ -51,7 +54,7 @@ export function ContactForm({ date, onDateChange, onDateTaken }: Props) {
   }
 
   return (
-    <form onSubmit={onSubmit} noValidate className="grid gap-8 sm:grid-cols-2">
+    <form onSubmit={onSubmit} noValidate className="contact-form">
       <div className="sm:col-span-2">
         <Field error={errors["data"]} label="Data desejada">
           <input name="data" type="date" value={date} onChange={(e) => onDateChange(e.target.value)} className={`${field} ${date ? "border-primary font-medium" : ""}`} />
@@ -72,8 +75,8 @@ export function ContactForm({ date, onDateChange, onDateTaken }: Props) {
         <Field error={errors["mensagem"]} label="Mensagem"><textarea name="mensagem" rows={4} className={`${field} resize-none`} /></Field>
       </div>
       <div className="flex flex-col gap-5 sm:col-span-2">
-        <p className="text-sm text-muted-foreground">Enviar a solicitação não reserva a data. A equipe confirma os detalhes antes de reservar.</p>
-        <button type="submit" disabled={sending} className="eyebrow self-start bg-primary px-10 py-4 text-primary-foreground transition-colors hover:bg-ink disabled:opacity-60">
+        <p className="form-privacy">Seus dados serão usados pela equipe para responder a esta solicitação. O envio não reserva a data automaticamente.</p>
+        <button type="submit" disabled={sending} className="button-lux button-lux-primary form-submit">
           {sending ? "Enviando…" : "Enviar solicitação"}
         </button>
         {notice && <p role="alert" className="border-l-2 border-gold bg-card p-4 text-sm leading-relaxed">{notice}</p>}

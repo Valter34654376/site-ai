@@ -5,14 +5,9 @@ export const ADMIN_URL = "https://solar-opara-web-production.up.railway.app";
 export const BRAND_FALLBACK = "/media/solar-opara-monogram.svg";
 
 export const categories = [
-  { id: "todos", label: "Todos" },
-  { id: "casamentos", label: "Casamentos" },
-  { id: "estrutura", label: "Estrutura" },
-  { id: "jardins", label: "Jardins" },
-  { id: "eventos", label: "Eventos" },
-  { id: "decoracao", label: "Decoração" },
-  { id: "noite", label: "Noite" },
-  { id: "detalhes", label: "Detalhes" },
+  { id: "solar", label: "O espaço" },
+  { id: "historias", label: "Histórias de casamento" },
+  { id: "todos", label: "Todas as fotos" },
 ] as const;
 
 export type Category = (typeof categories)[number]["id"];

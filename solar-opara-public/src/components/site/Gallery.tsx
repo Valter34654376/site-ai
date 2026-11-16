@@ -5,14 +5,14 @@ import { SafeImage } from "./SafeImage";
 const PAGE_SIZE = 6;
 
 export function Gallery({ items }: { items: MediaItem[] }) {
-  const [category, setCategory] = useState<Category>("todos");
+  const [category, setCategory] = useState<Category>("solar");
   const [visible, setVisible] = useState(PAGE_SIZE);
   const [index, setIndex] = useState<number | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const grid = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLElement | null>(null);
   const touch = useRef<{ x: number; y: number } | null>(null);
-  const filtered = useMemo(() => items.filter((item) => category === "todos" || item.categories.includes(category)), [items, category]);
+  const filtered = useMemo(() => items.filter((item) => category === "todos" || (category === "solar" ? !item.locationNote : !!item.locationNote)), [items, category]);
   const current = index === null ? null : filtered[index];
   const isOpen = index !== null;
   const close = useCallback(() => setIndex(null), []);
@@ -56,7 +56,7 @@ export function Gallery({ items }: { items: MediaItem[] }) {
       <div className="gallery-toolbar">
         <div className="gallery-filters" role="group" aria-label="Filtrar fotografias">
           {categories.map((entry) => {
-            const count = entry.id === "todos" ? items.length : items.filter((item) => item.categories.includes(entry.id)).length;
+            const count = items.filter((item) => entry.id === "todos" || (entry.id === "solar" ? !item.locationNote : !!item.locationNote)).length;
             return (
               <button key={entry.id} type="button" aria-pressed={category === entry.id} aria-controls="gallery-collection" onClick={() => filter(entry.id)}>
                 {entry.label}<span aria-hidden="true">{String(count).padStart(2, "0")}</span>
@@ -67,19 +67,17 @@ export function Gallery({ items }: { items: MediaItem[] }) {
         <p className="gallery-count" role="status" aria-live="polite">{filtered.length} {filtered.length === 1 ? "fotografia" : "fotografias"}</p>
       </div>
 
-      <div id="gallery-collection" ref={grid} className="gallery-editorial" key={category}>
+      <div id="gallery-collection" ref={grid} className={`gallery-editorial ${filtered.length === 2 ? "gallery-venue" : ""}`} key={category}>
         {filtered.slice(0, visible).map((item, position) => (
           <figure key={item.id} className="gallery-card">
             <button type="button" className="gallery-open" aria-label={`Ampliar: ${item.caption}`} aria-haspopup="dialog" onClick={(event) => { trigger.current = event.currentTarget; setIndex(position); }}>
               <SafeImage item={item} loading="lazy" sizes="(max-width: 640px) calc(100vw - 40px), (max-width: 1000px) 50vw, 700px" className="gallery-image" />
               <span className="gallery-photo-shade" />
-              <span className="gallery-photo-number" aria-hidden="true">{String(position + 1).padStart(2, "0")}</span>
-              <span className="gallery-expand" aria-hidden="true">↗</span>
-              <span className="gallery-photo-category">{item.locationNote ? "Histórias de casamento" : categories.find((entry) => entry.id === item.category)?.label}</span>
+              <span className="gallery-expand" aria-hidden="true">Ampliar <span>↗</span></span>
             </button>
             <figcaption>
               <span>{item.caption}</span>
-              <span className="gallery-caption-credit">{item.locationNote ? "Acervo de casamento" : "Solar Opará"} · Oliver Fotos</span>
+              <span className="gallery-caption-credit">{item.locationNote ? "Acervo de casamento · veja o contexto ao ampliar" : "Solar Opará · Pirapora"}</span>
             </figcaption>
           </figure>
         ))}
@@ -87,7 +85,7 @@ export function Gallery({ items }: { items: MediaItem[] }) {
 
       {filtered.length === 0 && <p className="gallery-empty">Novos olhares estão a caminho. Explore as outras coleções.</p>}
       <div className="gallery-bottom">
-        <p aria-live="polite">Exibindo {Math.min(visible, filtered.length)} de {filtered.length} fotografias</p>
+        <p aria-live="polite">{Math.min(visible, filtered.length)} de {filtered.length} fotografias <span>· Oliver Fotos</span></p>
         {visible < filtered.length && <button type="button" className="button-lux button-lux-outline" onClick={showMore}>Ver mais fotografias <span aria-hidden="true">↓</span></button>}
       </div>
 
