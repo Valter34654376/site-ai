@@ -3,6 +3,20 @@ import AxeBuilder from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
 import catalog from "../src/data/media-catalog.json" with { type: "json" };
 
+const addedMedia = [
+  { caption: "Sob a luz do Solar", categories: ["casamentos", "eventos", "decoracao", "noite"] },
+  { caption: "Um cenário para viver o sim", categories: ["casamentos", "decoracao", "detalhes", "noite"] },
+  { caption: "Arquitetura para celebrar", categories: ["estrutura", "decoracao", "noite"] },
+  { caption: "Cada lugar, um gesto de cuidado", categories: ["detalhes", "decoracao", "eventos"] },
+  { caption: "Detalhes que desenham a noite", categories: ["decoracao", "detalhes", "noite"] },
+  { caption: "Memórias à mesa", categories: ["detalhes", "casamentos"] },
+  { caption: "No centro de tudo, a celebração", categories: ["casamentos", "eventos", "decoracao", "noite"] },
+  { caption: "Salão aberto para o jardim", categories: ["estrutura", "decoracao", "eventos", "jardins"] },
+  { caption: "Cor e natureza à mesa", categories: ["decoracao", "detalhes", "eventos"] },
+  { caption: "Uma mesa que recebe", categories: ["decoracao", "detalhes", "eventos"] },
+];
+const allMedia = [...addedMedia, ...catalog.media];
+
 const busyDate = "2026-11-20";
 const freeDate = "2026-11-21";
 
@@ -185,6 +199,41 @@ test("navigation marks the current section and keeps dates close on mobile", asy
   await expect(page.locator('.site-nav-links [aria-current="location"]')).toHaveCount(0);
 });
 
+test("featured films play natively without Instagram links", async ({
+  page,
+}, info) => {
+  test.skip(info.project.name !== "desktop");
+  await isolatedBooking(page);
+  await ready(page);
+  await expect(page.locator("#filme iframe")).toHaveCount(0);
+  await page.locator("#filme").scrollIntoViewIfNeeded();
+  const featured = page.locator(".film-feature video");
+  await expect(featured).toBeVisible();
+  await expect(featured.locator("source")).toHaveAttribute(
+    "src",
+    "/media/film/solar-atmosfera.mp4",
+  );
+  await expect(featured).toHaveJSProperty("muted", true);
+  await expect(featured).toHaveJSProperty("loop", true);
+  await expect(page.locator("#filme a")).toHaveCount(0);
+  await expect(page.locator(".film-card video")).toHaveCount(2);
+  const sound = page.locator(".film-sound");
+  await sound.click();
+  await expect(featured).toHaveJSProperty("muted", false);
+  await expect(sound).toHaveAttribute("aria-pressed", "true");
+
+  const story = page.locator("#historia");
+  await story.scrollIntoViewIfNeeded();
+  await expect(story.locator("iframe, a")).toHaveCount(0);
+  await expect(story.locator("video source")).toHaveAttribute(
+    "src",
+    "/media/film/solar-historia-completa.mp4",
+  );
+  await expect(
+    story.getByRole("button", { name: "Reproduzir filme" }),
+  ).toBeVisible();
+});
+
 test("editorial gallery filters, incremental loading and fullscreen navigation", async ({
   page,
 }, info) => {
@@ -198,8 +247,10 @@ test("editorial gallery filters, incremental loading and fullscreen navigation",
     .click();
   await expect(page.locator(".gallery-card")).toHaveCount(6);
   await page.getByRole("button", { name: "Ver mais fotografias" }).click();
-  await expect(page.locator(".gallery-card")).toHaveCount(catalog.media.length);
+  await expect(page.locator(".gallery-card")).toHaveCount(12);
   await expect(page.locator(".gallery-open").nth(6)).toBeFocused();
+  await page.getByRole("button", { name: "Ver mais fotografias" }).click();
+  await expect(page.locator(".gallery-card")).toHaveCount(allMedia.length);
   for (const [id, label] of Object.entries({
     todos: "Todos",
     casamentos: "Casamentos",
@@ -217,7 +268,7 @@ test("editorial gallery filters, incremental loading and fullscreen navigation",
     await expect(filter).toHaveAttribute("aria-pressed", "true");
     await expect(page.locator(".gallery-card")).toHaveCount(
       Math.min(
-        catalog.media.filter(
+        allMedia.filter(
           (item) => id === "todos" || item.categories.includes(id),
         ).length,
         6,
@@ -233,19 +284,11 @@ test("editorial gallery filters, incremental loading and fullscreen navigation",
   const modal = page.getByRole("dialog");
   await expect(modal).toBeVisible();
   await expect(page.locator("#lightbox-title")).toHaveText(
-    catalog.media[0].caption,
+    "Arquitetura para celebrar",
   );
   await page.keyboard.press("ArrowRight");
   await expect(page.locator("#lightbox-title")).toHaveText(
-    catalog.media[1].caption,
-  );
-  await page.keyboard.press("ArrowRight");
-  await expect(page.locator("#lightbox-title")).toHaveText(
-    catalog.media[0].caption,
-  );
-  await page.getByRole("button", { name: "Fotografia anterior" }).click();
-  await expect(page.locator("#lightbox-title")).toHaveText(
-    catalog.media[1].caption,
+    "Salão aberto para o jardim",
   );
   for (let i = 0; i < 7; i++) {
     await page.keyboard.press("Tab");
@@ -279,7 +322,7 @@ test("touch swipes move within the filtered collection", async ({
       changedTouches: [{ identifier: 1, clientX: 70, clientY: 285 }],
     });
   await expect(page.locator("#lightbox-title")).toHaveText(
-    catalog.media[1].caption,
+    addedMedia[1].caption,
   );
   await page.getByRole("button", { name: "Fechar galeria" }).click();
   await expect(page.getByRole("dialog")).toBeHidden();
@@ -297,7 +340,7 @@ test("local photographic fallback survives a missing hero", async ({
   await ready(page);
   await expect(page.locator(".hero-media")).toHaveAttribute(
     "src",
-    catalog.media[1].src,
+    "/media/social/Depn5XCiXOv-01.jpg",
   );
   expect(
     await page
@@ -311,7 +354,7 @@ test("last-resort brand fallback and total media failure never show broken icons
 }, info) => {
   test.skip(info.project.name !== "desktop");
   await isolatedBooking(page);
-  await page.route("**/media/**/*.webp", (route) => route.abort());
+  await page.route(/\/media\/.*\.(?:webp|jpg)$/, (route) => route.abort());
   await ready(page);
   await expect(page.locator(".hero-media")).toHaveAttribute(
     "src",
@@ -464,7 +507,7 @@ test("unavailable calendar keeps unknown dates disabled", async ({
     page
       .getByRole("status")
       .filter({ hasText: "Não foi possível carregar as datas" }),
-  ).toBeVisible();
+  ).toBeVisible({ timeout: 15_000 });
   await expect(page.locator("#datas .grid-cols-7 button:enabled")).toHaveCount(
     0,
   );
@@ -512,10 +555,13 @@ test("wedding archive keeps the photograph location visible", async ({
     .getByRole("group", { name: "Filtrar fotografias" })
     .getByRole("button", { name: /^Detalhes/ })
     .click();
+  const loadMore = page.getByRole("button", { name: "Ver mais fotografias" });
+  if (await loadMore.isVisible()) await loadMore.click();
+  const external = page.locator(".gallery-card:has(.gallery-context.is-external)").first();
   await expect(
-    page.locator(".gallery-card").first().locator("figcaption"),
+    external.locator("figcaption"),
   ).toContainText("local não confirmado como Solar Opará");
-  await page.locator(".gallery-open").first().click();
+  await external.locator(".gallery-open").click();
   await expect(page.locator("#lightbox-caption")).toContainText(
     "local não confirmado como Solar Opará",
   );

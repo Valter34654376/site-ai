@@ -1,4 +1,4 @@
-import { readFile, stat } from "node:fs/promises";
+import { readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import assert from "node:assert/strict";
@@ -34,5 +34,21 @@ assert(html.includes(hero.src), "Hero preload is stale");
 for (const resource of ["/media/solar-opara-monogram.svg", "/media/hero/solar-opara-casamento-social.jpg", "/favicon.svg"]) {
   await stat(path.join(root, "public", resource));
 }
+const socialFiles = (await readdir(path.join(root, "public/media/social"))).filter((file) => file.endsWith(".jpg"));
+assert.equal(socialFiles.length, 10, "The operator-selected social collection must contain ten photographs");
+for (const file of socialFiles) {
+  const info = await stat(path.join(root, "public/media/social", file));
+  assert(info.size < 400_000, `Oversized social photograph: ${file}`);
+  bytes += info.size;
+}
+for (const file of [
+  "solar-atmosfera.mp4",
+  "solar-detalhes.mp4",
+  "solar-celebracao.mp4",
+  "solar-historia-completa.mp4",
+]) {
+  const info = await stat(path.join(root, "public/media/film", file));
+  assert(info.size < 30_000_000, `Oversized local film: ${file}`);
+}
 assert(!catalog.instagramAudit.completeInventory || catalog.instagramAudit.verifiedPosts > 0, "Unsubstantiated Instagram inventory");
-console.log(`Verified ${ids.size} authorized photographs; ${(bytes / 1024).toFixed(0)} KiB across all responsive derivatives.`);
+console.log(`Verified ${ids.size} catalogued and ${socialFiles.length} operator-selected photographs; ${(bytes / 1024).toFixed(0)} KiB across local image assets.`);

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Símbolo Solar Opará</title>
+  <desc id="desc">Sol alaranjado sobre duas ondas azuis em fundo verde escuro com folhagens.</desc>
+  <rect width="512" height="512" fill="#10201c"/>
+  <g fill="none" stroke="#c9d0b8" stroke-linecap="round" opacity=".13">
+    <path d="M-18 95C58 67 117 35 166-17M21 87l6-56M45 77L67 8M70 67l42-64M96 51l55-43M119 31l42-19" stroke-width="8"/>
+    <path d="M363-20c24 68 56 119 111 167M379 7l52 8M391 34l70 19M407 59l66 38M426 85l48 48" stroke-width="9"/>
+    <path d="M390 532c17-75 56-137 133-188M407 493l-4-55M430 472l13-69M456 447l36-62M475 414l42-35" stroke-width="10"/>
+  </g>
+  <g transform="translate(18 10)">
+    <circle cx="315" cy="194" r="84" fill="#f59d00"/>
+    <circle cx="329" cy="194" r="34" fill="#10201c"/>
+    <path d="M65 333c78-92 159-106 259-55-73-6-137 11-201 55H65Z" fill="#2aa9b7"/>
+    <path d="M74 349c91-51 181-58 286-27-92 6-179 18-286 27Z" fill="#238f9e"/>
+    <path d="M90 365c86-24 176-29 267-17-83 20-170 27-267 17Z" fill="#1f7785"/>
+  </g>
+</svg>

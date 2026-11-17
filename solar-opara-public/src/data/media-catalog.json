@@ -14,9 +14,10 @@
   "authorization": {
     "status": "owner-confirmed",
     "confirmedAt": "2026-11-13",
-    "scope": "Somente as sete fotografias Oliver Fotos já utilizadas pelo site público no início desta tarefa.",
+    "scope": "Sete fotografias Oliver Fotos já utilizadas pelo site público e dez fotografias adicionais selecionadas explicitamente pelo operador em 2026-11-17.",
     "evidence": "O responsável confirmou nesta conversa: Tenho autorização do Oliver Fotos para as fotos atuais.",
-    "additionalAlbumPhotosAuthorized": false
+    "additionalAlbumPhotosAuthorized": true,
+    "additionalInstruction": "O operador forneceu os posts DevLYbgDOMF e Depn5XCiXOv e solicitou que suas fotografias fossem adicionadas ao site."
   },
   "media": [
     {

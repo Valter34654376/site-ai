@@ -96,8 +96,8 @@ export function Gallery({ items }: { items: MediaItem[] }) {
           </div>
           <div className="gallery-header-side">
             <p>
-              Registros do Solar Opará e de celebrações fotografadas por Oliver
-              Fotos. Cada imagem informa o contexto do registro.
+              Registros do salão, do jardim e das celebrações que ocupam o
+              Solar Opará. Arquitetura, decoração e afeto vistos de perto.
             </p>
             <a
               href={INSTAGRAM_URL}
@@ -151,7 +151,7 @@ export function Gallery({ items }: { items: MediaItem[] }) {
           {filtered.slice(0, visible).map((item, position) => (
             <figure
               key={item.id}
-              className={`gallery-card gallery-slot-${position % 6}`}
+              className={`gallery-card gallery-slot-${position}`}
             >
               <button
                 type="button"
@@ -197,7 +197,7 @@ export function Gallery({ items }: { items: MediaItem[] }) {
         <div className="gallery-footer">
           <p aria-live="polite">
             Exibindo {Math.min(visible, filtered.length)} de {filtered.length}{" "}
-            fotografias · Créditos: Oliver Fotos
+            fotografias · Créditos indicados em cada registro
           </p>
           {visible < filtered.length && (
             <button

@@ -1,4 +1,4 @@
-import { useState, type ImgHTMLAttributes } from "react";
+import { useEffect, useRef, useState, type ImgHTMLAttributes } from "react";
 import { BRAND_FALLBACK, media, mediaSrcSet, type MediaItem } from "@/lib/site-content";
 
 type Props = Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "srcSet" | "width" | "height"> & {
@@ -9,16 +9,24 @@ type Props = Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "srcSet" | "width
 
 export function SafeImage({ item, fallback = media.fallback, full = false, alt = item.alt, className = "", style, onLoad, ...props }: Props) {
   const [loaded, setLoaded] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    const image = imgRef.current;
+    if (image && image.complete && image.naturalWidth > 0) {
+      setLoaded(true);
+    }
+  }, [item.src, item.fullSrc, full]);
 
   return (
     <img
+      ref={imgRef}
       {...props}
       src={full ? item.fullSrc : item.src}
       srcSet={full ? undefined : mediaSrcSet(item)}
       width={item.width}
       height={item.height}
       alt={alt}
-      decoding="async"
       className={`safe-image ${loaded ? "is-loaded" : ""} ${className}`}
       style={{ objectPosition: item.objectPosition, ...style }}
       onLoad={(event) => { setLoaded(true); onLoad?.(event); }}

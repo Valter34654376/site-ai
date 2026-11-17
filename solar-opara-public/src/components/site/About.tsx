@@ -69,8 +69,8 @@ export function About() {
             </div>
           </div>
           <figcaption className="monumental-caption">
-            <span>Jardim e salão durante recepção noturna</span>
-            <span>Solar Opará · Fotografia: Oliver Fotos</span>
+            <span>Salão envidraçado aberto para a paisagem</span>
+            <span>Solar Opará · Registro: Giselle Decorações</span>
           </figcaption>
         </figure>
       </Reveal>
