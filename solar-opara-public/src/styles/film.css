@@ -266,7 +266,12 @@
   }
 
   .film-experience {
-    grid-template-columns: minmax(300px, 0.9fr) minmax(330px, 1.1fr);
+    grid-template-columns: 1fr;
+    gap: 52px;
+  }
+
+  .film-feature {
+    justify-self: center;
   }
 
   .film-feature-copy {

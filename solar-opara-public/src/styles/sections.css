@@ -1,8 +1,11 @@
 /* Hero — photograph first */
 .hero-section {
   --hero-shift: 0px;
+  --hero-gutter: max(clamp(20px, 3.25vw, 56px), calc((100% - 1520px) / 2));
   position: relative;
-  min-height: min(960px, 100svh);
+  width: 100%;
+  min-height: 100svh;
+  min-height: 100dvh;
   overflow: hidden;
   isolation: isolate;
   color: #fff;
@@ -58,9 +61,9 @@
 .hero-identity {
   position: absolute;
   z-index: 2;
-  bottom: 64px;
-  left: max(5vw, 40px);
-  width: min(520px, 43vw);
+  bottom: clamp(48px, 6.5vh, 72px);
+  left: var(--hero-gutter);
+  width: min(560px, 44vw);
   animation: hero-copy-in 0.9s 0.28s both cubic-bezier(0.2, 0.72, 0.25, 1);
 }
 
@@ -89,9 +92,9 @@
 .hero-action-strip {
   position: absolute;
   z-index: 2;
-  right: max(5vw, 40px);
-  bottom: 66px;
-  width: min(360px, 29vw);
+  right: var(--hero-gutter);
+  bottom: clamp(50px, 6.8vh, 74px);
+  width: min(380px, 32vw);
   padding-top: 18px;
   border-top: 1px solid rgba(255, 255, 255, 0.54);
   animation: hero-copy-in 0.9s 0.44s both cubic-bezier(0.2, 0.72, 0.25, 1);
@@ -115,6 +118,7 @@
   color: var(--foreground);
   background: #fff;
   border-color: #fff;
+  white-space: nowrap;
 }
 
 .hero-primary-action:hover {
@@ -750,11 +754,15 @@
   }
 
   .hero-identity {
-    width: 52vw;
+    width: min(460px, 48vw);
   }
 
   .hero-action-strip {
-    width: 34vw;
+    width: min(360px, 38vw);
+  }
+
+  .hero-text-link {
+    white-space: nowrap;
   }
 
   .about-intro,
@@ -793,9 +801,10 @@
 @media (max-width: 700px) {
   .hero-section {
     display: grid;
-    min-height: 0;
-    grid-template: "photo" 66svh "action" auto / 1fr;
-    overflow: visible;
+    min-height: 100svh;
+    min-height: 100dvh;
+    grid-template: "photo" minmax(54svh, 1fr) "action" auto / 1fr;
+    overflow: hidden;
     color: #fff;
     background: var(--paper);
   }
