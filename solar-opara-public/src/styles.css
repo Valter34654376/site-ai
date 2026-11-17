@@ -263,19 +263,28 @@ section[id],
 
 /* Header */
 .site-header {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 100;
-  background: rgba(250, 248, 245, 0.92);
+  color: white;
+  background: linear-gradient(180deg, rgba(9, 14, 10, 0.5), transparent);
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
   transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease;
+    color 0.3s ease,
+    background 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
-.site-header.is-solid {
-  background: rgba(250, 248, 245, 0.98);
+.site-header.is-solid,
+.site-header.is-open {
+  color: var(--foreground);
+  background: rgba(250, 248, 245, 0.97);
+  border-bottom-color: var(--border);
+  box-shadow: 0 10px 30px rgba(28, 27, 25, 0.04);
 }
 
 .site-nav {
@@ -298,7 +307,7 @@ section[id],
   font-size: 18px;
   font-weight: 600;
   letter-spacing: -0.025em;
-  color: var(--foreground);
+  color: currentColor;
 }
 
 .brand-location {
@@ -306,7 +315,8 @@ section[id],
   font-weight: 500;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--muted-foreground);
+  color: currentColor;
+  opacity: 0.7;
 }
 
 .site-nav-links {
@@ -318,13 +328,15 @@ section[id],
 .site-nav-links a {
   font-size: 13px;
   font-weight: 500;
-  color: var(--muted-foreground);
+  color: currentColor;
+  opacity: 0.82;
   padding: 8px 0;
   transition: color 0.2s ease;
 }
 
 .site-nav-links a:hover {
-  color: var(--foreground);
+  color: currentColor;
+  opacity: 1;
 }
 
 .site-nav-actions {
@@ -338,10 +350,10 @@ section[id],
   align-items: center;
   min-height: 40px;
   padding: 8px 18px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid currentColor;
   font-size: 12px;
   font-weight: 500;
-  color: var(--foreground);
+  color: currentColor;
   transition:
     background-color 0.2s ease,
     border-color 0.2s ease,
@@ -349,6 +361,13 @@ section[id],
 }
 
 .site-nav-cta:hover {
+  background: white;
+  border-color: white;
+  color: var(--foreground);
+}
+
+.site-header.is-solid .site-nav-cta:hover,
+.site-header.is-open .site-nav-cta:hover {
   background: var(--foreground);
   border-color: var(--foreground);
   color: var(--background);
@@ -361,7 +380,8 @@ section[id],
   min-height: 40px;
   padding: 8px 14px;
   background: transparent;
-  border: 1px solid var(--border-strong);
+  color: currentColor;
+  border: 1px solid currentColor;
   font-size: 12px;
   font-weight: 500;
 }
