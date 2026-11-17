@@ -160,6 +160,31 @@ test("mobile menu closes after navigation and Escape", async ({
   await expect(button).toHaveAttribute("aria-expanded", "false");
 });
 
+test("navigation marks the current section and keeps dates close on mobile", async ({
+  page,
+}, info) => {
+  test.skip(!["desktop", "mobile"].includes(info.project.name));
+  await isolatedBooking(page);
+  await ready(page);
+
+  const header = page.locator(".site-header");
+  const mobileDates = page.locator(".site-nav-actions .site-nav-cta");
+  await expect(header).not.toHaveClass(/is-past-hero/);
+  await expect(page.locator('.site-nav-links [aria-current="location"]')).toHaveCount(0);
+  if (info.project.name === "mobile") await expect(mobileDates).toBeHidden();
+
+  await page.locator("#galeria").scrollIntoViewIfNeeded();
+  await expect(header).toHaveClass(/is-past-hero/);
+  await expect(
+    page.locator('.site-nav-links a[href="#galeria"]'),
+  ).toHaveAttribute("aria-current", "location");
+  if (info.project.name === "mobile") await expect(mobileDates).toBeVisible();
+
+  await page.locator("#inicio").scrollIntoViewIfNeeded();
+  await expect(header).not.toHaveClass(/is-past-hero/);
+  await expect(page.locator('.site-nav-links [aria-current="location"]')).toHaveCount(0);
+});
+
 test("editorial gallery filters, incremental loading and fullscreen navigation", async ({
   page,
 }, info) => {

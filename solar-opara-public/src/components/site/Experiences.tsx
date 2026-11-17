@@ -6,19 +6,19 @@ const occasions = [
   {
     title: "Casamentos",
     lead: "Cerimônia ao ar livre e recepção no mesmo endereço.",
-    text: "O gramado recebe o altar e os convidados para a cerimônia, enquanto o salão coberto acomoda o jantar, a festa e a estrutura de som e buffet sem necessidade de deslocamento.",
+    text: "O gramado recebe a cerimônia; o salão coberto, a recepção. Os ambientes se conectam sem deslocamento entre os dois momentos.",
     action: "Solicitar orçamento de casamento",
   },
   {
     title: "Celebrações",
     lead: "Aniversários, bodas e encontros familiares.",
-    text: "A família inteira à mesa com circulação livre entre o salão e os jardins. O espaço se adapta tanto a celebrações diurnas quanto a recepções noturnas.",
+    text: "A família inteira à mesa, com circulação livre entre salão e jardim. O espaço se adapta a encontros durante o dia e recepções à noite.",
     action: "Planejar uma celebração",
   },
   {
-    title: "Eventos especiais",
-    lead: "Recepções corporativas, formaturas e encontros.",
-    text: "Locação exclusiva por evento com liberdade para projetos personalizados de decoração, iluminação, gastronomia e montagem.",
+    title: "Eventos",
+    lead: "Recepções, formaturas e encontros.",
+    text: "A locação exclusiva permite organizar os ambientes internos e externos com projetos próprios de decoração, iluminação, gastronomia e montagem.",
     action: "Conversar sobre meu evento",
   },
 ];
@@ -33,19 +33,19 @@ export function Experiences() {
     >
       <div className="section-wrap experiences-layout">
         <div className="experiences-intro">
-          <span className="eyebrow">Formatos de evento</span>
+          <span className="eyebrow">Celebrações no Solar</span>
           <Reveal>
             <h2 id="experiences-title">
-              Um espaço adaptável a diferentes celebrações.
+              Três formas de ocupar o espaço.
             </h2>
           </Reveal>
           <p>
-            Cada locação é exclusiva para a data contratada, permitindo
-            organizar os ambientes internos e externos conforme o porte e o
-            formato do seu evento.
+            Jardim e salão podem assumir configurações diferentes conforme a
+            ocasião. Cada locação é exclusiva para a data contratada. Conheça
+            os formatos atendidos pelo Solar Opará.
           </p>
           <a href="#datas" className="text-link">
-            <span>Consultar calendário de disponibilidade</span>
+            <span>Consultar datas</span>
             <Icon name="arrow" />
           </a>
         </div>

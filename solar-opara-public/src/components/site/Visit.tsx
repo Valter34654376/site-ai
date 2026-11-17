@@ -29,8 +29,8 @@ export function Visit() {
             <span>Bairro Sagrada Família · Pirapora, MG</span>
           </address>
           <div className="visit-actions">
-            <a href="#contato" className="btn-primary">
-              <span>Agendar uma visita</span>
+            <a href="#dados-evento" className="btn-primary">
+              <span>Solicitar visita pelo formulário</span>
               <Icon name="arrow" />
             </a>
             <a

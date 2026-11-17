@@ -126,7 +126,7 @@ export function BookingFlow() {
         <div className="section-wrap contact-grid">
           <Reveal className="contact-copy">
             <span className="eyebrow">Contato e orçamento</span>
-            <h2 id="contact-title">Solicite informações para o seu evento.</h2>
+            <h2 id="contact-title">Conte como imagina o seu evento.</h2>
             <p>
               Preencha os dados ao lado com a data pretendida e o formato da
               celebração. A equipe do Solar Opará entrará em contato.
@@ -158,7 +158,10 @@ export function BookingFlow() {
             </a>
           </Reveal>
 
-          <div id="dados-evento" className="contact-panel">
+          <div
+            id="dados-evento"
+            className={`contact-panel ${date ? "has-date" : ""}`}
+          >
             <div className="contact-panel-heading">
               <span className="eyebrow">Formulário de solicitação</span>
               <p>Dados do evento e contato</p>

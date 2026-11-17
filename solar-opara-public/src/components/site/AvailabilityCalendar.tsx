@@ -32,6 +32,6 @@ export function AvailabilityCalendar({busy,failed,selected,onSelect,onRetry}:Pro
    })}
   </div>
   <div className="calendar-legend"><span><i className="legend-free" />Disponível</span><span><i className="legend-busy" />Ocupado</span><span><i className="legend-selected" />Selecionada</span></div>
-  <div className="calendar-status" aria-live="polite">{failed?<div role="status"><p>Não foi possível carregar as datas agora. Tente novamente em instantes ou fale com a equipe pelo Instagram.</p><button type="button" onClick={onRetry}>Tentar novamente <span aria-hidden="true">↻</span></button></div>:!busy?<p>Carregando datas…</p>:<p>Selecione um dia disponível para continuar.</p>}</div>
+  <div className={`calendar-status ${selected ? "is-selected" : ""}`} aria-live="polite">{failed?<div role="status"><p>Não foi possível carregar as datas agora. Tente novamente em instantes ou fale com a equipe pelo Instagram.</p><button type="button" onClick={onRetry}>Tentar novamente <span aria-hidden="true">↻</span></button></div>:!busy?<p>Carregando datas…</p>:selected?<p><span aria-hidden="true">✓</span> <strong>Data selecionada.</strong> Continue preenchendo os dados do evento.</p>:<p>Selecione um dia disponível para continuar.</p>}</div>
  </div>;
 }

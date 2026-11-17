@@ -9,12 +9,12 @@ import { SafeImage } from "./SafeImage";
 
 const PAGE_SIZE = 6;
 const IMAGE_SIZES = [
-  "(max-width: 700px) calc(100vw - 32px), (min-width: 1600px) 920px, 58vw",
-  "(max-width: 700px) calc(100vw - 32px), (min-width: 1600px) 580px, 38vw",
-  "(max-width: 700px) calc(100vw - 32px), (min-width: 1600px) 480px, 31vw",
-  "(max-width: 700px) calc(100vw - 32px), (min-width: 1600px) 480px, 31vw",
-  "(max-width: 700px) calc(100vw - 32px), (min-width: 1600px) 480px, 31vw",
-  "(max-width: 700px) calc(100vw - 32px), (min-width: 1600px) 920px, 58vw",
+  "(max-width: 700px) calc(100vw - 32px), (min-width: 1600px) 800px, 55vw",
+  "(max-width: 360px) calc(100vw - 32px), (max-width: 700px) calc((100vw - 44px) / 2), (min-width: 1600px) 570px, 39vw",
+  "(max-width: 360px) calc(100vw - 32px), (max-width: 700px) calc((100vw - 44px) / 2), (min-width: 1600px) 455px, 31vw",
+  "(max-width: 360px) calc(100vw - 32px), (max-width: 700px) calc((100vw - 44px) / 2), (min-width: 1600px) 455px, 31vw",
+  "(max-width: 360px) calc(100vw - 32px), (max-width: 700px) calc((100vw - 44px) / 2), (min-width: 1600px) 455px, 31vw",
+  "(max-width: 700px) calc(100vw - 32px), (min-width: 1600px) 930px, 64vw",
 ];
 
 export function Gallery({ items }: { items: MediaItem[] }) {
@@ -92,12 +92,12 @@ export function Gallery({ items }: { items: MediaItem[] }) {
         <div className="gallery-header">
           <div className="gallery-header-main">
             <span className="eyebrow">Galeria</span>
-            <h2 id="gallery-title">Fotografias de eventos e do espaço.</h2>
+            <h2 id="gallery-title">O espaço. As celebrações.</h2>
           </div>
           <div className="gallery-header-side">
             <p>
-              Registros no Solar Opará e cobertura de casamentos de clientes por
-              Oliver Fotos. Clique em qualquer imagem para ampliar.
+              Registros do Solar Opará e de celebrações fotografadas por Oliver
+              Fotos. Cada imagem informa o contexto do registro.
             </p>
             <a
               href={INSTAGRAM_URL}
@@ -163,12 +163,20 @@ export function Gallery({ items }: { items: MediaItem[] }) {
                   setIndex(position);
                 }}
               >
+                <span
+                  className={`gallery-context ${item.locationNote ? "is-external" : "is-venue"}`}
+                >
+                  {item.locationNote ? "Registro externo" : "No Solar Opará"}
+                </span>
                 <SafeImage
                   item={item}
                   loading="lazy"
                   sizes={IMAGE_SIZES[position % IMAGE_SIZES.length]}
                   className="gallery-image"
                 />
+                <span className="gallery-open-cue" aria-hidden="true">
+                  Ver {String(position + 1).padStart(2, "0")} ↗
+                </span>
               </button>
               <figcaption className="gallery-caption">
                 <span className="gallery-caption-title">{item.caption}</span>

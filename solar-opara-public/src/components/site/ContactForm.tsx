@@ -100,8 +100,11 @@ export function ContactForm({ date, onDateChange, onDateTaken }: Props) {
 
   return (
     <form onSubmit={onSubmit} noValidate className="contact-form">
+      <p className="form-required-note form-span-full">
+        Campos marcados com <span aria-hidden="true">*</span> são obrigatórios.
+      </p>
       <div className="form-span-full">
-        <Field error={errors["data"]} label="Data desejada">
+        <Field error={errors["data"]} label="Data desejada" required>
           <input
             name="data"
             type="date"
@@ -117,11 +120,11 @@ export function ContactForm({ date, onDateChange, onDateTaken }: Props) {
         )}
       </div>
 
-      <Field error={errors["nome"]} label="Nome completo">
+      <Field error={errors["nome"]} label="Nome completo" required>
         <input name="nome" autoComplete="name" className={field} />
       </Field>
 
-      <Field error={errors["telefone"]} label="WhatsApp / telefone">
+      <Field error={errors["telefone"]} label="WhatsApp / telefone" required>
         <input
           name="telefone"
           type="tel"
@@ -131,7 +134,7 @@ export function ContactForm({ date, onDateChange, onDateTaken }: Props) {
         />
       </Field>
 
-      <Field error={errors["email"]} label="E-mail">
+      <Field error={errors["email"]} label="E-mail" required>
         <input
           name="email"
           type="email"
@@ -140,7 +143,7 @@ export function ContactForm({ date, onDateChange, onDateTaken }: Props) {
         />
       </Field>
 
-      <Field error={errors["tipo"]} label="Tipo de evento">
+      <Field error={errors["tipo"]} label="Tipo de evento" required>
         <select name="tipo" defaultValue="" className={field}>
           <option value="" disabled>
             Selecione
@@ -190,25 +193,32 @@ export function ContactForm({ date, onDateChange, onDateTaken }: Props) {
 function Field({
   label,
   error,
+  required = false,
   children,
 }: {
   label: string;
   error?: string | undefined;
+  required?: boolean;
   children: ReactNode;
 }) {
   const errorId = useId();
   const input = isValidElement<{
     "aria-invalid"?: boolean;
     "aria-describedby"?: string | undefined;
+    "aria-required"?: boolean;
   }>(children)
     ? cloneElement(children, {
         "aria-invalid": !!error,
         "aria-describedby": error ? errorId : undefined,
+        "aria-required": required || undefined,
       })
     : children;
   return (
     <label className="form-field">
-      <span className="form-label">{label}</span>
+      <span className="form-label">
+        {label}
+        {required && <span aria-hidden="true"> *</span>}
+      </span>
       {input}
       {error && (
         <span id={errorId} role="alert" className="form-error">
