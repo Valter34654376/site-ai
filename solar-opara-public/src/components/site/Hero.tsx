@@ -55,7 +55,7 @@ export function Hero() {
             fallback={media.garden}
             fetchPriority="high"
             loading="eager"
-            sizes="100vw"
+            sizes="(max-width: 700px) 1200px, 100vw"
             className="hero-media"
           />
         </div>
@@ -65,24 +65,26 @@ export function Hero() {
         </figcaption>
       </figure>
 
-      <div className="hero-identity">
-        <p className="hero-place">Pirapora · Minas Gerais</p>
-        <h1 id="hero-title" className="hero-title">
-          <span className="hero-title-first">Solar</span>{" "}
-          <span className="hero-title-last">Opará</span>
-        </h1>
-      </div>
+      <div className="hero-content">
+        <div className="hero-identity">
+          <p className="hero-place">Pirapora · Minas Gerais</p>
+          <h1 id="hero-title" className="hero-title">
+            <span className="hero-title-first">Solar</span>{" "}
+            <span className="hero-title-last">Opará</span>
+          </h1>
+        </div>
 
-      <div className="hero-action-strip">
-        <p>Jardim e salão para cerimônia e recepção no mesmo endereço.</p>
-        <div className="hero-actions">
-          <a href="#datas" className="btn-primary hero-primary-action">
-            <span>Consultar datas</span>
-            <Icon name="arrow" />
-          </a>
-          <a href="#espaco" className="hero-text-link">
-            Conhecer o espaço
-          </a>
+        <div className="hero-action-strip">
+          <p>Jardim e salão para cerimônia e recepção no mesmo endereço.</p>
+          <div className="hero-actions">
+            <a href="#datas" className="btn-primary hero-primary-action">
+              <span>Consultar datas</span>
+              <Icon name="arrow" />
+            </a>
+            <a href="#espaco" className="hero-text-link">
+              Conhecer o espaço
+            </a>
+          </div>
         </div>
       </div>
 

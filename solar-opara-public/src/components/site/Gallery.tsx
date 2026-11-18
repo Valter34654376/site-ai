@@ -8,14 +8,8 @@ import {
 import { SafeImage } from "./SafeImage";
 
 const PAGE_SIZE = 6;
-const IMAGE_SIZES = [
-  "(max-width: 700px) calc(100vw - 32px), (min-width: 1600px) 800px, 55vw",
-  "(max-width: 360px) calc(100vw - 32px), (max-width: 700px) calc((100vw - 44px) / 2), (min-width: 1600px) 570px, 39vw",
-  "(max-width: 360px) calc(100vw - 32px), (max-width: 700px) calc((100vw - 44px) / 2), (min-width: 1600px) 455px, 31vw",
-  "(max-width: 360px) calc(100vw - 32px), (max-width: 700px) calc((100vw - 44px) / 2), (min-width: 1600px) 455px, 31vw",
-  "(max-width: 360px) calc(100vw - 32px), (max-width: 700px) calc((100vw - 44px) / 2), (min-width: 1600px) 455px, 31vw",
-  "(max-width: 700px) calc(100vw - 32px), (min-width: 1600px) 930px, 64vw",
-];
+const GALLERY_SIZES =
+  "(max-width: 700px) calc(100vw - 32px), (max-width: 1024px) 48vw, 680px";
 
 export function Gallery({ items }: { items: MediaItem[] }) {
   const [category, setCategory] = useState<Category>("todos");
@@ -151,7 +145,7 @@ export function Gallery({ items }: { items: MediaItem[] }) {
           {filtered.slice(0, visible).map((item, position) => (
             <figure
               key={item.id}
-              className={`gallery-card gallery-slot-${position}`}
+              className={`gallery-card gallery-orient-${item.orientation} gallery-slot-${position}`}
             >
               <button
                 type="button"
@@ -171,7 +165,7 @@ export function Gallery({ items }: { items: MediaItem[] }) {
                 <SafeImage
                   item={item}
                   loading="lazy"
-                  sizes={IMAGE_SIZES[position % IMAGE_SIZES.length]}
+                  sizes={GALLERY_SIZES}
                   className="gallery-image"
                 />
                 <span className="gallery-open-cue" aria-hidden="true">

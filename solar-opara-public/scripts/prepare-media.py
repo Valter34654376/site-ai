@@ -40,9 +40,9 @@ def prepare(item):
         folder.mkdir(parents=True, exist_ok=True)
         variants = []
         for size in sorted({min(size, width) for size in [480, 800, 1280, 1920]}):
-            resized = image.resize((size, round(height * size / width)), Image.Resampling.LANCZOS)
+            resized = image if size == width else image.resize((size, round(height * size / width)), Image.Resampling.LANCZOS)
             target = folder / f"{item['slug']}-{size}.webp"
-            resized.save(target, "WEBP", quality=83 if size <= 1280 else 87, method=6)
+            resized.save(target, "WEBP", quality=95 if size >= 1200 else 93, method=6)
             variants.append({"src": "/" + target.relative_to(ROOT / "public").as_posix(), "width": resized.width, "height": resized.height, "bytes": target.stat().st_size})
         item["variants"] = variants
         default = min(variants, key=lambda v: abs(v["width"] - 1280))

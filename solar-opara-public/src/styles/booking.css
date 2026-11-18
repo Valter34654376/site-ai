@@ -6,20 +6,20 @@
 
 .dates-grid {
   display: grid;
-  grid-template-columns: minmax(300px, 0.72fr) minmax(520px, 1.1fr);
-  align-items: start;
-  gap: clamp(70px, 11vw, 170px);
+  grid-template-columns: minmax(300px, 0.78fr) minmax(500px, 1.05fr);
+  align-items: center;
+  gap: clamp(48px, 7vw, 110px);
 }
 
 .dates-copy {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 22px;
+  gap: 20px;
 }
 
 .dates-copy h2 {
-  max-width: 9ch;
+  max-width: 13ch;
 }
 
 .dates-copy > p {
@@ -303,20 +303,20 @@
 
 .contact-grid {
   display: grid;
-  grid-template-columns: minmax(280px, 0.62fr) minmax(560px, 1fr);
-  align-items: start;
-  gap: clamp(65px, 10vw, 150px);
+  grid-template-columns: minmax(280px, 0.72fr) minmax(520px, 1fr);
+  align-items: center;
+  gap: clamp(48px, 7vw, 110px);
 }
 
 .contact-copy {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 22px;
+  gap: 20px;
 }
 
 .contact-copy h2 {
-  max-width: 9ch;
+  max-width: 13ch;
 }
 
 .contact-copy > p {
@@ -535,12 +535,30 @@
   .dates-grid,
   .contact-grid {
     grid-template-columns: 1fr;
-    gap: 52px;
+    gap: 44px;
+  }
+
+  .dates-copy,
+  .contact-copy {
+    align-items: center;
+    text-align: center;
+    max-width: 620px;
+    margin-inline: auto;
+  }
+
+  .booking-steps {
+    text-align: left;
+  }
+
+  .contact-location {
+    justify-items: center;
+    grid-template-columns: 1fr;
+    text-align: center;
   }
 
   .dates-copy h2,
   .contact-copy h2 {
-    max-width: 13ch;
+    max-width: 16ch;
   }
 }
 
