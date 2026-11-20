@@ -27,7 +27,7 @@ export async function fetchBusyDates(signal?: AbortSignal): Promise<Set<string>>
   const abort = () => active.abort();
   if (signal?.aborted) abort();
   else signal?.addEventListener("abort", abort, { once: true });
-  const timeout = setTimeout(abort, 6_000);
+  const timeout = setTimeout(abort, 20_000);
   try {
     const c = await db();
     if (!c) throw new Error("unavailable");
