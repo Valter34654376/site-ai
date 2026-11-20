@@ -154,9 +154,11 @@ export function ContactForm({ date, onDateChange, onDateTaken }: Props) {
         </select>
       </Field>
 
-      <Field error={errors["convidados"]} label="Convidados (aprox.)">
-        <input name="convidados" inputMode="numeric" className={field} />
-      </Field>
+      <div className="form-span-full">
+        <Field error={errors["convidados"]} label="Convidados (aprox.)">
+          <input name="convidados" inputMode="numeric" className={field} />
+        </Field>
+      </div>
 
       <div className="form-span-full">
         <Field error={errors["mensagem"]} label="Mensagem ou observações">

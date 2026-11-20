@@ -5,56 +5,67 @@
 }
 
 .dates-grid {
-  display: grid;
-  grid-template-columns: minmax(300px, 0.78fr) minmax(500px, 1.05fr);
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: clamp(48px, 7vw, 110px);
+  gap: 52px;
 }
 
 .dates-copy {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 20px;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  max-width: 860px;
+  margin-inline: auto;
+  gap: 18px;
 }
 
 .dates-copy h2 {
-  max-width: 13ch;
+  max-width: 18ch;
 }
 
 .dates-copy > p {
-  max-width: 43ch;
+  max-width: 54ch;
   color: var(--muted-foreground);
   font-size: 14px;
   line-height: 1.7;
 }
 
 .booking-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   width: 100%;
-  margin: 18px 0 0;
+  margin: 14px 0 0;
   padding: 0;
   border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
   list-style: none;
 }
 
 .booking-steps li {
-  display: grid;
-  grid-template-columns: 34px 1fr;
-  gap: 14px;
-  padding: 17px 0;
-  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 24px 18px;
+}
+
+.booking-steps li + li {
+  border-left: 1px solid var(--border);
 }
 
 .step-number {
-  padding-top: 2px;
   color: var(--wood);
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 650;
   letter-spacing: 0.14em;
 }
 
 .booking-steps h3 {
-  margin-bottom: 3px;
+  margin-bottom: 4px;
   font-size: 14px;
   font-weight: 600;
   letter-spacing: -0.02em;
@@ -63,8 +74,18 @@
 .booking-steps p,
 .booking-note {
   color: var(--muted-foreground);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.6;
+}
+
+.booking-note {
+  max-width: 58ch;
+  text-align: center;
+}
+
+.calendar-wrap {
+  width: min(760px, 100%);
+  margin-inline: auto;
 }
 
 /* Availability calendar */
@@ -209,6 +230,7 @@
 
 .calendar-legend {
   display: flex;
+  justify-content: center;
   flex-wrap: wrap;
   gap: 18px;
   margin-top: 22px;
@@ -302,36 +324,43 @@
 }
 
 .contact-grid {
-  display: grid;
-  grid-template-columns: minmax(280px, 0.72fr) minmax(520px, 1fr);
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: clamp(48px, 7vw, 110px);
+  gap: 48px;
 }
 
 .contact-copy {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 20px;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  max-width: 740px;
+  margin-inline: auto;
+  gap: 18px;
 }
 
 .contact-copy h2 {
-  max-width: 13ch;
+  max-width: 18ch;
 }
 
 .contact-copy > p {
-  max-width: 43ch;
+  max-width: 54ch;
   color: var(--muted-foreground);
   font-size: 14px;
   line-height: 1.7;
 }
 
 .contact-location {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
   width: 100%;
-  margin-top: 18px;
+  max-width: 420px;
+  margin-top: 10px;
   padding-top: 22px;
   border-top: 1px solid var(--border);
 }
@@ -363,6 +392,8 @@
 }
 
 .contact-panel {
+  width: min(780px, 100%);
+  margin-inline: auto;
   padding: clamp(26px, 4vw, 52px);
   background: var(--paper);
   border: 1px solid transparent;
@@ -383,17 +414,18 @@
 
 .contact-panel-heading {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 18px;
-  margin-bottom: 30px;
-  padding-bottom: 17px;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  margin-bottom: 28px;
+  padding-bottom: 18px;
   border-bottom: 1px solid var(--border);
 }
 
 .contact-panel-heading p {
   color: var(--muted-foreground);
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .contact-form {
@@ -406,6 +438,7 @@
   margin-bottom: -4px;
   color: var(--muted-foreground);
   font-size: 10px;
+  text-align: center;
 }
 
 .form-span-full {
@@ -480,39 +513,43 @@
 }
 
 .form-actions {
-  display: grid;
-  grid-template-columns: 1fr auto;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 15px 24px;
-  padding-top: 5px;
+  text-align: center;
+  gap: 16px;
+  padding-top: 8px;
 }
 
 .form-privacy {
   max-width: 58ch;
   color: var(--muted-foreground);
-  font-size: 9px;
+  font-size: 10px;
   line-height: 1.55;
+  text-align: center;
 }
 
 .form-submit {
-  min-width: 178px;
+  min-width: 220px;
 }
 
 .form-notice {
-  grid-column: 1 / -1;
+  width: 100%;
   padding: 11px 13px;
   color: var(--foreground);
   background: var(--accent-soft);
   border-left: 2px solid var(--terracotta);
   font-size: 11px;
+  text-align: center;
 }
 
 .form-success {
   display: flex;
   min-height: 340px;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   flex-direction: column;
+  text-align: center;
   gap: 15px;
 }
 
@@ -526,39 +563,23 @@
 }
 
 .form-success-note {
-  padding-left: 13px;
-  border-left: 2px solid var(--terracotta);
+  padding-top: 12px;
+  border-top: 1px solid var(--terracotta);
   font-size: 11px;
 }
 
-@media (max-width: 1100px) {
-  .dates-grid,
-  .contact-grid {
-    grid-template-columns: 1fr;
-    gap: 44px;
-  }
-
-  .dates-copy,
-  .contact-copy {
-    align-items: center;
-    text-align: center;
-    max-width: 620px;
-    margin-inline: auto;
-  }
-
+@media (max-width: 760px) {
   .booking-steps {
-    text-align: left;
-  }
-
-  .contact-location {
-    justify-items: center;
     grid-template-columns: 1fr;
-    text-align: center;
   }
 
-  .dates-copy h2,
-  .contact-copy h2 {
-    max-width: 16ch;
+  .booking-steps li {
+    padding: 18px 8px;
+  }
+
+  .booking-steps li + li {
+    border-left: 0;
+    border-top: 1px solid var(--border);
   }
 }
 
@@ -597,12 +618,6 @@
   .contact-panel {
     margin: 0 -8px;
     padding: 24px 16px;
-  }
-
-  .contact-panel-heading,
-  .form-actions {
-    align-items: stretch;
-    grid-template-columns: 1fr;
   }
 
   .contact-form {

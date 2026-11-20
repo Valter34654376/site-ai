@@ -30,6 +30,7 @@
   align-items: center;
   text-align: center;
   max-width: 780px;
+  margin-inline: auto;
   gap: 24px;
   margin-bottom: 72px;
 }
@@ -129,13 +130,14 @@
 .film-feature-copy {
   position: absolute;
   z-index: 3;
-  right: 34px;
-  bottom: 32px;
-  left: 34px;
+  right: 28px;
+  bottom: 28px;
+  left: 28px;
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 24px;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
 }
 
 .film-feature-copy span,
@@ -147,11 +149,11 @@
 }
 
 .film-feature-copy strong {
-  max-width: 12ch;
+  max-width: 24ch;
   font-size: 18px;
   font-weight: 450;
-  line-height: 1.15;
-  text-align: right;
+  line-height: 1.2;
+  text-align: center;
 }
 
 .film-sound {
@@ -211,10 +213,6 @@
   margin: 0;
 }
 
-.film-card:nth-child(2) {
-  margin-top: 110px;
-}
-
 .film-card video {
   aspect-ratio: 9 / 13;
   border: 1px solid rgba(247, 242, 233, 0.2);
@@ -223,20 +221,22 @@
 
 .film-card figcaption {
   display: flex;
-  align-items: flex-start;
-  gap: 18px;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
   padding-top: 16px;
   color: rgba(247, 242, 233, 0.56);
 }
 
 .film-card figcaption > span {
-  padding-top: 3px;
   white-space: nowrap;
 }
 
 .film-card figcaption div {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 3px;
 }
 
@@ -262,12 +262,12 @@
 
 @media (max-width: 1000px) {
   .film-heading {
-    grid-template-columns: 1fr;
-    gap: 38px;
+    gap: 24px;
   }
 
   .film-experience {
     grid-template-columns: 1fr;
+    justify-items: center;
     gap: 52px;
   }
 
@@ -275,14 +275,8 @@
     justify-self: center;
   }
 
-  .film-feature-copy {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .film-feature-copy strong {
-    text-align: left;
+  .film-collection {
+    width: 100%;
   }
 }
 
@@ -302,13 +296,13 @@
   }
 
   .film-heading h2 {
-    max-width: 10ch;
-    font-size: clamp(3rem, 14vw, 4.8rem);
+    max-width: 12ch;
+    font-size: clamp(2.6rem, 11vw, 4rem);
   }
 
   .film-experience {
     grid-template-columns: 1fr;
-    gap: 56px;
+    gap: 48px;
   }
 
   .film-feature {
@@ -320,9 +314,9 @@
   }
 
   .film-feature-copy {
-    right: 24px;
-    bottom: 23px;
-    left: 24px;
+    right: 20px;
+    bottom: 22px;
+    left: 20px;
   }
 
   .film-sound {
@@ -331,16 +325,7 @@
   }
 
   .film-collection {
-    gap: 14px;
-  }
-
-  .film-card:nth-child(2) {
-    margin-top: 58px;
-  }
-
-  .film-card figcaption {
-    flex-direction: column;
-    gap: 6px;
+    gap: 16px;
   }
 
   .film-card figcaption strong {

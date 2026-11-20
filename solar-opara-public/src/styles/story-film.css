@@ -23,6 +23,7 @@
   align-items: center;
   text-align: center;
   max-width: 780px;
+  margin-inline: auto;
   gap: 22px;
   margin-bottom: 56px;
 }
@@ -141,13 +142,14 @@
 .story-film-caption {
   position: absolute;
   z-index: 3;
-  right: 34px;
-  bottom: 30px;
-  left: 34px;
+  right: 28px;
+  bottom: 28px;
+  left: 28px;
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 24px;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
   color: #fff;
 }
 
@@ -159,11 +161,11 @@
 }
 
 .story-film-caption strong {
-  max-width: 18ch;
+  max-width: 28ch;
   font-size: 17px;
   font-weight: 450;
   line-height: 1.2;
-  text-align: right;
+  text-align: center;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -178,18 +180,11 @@
 
 @media (max-width: 900px) {
   .story-film-heading {
-    grid-template-columns: 1fr;
-    gap: 36px;
+    gap: 22px;
   }
 
   .story-film-frame {
     width: 100%;
-  }
-
-  .story-film-stage::before {
-    right: -14px;
-    bottom: -14px;
-    left: 14px;
   }
 }
 
@@ -203,8 +198,8 @@
   }
 
   .story-film-heading h2 {
-    max-width: 11ch;
-    font-size: clamp(2.8rem, 13.5vw, 4.5rem);
+    max-width: 12ch;
+    font-size: clamp(2.6rem, 11vw, 4rem);
   }
 
   .story-film-frame {
@@ -232,13 +227,10 @@
     right: 18px;
     bottom: 18px;
     left: 18px;
-    align-items: flex-start;
-    flex-direction: column;
     gap: 5px;
   }
 
   .story-film-caption strong {
     font-size: 14px;
-    text-align: left;
   }
 }

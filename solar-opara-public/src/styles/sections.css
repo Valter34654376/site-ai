@@ -171,13 +171,17 @@
 .hero-caption {
   position: absolute;
   z-index: 2;
-  right: 28px;
-  bottom: 18px;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
+  justify-content: center;
   gap: 8px;
   color: rgba(255, 255, 255, 0.65);
   font-size: 10px;
   letter-spacing: 0.04em;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .hero-caption span + span::before {
@@ -389,12 +393,18 @@
 
 .monumental-caption {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   flex-wrap: wrap;
-  gap: 8px 18px;
-  padding: 13px 2px 0;
+  gap: 6px 18px;
+  padding: 14px 2px 0;
   color: var(--muted-foreground);
   font-size: 11px;
+  text-align: center;
+}
+
+.monumental-caption span + span::before {
+  margin-right: 18px;
+  content: "·";
 }
 
 /* Experiences */
@@ -457,12 +467,13 @@
   display: grid;
   width: 100%;
   min-height: 108px;
-  grid-template-columns: 48px 1fr auto;
+  grid-template-columns: 48px 1fr 48px;
   align-items: center;
+  justify-items: center;
   gap: 16px;
   padding: 12px 0;
   color: inherit;
-  text-align: left;
+  text-align: center;
   background: transparent;
   border: 0;
 }
@@ -479,11 +490,11 @@
   font-weight: 300;
   line-height: 1.05;
   letter-spacing: -0.05em;
-  transition: transform 0.3s ease;
+  transition: opacity 0.25s ease;
 }
 
 .occasion-story button:hover .occasion-name {
-  transform: translateX(8px);
+  opacity: 0.78;
 }
 
 .occasion-story button .site-icon {
@@ -497,10 +508,14 @@
 }
 
 .occasion-body {
-  display: grid;
-  grid-template-columns: minmax(180px, 0.75fr) minmax(240px, 1fr);
-  gap: 28px 36px;
-  padding: 0 48px 40px 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 60ch;
+  margin-inline: auto;
+  gap: 14px;
+  padding: 4px 24px 36px;
   animation: occasion-in 0.45s both ease;
 }
 
@@ -516,7 +531,7 @@
 }
 
 .occasion-body p {
-  color: rgba(244, 240, 232, 0.7);
+  color: rgba(244, 240, 232, 0.72);
   font-size: 13px;
   line-height: 1.7;
 }
@@ -527,8 +542,7 @@
 }
 
 .occasion-body .text-link {
-  grid-column: 2;
-  margin-top: 4px;
+  margin-top: 8px;
 }
 
 /* Visit */
@@ -664,15 +678,21 @@
 }
 
 .faq-list summary {
-  display: flex;
+  display: grid;
+  grid-template-columns: 24px 1fr 24px;
   min-height: 72px;
   align-items: center;
-  justify-content: space-between;
-  gap: 20px;
+  justify-items: center;
+  gap: 16px;
   cursor: pointer;
   font-size: 14px;
   font-weight: 550;
+  text-align: center;
   list-style: none;
+}
+
+.faq-list summary > span {
+  grid-column: 2;
 }
 
 .faq-list summary::-webkit-details-marker {
@@ -680,6 +700,7 @@
 }
 
 .faq-list summary .site-icon {
+  grid-column: 3;
   width: 17px;
   transition: transform 0.25s ease;
 }
@@ -689,31 +710,41 @@
 }
 
 .faq-list details p {
-  max-width: 68ch;
-  padding: 0 42px 25px 0;
+  max-width: 64ch;
+  margin-inline: auto;
+  padding: 0 24px 26px;
   color: var(--muted-foreground);
   font-size: 13px;
   line-height: 1.7;
+  text-align: center;
 }
 
 .site-footer {
-  padding: 78px 0 30px;
+  padding: 78px 0 34px;
   color: #f4f0e8;
   background: var(--forest-deep);
 }
 
 .footer-main {
   display: grid;
-  grid-template-columns: 1.4fr repeat(3, minmax(140px, 0.6fr));
-  gap: 52px;
-  padding-bottom: 68px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  justify-items: center;
+  gap: 44px 36px;
+  padding-bottom: 56px;
   border-bottom: 1px solid rgba(244, 240, 232, 0.18);
+  text-align: center;
 }
 
 .footer-brand-col {
+  grid-column: 1 / -1;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  gap: 14px;
+  padding-bottom: 36px;
+  border-bottom: 1px solid rgba(244, 240, 232, 0.14);
 }
 
 .footer-brand {
@@ -724,8 +755,8 @@
 }
 
 .footer-desc {
-  max-width: 32ch;
-  color: rgba(244, 240, 232, 0.58);
+  max-width: 44ch;
+  color: rgba(244, 240, 232, 0.64);
   font-size: 12px;
   line-height: 1.65;
 }
@@ -733,6 +764,8 @@
 .footer-col {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  text-align: center;
   gap: 10px;
   color: rgba(244, 240, 232, 0.7);
   font-size: 12px;
@@ -764,11 +797,13 @@
 .footer-bottom {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 18px;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px 28px;
   padding-top: 26px;
   color: rgba(244, 240, 232, 0.68);
   font-size: 10px;
+  text-align: center;
 }
 
 .footer-bottom a {
@@ -797,11 +832,7 @@
   }
 
   .footer-main {
-    grid-template-columns: 1.2fr 1fr 1fr;
-  }
-
-  .footer-col:last-child {
-    grid-column: 2;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -958,13 +989,17 @@
     padding: 12px 16px 0;
   }
 
+  .monumental-caption span + span::before {
+    display: none;
+  }
+
   .experiences-section {
     padding: 88px 0;
   }
 
   .occasion-story button {
     min-height: 86px;
-    grid-template-columns: 30px 1fr auto;
+    grid-template-columns: 32px 1fr 32px;
   }
 
   .occasion-name {
@@ -972,14 +1007,12 @@
   }
 
   .occasion-body {
-    grid-template-columns: 1fr;
-    gap: 14px;
-    padding: 0 0 32px 46px;
+    gap: 12px;
+    padding: 0 12px 32px;
   }
 
   .occasion-body .text-link {
-    grid-column: 1;
-    margin-top: 8px;
+    margin-top: 6px;
   }
 
   .visit-panel {
@@ -1005,18 +1038,19 @@
   }
 
   .footer-main {
-    grid-template-columns: 1fr 1fr;
-    gap: 38px 26px;
+    grid-template-columns: 1fr;
+    gap: 32px;
   }
 
-  .footer-brand-col,
-  .footer-col:last-child {
-    grid-column: 1 / -1;
+  .footer-brand-col {
+    grid-column: auto;
+    padding-bottom: 28px;
   }
 
   .footer-bottom {
-    align-items: flex-start;
+    align-items: center;
     flex-direction: column;
+    text-align: center;
   }
 }
 
@@ -1038,14 +1072,5 @@
   .architecture-note {
     gap: 9px;
     font-size: 8px;
-  }
-
-  .footer-main {
-    grid-template-columns: 1fr;
-  }
-
-  .footer-brand-col,
-  .footer-col:last-child {
-    grid-column: auto;
   }
 }

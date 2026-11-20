@@ -23,12 +23,22 @@ export function formatBR(iso: string) {
 }
 
 export async function fetchBusyDates(signal?: AbortSignal): Promise<Set<string>> {
-  const c = await db();
-  if (!c) throw new Error("unavailable");
-  const request = c.from("so_public_busy_dates").select("event_date");
-  const { data, error } = await (signal ? request.abortSignal(signal) : request);
-  if (error) throw error;
-  return new Set((data ?? []).map((r: { event_date: string }) => r.event_date));
+  const active = new AbortController();
+  const abort = () => active.abort();
+  if (signal?.aborted) abort();
+  else signal?.addEventListener("abort", abort, { once: true });
+  const timeout = setTimeout(abort, 6_000);
+  try {
+    const c = await db();
+    if (!c) throw new Error("unavailable");
+    const request = c.from("so_public_busy_dates").select("event_date");
+    const { data, error } = await request.abortSignal(active.signal);
+    if (error) throw error;
+    return new Set((data ?? []).map((r: { event_date: string }) => r.event_date));
+  } finally {
+    clearTimeout(timeout);
+    signal?.removeEventListener("abort", abort);
+  }
 }
 
 export type BookingInput = {

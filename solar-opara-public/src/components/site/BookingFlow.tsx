@@ -7,7 +7,7 @@ import { fetchBusyDates } from "@/lib/booking";
 import { INSTAGRAM_URL, MAP_URL } from "@/lib/site-content";
 
 const steps = [
-  ["Escolha a data", "Verifique os dias livres no calendário ao lado."],
+  ["Escolha a data", "Verifique os dias livres no calendário abaixo."],
   [
     "Envie os dados do evento",
     "Informe o tipo de celebração e a estimativa de convidados.",
@@ -128,7 +128,7 @@ export function BookingFlow() {
             <span className="eyebrow">Contato e orçamento</span>
             <h2 id="contact-title">Conte como imagina o seu evento.</h2>
             <p>
-              Preencha os dados ao lado com a data pretendida e o formato da
+              Preencha os dados abaixo com a data pretendida e o formato da
               celebração. A equipe do Solar Opará entrará em contato.
             </p>
 
