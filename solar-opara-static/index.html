@@ -6,56 +6,56 @@
 <title>Solar Opará Gestão</title>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="apple-touch-icon" href="/favicon.svg">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 :root{
- --gold:#c98d2f;--gold-2:#e6b85b;--dark:#171715;--dark-2:#22221f;--bg:#f5f2eb;--card:#fff;
- --muted:#77746d;--line:#e8e1d6;--ok:#e4f5e9;--warn:#fff3d2;--danger:#a74444;--shadow:0 4px 14px rgba(56,43,23,.06)
+ --background:#f4f0e8;--paper:#fbf8f2;--sand:#ebe3d7;--sand-deep:#d8cbb9;--foreground:#171916;
+ --muted:#666259;--forest:#1e3528;--forest-deep:#111b15;--wood:#875c3d;--terracotta:#a55f45;
+ --accent-soft:#f0ded4;--line:rgba(23,25,22,.15);--line-strong:rgba(23,25,22,.3);--ok:#e4eadf;
+ --warn:#f3e8cf;--danger:#9e2a2b;--shadow:0 18px 55px rgba(17,27,21,.07)
 }
-*{box-sizing:border-box}html{background:var(--bg)}body{margin:0;font-family:'Inter',Arial,sans-serif;background:var(--bg);color:#262520;font-variant-numeric:tabular-nums lining-nums;line-height:1.45}
-button,input,select,textarea{font:inherit}#app{min-height:100vh}
-.layout{display:flex;min-height:100vh}
-.side{width:232px;background:linear-gradient(180deg,#171715 0%,#1e1e1b 100%);color:white;padding:18px 14px;position:fixed;inset:0 auto 0 0;overflow:auto;border-right:1px solid #2e2d28}
-.brand{display:flex;align-items:center;gap:12px;padding:5px 8px 20px;margin-bottom:8px;border-bottom:1px solid #2d2d29}
-.brand img{width:42px;height:42px;border-radius:13px;box-shadow:0 8px 20px rgba(0,0,0,.25)}
-.brand-copy strong{display:block;font-family:'Playfair Display',serif;font-size:20px;color:#f3d38f;letter-spacing:.2px}.brand-copy span{font-size:10px;color:#9e9c95;text-transform:uppercase;letter-spacing:1.7px}
-.side button{display:flex;width:100%;align-items:center;gap:11px;text-align:left;background:none;border:0;color:#c9c8c2;padding:10px 11px;border-radius:10px;cursor:pointer;font-size:14px;margin:2px 0;transition:.18s ease}
-.side button:hover{background:#292925;color:#fff;transform:translateX(2px)}.side button.active{background:linear-gradient(90deg,rgba(201,141,47,.24),rgba(201,141,47,.07));color:#f6d999;box-shadow:inset 3px 0 0 var(--gold)}
+*{box-sizing:border-box}html{background:var(--background);font-size:16px}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;background:var(--background);color:var(--foreground);font-variant-numeric:tabular-nums lining-nums;line-height:1.6;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+button,input,select,textarea{font:inherit}button:disabled{cursor:not-allowed;opacity:.58}#app{min-height:100vh}
+.layout{display:flex;min-height:100vh;background:radial-gradient(circle at 100% 0,rgba(165,95,69,.06),transparent 28%),var(--background)}
+.side{width:258px;background:linear-gradient(180deg,#17271e 0%,var(--forest-deep) 100%);color:var(--paper);padding:24px 16px;position:fixed;inset:0 auto 0 0;overflow:auto;border-right:1px solid rgba(255,255,255,.08);z-index:20}
+.brand{display:flex;align-items:center;gap:13px;padding:3px 8px 22px;margin-bottom:13px;border-bottom:1px solid rgba(255,255,255,.12)}
+.brand img{width:46px;height:46px;border-radius:50%;box-shadow:0 10px 26px rgba(0,0,0,.25)}
+.brand-copy strong{display:block;font-size:20px;color:var(--paper);letter-spacing:-.35px}.brand-copy span{font-size:12px;color:rgba(244,240,232,.72);text-transform:uppercase;letter-spacing:1.4px}
+.side button{display:flex;width:100%;min-height:44px;align-items:center;gap:11px;text-align:left;background:none;border:1px solid transparent;color:rgba(244,240,232,.82);padding:11px 12px;border-radius:7px;cursor:pointer;font-size:15px;margin:3px 0;transition:.18s ease}
+.side button:hover{background:rgba(244,240,232,.07);color:#fff}.side button.active{background:rgba(244,240,232,.1);border-color:rgba(244,240,232,.12);color:#fff;box-shadow:inset 3px 0 0 var(--terracotta)}
 .side .nav-icon{width:20px;height:20px;display:grid;place-items:center;font-size:15px;opacity:.95}
-.side .logout{margin-top:14px;border:1px solid #35352f;color:#aaa}.public-site-link{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 11px;border:1px solid #4a4437;border-radius:10px;color:#f0cf8e;text-decoration:none;font-size:13px}.public-site-link:hover{background:#2b2923}
-.main{margin-left:232px;padding:28px 32px 44px;width:calc(100% - 232px);max-width:1600px;min-width:0;overflow-x:hidden}
-.page-kicker{color:var(--gold);font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px}
-h1,h2,h3{font-family:'Playfair Display',serif;margin-top:0;color:#24231f}h1{font-size:31px;line-height:1.08;margin-bottom:6px}h2{font-size:24px}
-.top{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:18px}.top:after{content:"";display:none}
-.card{background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:14px;padding:18px;margin:12px 0;box-shadow:var(--shadow);min-width:0;overflow:hidden}
+.side .logout{margin-top:15px;border:1px solid rgba(244,240,232,.14);color:rgba(244,240,232,.78)}.public-site-link{display:flex;min-height:44px;align-items:center;gap:10px;margin-top:14px;padding:11px 12px;border:1px solid rgba(244,240,232,.22);border-radius:7px;color:var(--paper);text-decoration:none;font-size:14px}.public-site-link:hover{background:rgba(244,240,232,.08)}
+.main{margin-left:258px;padding:36px 42px 56px;width:calc(100% - 258px);max-width:1650px;min-width:0;overflow-x:hidden}
+.page-kicker{color:var(--terracotta);font-size:13px;font-weight:800;letter-spacing:1.25px;text-transform:uppercase;margin-bottom:6px}
+h1,h2,h3{font-family:'Manrope',system-ui,sans-serif;margin-top:0;color:var(--foreground);letter-spacing:-.045em}h1{font-size:clamp(32px,4vw,46px);line-height:1.02;margin-bottom:8px;font-weight:600}h2{font-size:25px;font-weight:600}h3{font-weight:650}
+.top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:22px}
+.card{background:rgba(251,248,242,.94);border:1px solid var(--line);border-radius:7px;padding:20px;margin:14px 0;box-shadow:var(--shadow);min-width:0;overflow:hidden}
 .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;align-items:stretch}
-.metric{position:relative;overflow:hidden;padding:20px;min-height:128px;display:flex;flex-direction:column;justify-content:center}.metric:before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:linear-gradient(var(--gold-2),var(--gold))}.metric span{font-size:12px;color:var(--muted);font-weight:600}.metric b{display:block;font-family:'Inter',Arial,sans-serif;font-size:28px;line-height:1.1;margin-top:8px;color:#22211d;font-weight:700;letter-spacing:-.5px;font-variant-numeric:tabular-nums lining-nums}.metric small{display:block;margin-top:6px;color:#9a968d;font-size:11px}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:0;border-radius:10px;padding:10px 14px;background:#c48627;box-shadow:none;color:white;text-decoration:none;cursor:pointer;font-weight:700;transition:.18s ease}
-.btn:hover{transform:translateY(-1px);filter:brightness(1.04)}.btn.gray{background:#53524e;box-shadow:none}.btn.danger{background:var(--danger);box-shadow:none}.btn.small{padding:7px 10px;font-size:12px}
-table{width:100%;max-width:100%;border-collapse:separate;border-spacing:0;background:white;border:1px solid var(--line);border-radius:12px;box-shadow:none;display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
-th,td{padding:12px 14px;border-bottom:1px solid #eee9e0;text-align:left;font-size:13px;vertical-align:middle;line-height:1.4}th{background:#fbf8f2;color:#716d64;font-size:10px;text-transform:uppercase;letter-spacing:.75px;font-weight:800;white-space:nowrap;position:sticky;top:0;z-index:1}tbody tr:hover td{background:#fffcf6}tr:last-child td{border-bottom:0}
-label{display:block;font-size:12px;font-weight:700;margin-bottom:8px;color:#53504a;min-width:0}input,select,textarea{width:100%;min-width:0;padding:11px 12px;border:1px solid #d9d3c9;border-radius:10px;margin-top:5px;background:#fff;outline:none;transition:.18s;color:#24231f}input:focus,select:focus,textarea:focus{border-color:#cf9a47;box-shadow:0 0 0 3px rgba(207,154,71,.12)}
-textarea{min-height:92px;resize:vertical}.form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px 18px;align-items:start}.full{grid-column:1/-1;min-width:0}
-.badge{display:inline-block;padding:5px 9px;border-radius:999px;background:var(--warn);font-size:10px;font-weight:800;letter-spacing:.3px}.paid{background:var(--ok);color:#276d3b}
-.muted{color:var(--muted);line-height:1.5}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;min-width:0}
-.login-page{min-height:100vh;display:grid;grid-template-columns:1.05fr .95fr;background:#171715}
-.login-art{position:relative;overflow:hidden;padding:65px;display:flex;flex-direction:column;justify-content:flex-end;background:radial-gradient(circle at 35% 20%,rgba(227,173,75,.38),transparent 23%),linear-gradient(145deg,#201e18,#111)}
-.login-art:before{content:"";position:absolute;width:520px;height:520px;border:1px solid rgba(229,176,79,.16);border-radius:50%;top:-170px;left:-140px;box-shadow:0 0 0 55px rgba(229,176,79,.04),0 0 0 110px rgba(229,176,79,.025)}
-.login-art h2{position:relative;font-size:48px;color:#f4d592;max-width:500px;margin:0}.login-art p{position:relative;color:#aaa69c;max-width:500px;line-height:1.6}
-.login{display:flex;align-items:center;justify-content:center;padding:30px;background:linear-gradient(180deg,#f8f5ef,#eee8de)}.login .card{width:min(440px,100%);padding:30px;border-radius:22px}.login-logo{display:flex;align-items:center;gap:12px;margin-bottom:22px}.login-logo img{width:48px;height:48px}.login-logo strong{font-family:'Playfair Display',serif;font-size:25px}
-.code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all;background:#f3f0e9;border:1px dashed #d7cdbd;padding:11px;border-radius:10px;font-size:11px}.toast{position:fixed;right:20px;top:20px;background:#24231f;color:#fff;padding:13px 16px;border-radius:11px;z-index:9999;box-shadow:0 18px 40px rgba(0,0,0,.22)}
-.warnbox{background:#fff9ec;border:1px solid #ecd8a8;padding:13px 15px;border-radius:11px}
-.dashboard-hero{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:22px}.dashboard-hero p{margin:4px 0 0;color:var(--muted)}
-.summary-strip{margin-top:15px;background:#24231f;border-radius:14px;padding:18px 20px;color:#fff;display:flex;justify-content:space-between;gap:20px;align-items:center;box-shadow:none}.summary-strip strong{font-family:'Inter',Arial,sans-serif;font-size:26px;color:#f1ce82;font-weight:700;font-variant-numeric:tabular-nums lining-nums}.summary-strip span{font-size:12px;color:#aaa79f}
-.calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;margin-top:12px;min-width:0}.day{min-height:118px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:9px;min-width:0;overflow:hidden}.day b{font-size:12px}.evt{font-size:11px;line-height:1.35;background:#f8edda;border-left:3px solid var(--gold);padding:6px 7px;border-radius:6px;margin-top:5px;overflow-wrap:anywhere}
-.empty{padding:34px 18px;text-align:center;color:var(--muted);border:1px dashed #d9d1c5;border-radius:12px;background:#fff}.advanced-panel{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:#fbfaf7}.advanced-panel summary{cursor:pointer;font-weight:700;color:#57534c}.advanced-panel[open] summary{margin-bottom:12px}.advanced-grid{margin-top:8px}.subtle-note{font-size:12px;color:var(--muted);line-height:1.5}.badge.late{background:#fde8e3;color:#953b31}
-.money,td,th,input[type="number"],input[type="date"],input[type="datetime-local"]{font-variant-numeric:tabular-nums lining-nums}
-td code,.code{max-width:100%;overflow-wrap:anywhere}
-td .btn{white-space:nowrap}
-table input,table select{min-width:180px}
-@media(max-width:1200px){th,td{padding:10px 11px}.main{padding:24px}}
-@media(max-width:1050px){.grid{grid-template-columns:repeat(2,1fr)}.main{padding:26px}.login-page{grid-template-columns:1fr}.login-art{display:none}}
-@media(max-width:850px){.layout{display:block}.side{position:static;width:100%;display:flex;gap:4px;overflow:auto;align-items:center}.brand{min-width:210px;border:0;margin:0;padding:3px 8px}.brand-copy span{display:none}.side button{min-width:max-content}.main{margin:0;width:100%;padding:18px;overflow-x:hidden}.form{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.top{flex-wrap:wrap}.calendar{overflow-x:auto}}
-@media(max-width:560px){.grid,.form{grid-template-columns:1fr}.dashboard-hero,.top{align-items:flex-start;flex-direction:column}.calendar{grid-template-columns:1fr 1fr}.main{padding:14px}h1{font-size:28px}h2{font-size:21px}.card{padding:14px}.btn{width:auto;max-width:100%}th,td{font-size:12px}.summary-strip{align-items:flex-start;flex-direction:column}.metric{min-height:105px}}
+.metric{position:relative;overflow:hidden;padding:22px;min-height:132px;display:flex;flex-direction:column;justify-content:center}.metric:before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:var(--terracotta)}.metric span{font-size:14px;color:var(--muted);font-weight:700}.metric b{display:block;font-size:29px;line-height:1.1;margin-top:9px;color:var(--forest-deep);font-weight:700;letter-spacing:-.7px}.metric small{display:block;margin-top:6px;color:#68645c;font-size:13px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--forest-deep);border-radius:4px;padding:10px 15px;background:var(--forest-deep);color:var(--paper);text-decoration:none;cursor:pointer;font-weight:750;transition:.18s ease}
+.btn:hover{transform:translateY(-1px);background:var(--forest);border-color:var(--forest)}.btn.gray{background:transparent;border-color:var(--line-strong);color:var(--foreground)}.btn.gray:hover{background:var(--sand)}.btn.danger{background:transparent;border-color:rgba(158,42,43,.4);color:var(--danger)}.btn.danger:hover{background:#f7e2df}.btn.small{min-height:38px;padding:8px 11px;font-size:13px}
+table{width:100%;max-width:100%;border-collapse:separate;border-spacing:0;background:var(--paper);border:1px solid var(--line);border-radius:6px;box-shadow:none;display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+th,td{padding:13px 14px;border-bottom:1px solid var(--line);text-align:left;font-size:14px;vertical-align:middle;line-height:1.5}th{background:var(--sand);color:#4d4a44;font-size:12px;text-transform:uppercase;letter-spacing:.65px;font-weight:800;white-space:nowrap;position:sticky;top:0;z-index:1}tbody tr:hover td{background:#fff}tr:last-child td{border-bottom:0}
+label{display:block;font-size:14px;font-weight:750;margin-bottom:8px;color:#45433e;min-width:0}input,select,textarea{width:100%;min-width:0;min-height:44px;padding:11px 12px;border:1px solid var(--line-strong);border-radius:4px;margin-top:6px;background:#fff;outline:none;transition:.18s;color:var(--foreground);font-size:16px}input:focus,select:focus,textarea:focus{border-color:var(--forest);box-shadow:0 0 0 3px rgba(30,53,40,.1)}
+textarea{min-height:96px;resize:vertical}.form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px 18px;align-items:start}.full{grid-column:1/-1;min-width:0}
+.badge{display:inline-block;padding:5px 9px;border-radius:999px;background:var(--warn);font-size:12px;font-weight:800;letter-spacing:.25px}.paid{background:var(--ok);color:var(--forest)}.badge.late{background:#f7e2df;color:var(--danger)}
+.muted{color:#57544c;line-height:1.6}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;min-width:0}
+.login-page{min-height:100vh;display:grid;grid-template-columns:1.15fr .85fr;background:var(--forest-deep)}
+.login-art{position:relative;overflow:hidden;padding:64px;display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(180deg,rgba(8,15,10,.14),rgba(8,15,10,.88)),url('/solar-opara-panel-hero.webp') center/cover no-repeat}
+.login-art:before{content:"SOLAR OPARÁ";position:absolute;top:42px;left:58px;font-size:11px;font-weight:800;letter-spacing:.24em;color:rgba(255,255,255,.8)}
+.login-art h2{position:relative;font-size:clamp(40px,5vw,68px);line-height:.98;color:#fff;max-width:690px;margin:0;font-weight:500;letter-spacing:-.055em}.login-art p{position:relative;color:rgba(255,255,255,.72);max-width:560px;line-height:1.65;font-size:16px}
+.login{display:flex;align-items:center;justify-content:center;padding:34px;background:var(--background)}.login .card{width:min(450px,100%);padding:34px;border-radius:7px}.login-logo{display:flex;align-items:center;gap:13px;margin-bottom:26px}.login-logo img{width:50px;height:50px}.login-logo strong{font-size:24px;letter-spacing:-.04em}
+.code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all;background:var(--sand);border:1px dashed var(--line-strong);padding:12px;border-radius:4px;font-size:11px}.toast{position:fixed;right:22px;top:22px;background:var(--forest-deep);color:var(--paper);padding:13px 16px;border-radius:4px;z-index:9999;box-shadow:0 18px 40px rgba(0,0,0,.22)}
+.warnbox{background:#f7eedb;border:1px solid #ddc99e;padding:14px 16px;border-radius:5px}
+.dashboard-hero{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:24px}.dashboard-hero p{margin:5px 0 0;color:var(--muted)}
+.summary-strip{margin-top:17px;background:var(--forest-deep);border-radius:6px;padding:20px 22px;color:var(--paper);display:flex;justify-content:space-between;gap:20px;align-items:center}.summary-strip strong{font-size:27px;color:#fff;font-weight:700}.summary-strip span{font-size:13px;color:rgba(244,240,232,.78)}
+.calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;margin-top:12px;min-width:0}.day{min-height:118px;background:var(--paper);border:1px solid var(--line);border-radius:5px;padding:9px;min-width:0;overflow:hidden}.day b{font-size:14px}.evt{font-size:13px;line-height:1.4;background:var(--accent-soft);border-left:3px solid var(--terracotta);padding:7px 8px;border-radius:3px;margin-top:5px;overflow-wrap:anywhere}
+.empty{padding:34px 18px;text-align:center;color:var(--muted);border:1px dashed var(--line-strong);border-radius:5px;background:var(--paper)}.advanced-panel{border:1px solid var(--line);border-radius:5px;padding:13px 15px;background:var(--paper)}.advanced-panel summary{cursor:pointer;font-weight:700;color:#57534c}.advanced-panel[open] summary{margin-bottom:12px}.advanced-grid{margin-top:8px}.subtle-note{font-size:13px;color:#57544c;line-height:1.55}
+.payment-guide{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.payment-guide-card{padding:13px;border:1px solid var(--line);background:var(--paper);border-radius:5px}.payment-guide-card b{display:block;color:var(--forest);margin-bottom:4px}.payment-guide-card span{display:block;color:#57544c;font-size:14px;line-height:1.5}.payment-plan-preview{padding:16px;background:var(--sand);border-left:3px solid var(--terracotta)}.payment-plan-preview>div:first-child{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}.payment-plan-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-top:13px}.payment-plan-item{background:var(--paper);border:1px solid var(--line);padding:10px 11px;border-radius:4px;font-size:13px}.payment-plan-item span{display:block;color:#57544c;margin-bottom:3px}.finance-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:16px 0}.finance-kpis .card{margin:0;box-shadow:none}.finance-kpis span{display:block;color:#57544c;font-size:13px;text-transform:uppercase;letter-spacing:.05em}.finance-kpis b{display:block;color:var(--forest-deep);font-size:23px;margin-top:5px}.progress{height:6px;background:var(--sand-deep);border-radius:99px;overflow:hidden;margin-top:7px}.progress>span{display:block;height:100%;background:var(--terracotta)}.payment-history{margin-top:16px;border-top:1px solid var(--line);padding-top:14px}.payment-history-row{display:flex;justify-content:space-between;gap:15px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}.qr-panel{display:grid;grid-template-columns:minmax(180px,260px) 1fr;gap:18px;align-items:center;background:var(--sand);padding:15px;border-radius:5px}.qr-panel img{width:100%;max-width:240px;background:#fff;padding:8px}.method-note{margin:8px 0 14px;color:#57544c;font-size:13px}
+.money,td,th,input[type="number"],input[type="date"],input[type="datetime-local"]{font-variant-numeric:tabular-nums lining-nums}td code,.code{max-width:100%;overflow-wrap:anywhere}td .btn{white-space:nowrap}table input,table select{min-width:180px}
+@media(max-width:1200px){th,td{padding:10px 11px}.main{padding:30px}.payment-guide{grid-template-columns:1fr}}
+@media(max-width:1050px){.grid,.finance-kpis{grid-template-columns:repeat(2,1fr)}.login-page{grid-template-columns:1fr}.login-art{min-height:42vh}.login-art h2{max-width:780px}}
+@media(max-width:850px){.layout{display:block}.side{position:static;width:100%;display:flex;gap:4px;overflow:auto;align-items:center;padding:12px}.brand{min-width:220px;border:0;margin:0;padding:3px 8px}.brand-copy span{display:none}.side button{min-width:max-content}.main{margin:0;width:100%;padding:22px;overflow-x:hidden}.form{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.top{flex-wrap:wrap}.calendar{overflow-x:auto}}
+@media(max-width:560px){.grid,.form,.finance-kpis{grid-template-columns:1fr}.dashboard-hero,.top{align-items:flex-start;flex-direction:column}.calendar{grid-template-columns:1fr 1fr}.main{padding:16px}h1{font-size:31px}h2{font-size:22px}.card{padding:15px}.btn{width:auto;max-width:100%}th,td{font-size:13px}.summary-strip{align-items:flex-start;flex-direction:column}.metric{min-height:105px}.login-art{padding:36px 24px;min-height:46vh}.login-art:before{left:24px;top:25px}.login{padding:18px}.qr-panel{grid-template-columns:1fr}.payment-history-row{align-items:flex-start;flex-direction:column}}
 </style>
 </head>
 <body><div id="app"></div>
@@ -101,6 +101,12 @@ const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const dateBR=v=>v?new Date(v+"T12:00:00").toLocaleDateString("pt-BR"):"—";
 const dtBR=v=>v?new Date(v).toLocaleString("pt-BR"):"—";
+const localDateTimeValue=(value=new Date())=>{
+ const d=value instanceof Date?value:new Date(value);
+ const p=new Intl.DateTimeFormat("sv-SE",{timeZone:"America/Sao_Paulo",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).formatToParts(d);
+ const g=t=>p.find(x=>x.type===t)?.value||"";
+ return `${g("year")}-${g("month")}-${g("day")}T${g("hour")}:${g("minute")}`;
+};
 const toast=t=>{let x=document.createElement("div");x.className="toast";x.textContent=t;document.body.appendChild(x);setTimeout(()=>x.remove(),2500)};
 const id=()=>crypto.randomUUID();
 const audit=async(action,entity,entity_id,details={})=>{await sb.from("so_audit").insert({action,entity,entity_id:String(entity_id||""),details})};
@@ -114,7 +120,7 @@ const navMeta={
  dashboard:["Início","◫"],clientes:["Clientes","◎"],agenda:["Agenda","▦"],solicitacoes:["Solicitações","✉"],contratos:["Contratos","▤"],receber:["Cobranças","↙"],recebimentos:["Pagamentos","✓"],despesas:["Despesas","↗"],nfse:["Notas fiscais","N"],usuarios:["Equipe","♙"],auditoria:["Histórico","⌁"]
 };
 function nav(){return Object.entries(navMeta).filter(([x])=>profile?.role==="admin"||!["usuarios","auditoria"].includes(x)).map(([x,m])=>`<button data-route="${x}" class="${route===x?"active":""}"><span class="nav-icon">${m[1]}</span><span>${m[0]}</span></button>`).join("")}
-function shell(body){return `<div class="layout"><aside class="side"><div class="brand"><img src="/favicon.svg" alt=""><div class="brand-copy"><strong>Solar Opará</strong><span>Gestão de Eventos</span></div></div>${nav()}<a class="public-site-link" href="https://id-preview--291a4cba-45b4-4e3c-914a-eb36003bbf3d.lovable.app/" target="_blank" rel="noopener"><span class="nav-icon">↗</span><span>Abrir site público</span></a><button id="logout" class="logout"><span class="nav-icon">↪</span><span>Sair</span></button></aside><main class="main">${body}</main></div>`}
+function shell(body){return `<div class="layout"><aside class="side"><div class="brand"><img src="/favicon.svg" alt=""><div class="brand-copy"><strong>Solar Opará</strong><span>Gestão de Eventos</span></div></div>${nav()}<a class="public-site-link" href="https://solar-opara-public-production.up.railway.app/" target="_blank" rel="noopener"><span class="nav-icon">↗</span><span>Abrir site público</span></a><button id="logout" class="logout"><span class="nav-icon">↪</span><span>Sair</span></button></aside><main class="main">${body}</main></div>`}
 function bindNav(){document.querySelectorAll("[data-route]").forEach(b=>b.onclick=()=>{route=b.dataset.route;render()});$("#logout").onclick=async()=>{if(sessionToken)await publicClient.rpc("so_local_logout",{p_token:sessionToken});await googleClient.auth.signOut();sessionStorage.removeItem("solar_session");sessionToken="";me=null;profile=null;location.reload()}}
 function setApp(h){$("#app").innerHTML=h}
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -469,12 +475,12 @@ async function prepareBookingContract(id){
 
 async function contratos(){
  const [{data:c},{data:cl}]=await Promise.all([
-  sb.from("so_contracts").select("*,so_clients(name,email,document,address)").order("created_at",{ascending:false}),
+  sb.from("so_contracts").select("*,so_clients(name,email,document,address),so_receivables(id)").order("created_at",{ascending:false}),
   sb.from("so_clients").select("id,name").order("name")
  ]);
  window.__solarContracts=c||[];
  const fromSite=window.__bookingPrefill?`<div class="warnbox" style="margin-bottom:12px"><b>Contrato iniciado a partir de uma solicitação do site.</b><br><span>Confira valores, horários e condições antes de salvar.</span></div>`:"";
- return `<div class=top><h1>Contratos</h1><button class=btn id="newContract">+ Novo contrato</button></div>${fromSite}<div id=contractForm></div><table><tr><th>Evento</th><th>Cliente</th><th>Data</th><th>Total</th><th></th></tr>${(c||[]).map(x=>`<tr><td>${esc(x.event_name)}</td><td>${esc(x.so_clients?.name)}</td><td>${dateBR(x.event_date)}</td><td>${money(Number(x.rental_value)+Number(x.cleaning_fee)+Number(x.additional_value))}</td><td class=row><button class="btn small gray" data-edit-contract="${x.id}">Editar</button><button class="btn small" data-doc="${x.id}">Contrato</button><button class="btn small gray" data-manual="${x.id}">Manual</button><button class="btn small gray" data-payment-plan="${x.id}">Carnê</button></td></tr>`).join("")}</table><template id=clientOpts>${(cl||[]).map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join("")}</template>`;
+ return `<div class=top><h1>Contratos</h1><button class=btn id="newContract">+ Novo contrato</button></div>${fromSite}<div id=contractForm></div><table><tr><th>Evento</th><th>Cliente</th><th>Data</th><th>Pagamento</th><th>Total</th><th></th></tr>${(c||[]).map(x=>`<tr><td>${esc(x.event_name)}</td><td>${esc(x.so_clients?.name)}</td><td>${dateBR(x.event_date)}</td><td>${esc(x.payment_terms||"PIX")} · ${Math.max(1,x.so_receivables?.length||0)}x</td><td>${money(Number(x.rental_value)+Number(x.cleaning_fee)+Number(x.additional_value))}</td><td class=row><button class="btn small gray" data-edit-contract="${x.id}">Editar</button><button class="btn small" data-doc="${x.id}">Contrato</button><button class="btn small gray" data-manual="${x.id}">Manual</button><button class="btn small gray" data-payment-plan="${x.id}">Carnê</button></td></tr>`).join("")}</table><template id=clientOpts>${(cl||[]).map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join("")}</template>`;
 }
 function contractDateTimeInput(v){
  if(!v)return "";
@@ -486,8 +492,8 @@ function contractDateTimeInput(v){
 function contractForm(data=null,dueDate="",installments=1){
  const opts=$("#clientOpts")?.innerHTML||"";
  const selectedOpts=opts.replace(/<option value="([^"]+)"/g,(m,id)=>`<option value="${id}"${String(data?.client_id||"")===String(id)?" selected":""}`);
- const pay=data?.payment_terms==="Boleto"?"Boleto bancário":data?.payment_terms||"PIX";
- const paymentOptions=["PIX","Pix parcelado","Boleto bancário","Dinheiro","Transferência bancária","Cartão","Outro"].map(x=>`<option value="${esc(x)}"${x===pay?" selected":""}>${esc(x)}</option>`).join("");
+ const pay=data?.payment_terms==="Boleto"?"Boleto bancário":data?.payment_terms==="Cartão"?"Cartão de crédito":data?.payment_terms||"PIX";
+ const paymentOptions=["PIX","Pix parcelado","Boleto bancário","Dinheiro","Transferência bancária","Cartão de crédito","Outro"].map(x=>`<option value="${esc(x)}"${x===pay?" selected":""}>${esc(x)}</option>`).join("");
  const v=x=>esc(x??"");
  return `<div class=card><div class=top><div><h2>${data?"Editar contrato":"Novo contrato"}</h2>${data?'<p class="muted">Altere os campos e salve. O mesmo contrato será atualizado, sem duplicar.</p>':""}</div></div><form id=ctf class=form>
  <input type=hidden name=contract_id value="${v(data?.id)}">
@@ -507,7 +513,12 @@ function contractForm(data=null,dueDate="",installments=1){
  <label class=full>Caução/garantia<input name=guarantee_text value="${v(data?.guarantee_text)}"></label>
  <label>Forma de pagamento<select name=payment_terms>${paymentOptions}</select></label>
  <label>Quantidade de parcelas<select name=installment_count>${Array.from({length:12},(_,i)=>i+1).map(n=>`<option value="${n}"${n===installments?" selected":""}>${n}x</option>`).join("")}</select></label>
- <p class="muted full">Pix parcelado = cobranças Pix mensais independentes (não é crédito bancário). Boleto bancário: registro e controle das parcelas; emissão de boleto exige integração com o banco.</p>
+ <div class="payment-guide full">
+  <div class="payment-guide-card"><b>Pix parcelado</b><span>Gera uma cobrança Pix independente por mês, com QR Code e valor exato de cada parcela.</span></div>
+  <div class="payment-guide-card"><b>Cartão parcelado</b><span>Controla parcelas e baixas. Registre o NSU ou código da adquirente ao confirmar cada recebimento.</span></div>
+  <div class="payment-guide-card"><b>Boleto parcelado</b><span>Organiza os vencimentos. A linha digitável oficial depende de integração com um banco emissor.</span></div>
+ </div>
+ <div id="paymentPlanPreview" class="full"></div>
  <label class=full>Observações<textarea name=observations>${v(data?.observations)}</textarea></label>
  <div class="full row"><button class=btn>${data?"Salvar alterações":"Salvar contrato e gerar cobrança"}</button>${data?'<button type=button class="btn gray" id="cancelContractEdit">Cancelar</button>':""}</div>
  </form></div>`;
@@ -530,21 +541,25 @@ function planRecebimentos(total, firstDate, count){
   return {amount:(base+(i<extra?1:0))/100,due_date:date.toISOString().slice(0,10)};
  });
 }
-function newCharge(contractId,eventName,part,position,totalParts){
- const tx=("SO"+Date.now().toString(36)+id().replaceAll("-","").slice(0,9)).toUpperCase().slice(0,25);
- return {contract_id:contractId,description:"Contrato - "+eventName+(totalParts>1?" | Parcela "+(position+1)+"/"+totalParts:""),amount:part.amount,due_date:part.due_date,txid:tx};
-}
 function bindPaymentPlan(form){
  if(!form)return;
- const method=form.elements.namedItem("payment_terms"),parts=form.elements.namedItem("installment_count");
+ const method=form.elements.namedItem("payment_terms"),parts=form.elements.namedItem("installment_count"),preview=form.querySelector("#paymentPlanPreview");
  if(!method||!parts)return;
  const sync=()=>{
-  const allow=method.value==="Pix parcelado"||method.value==="Boleto bancário";
+  const allow=["Pix parcelado","Boleto bancário","Cartão de crédito"].includes(method.value);
   parts.disabled=!allow;
   if(!allow)parts.value="1";
   if(method.value==="Pix parcelado"&&Number(parts.value)<2)parts.value="2";
+  const total=["rental_value","cleaning_fee","additional_value"].reduce((sum,name)=>sum+Number(form.elements.namedItem(name)?.value||0),0);
+  const due=String(form.elements.namedItem("due_date")?.value||form.elements.namedItem("event_date")?.value||"");
+  try{
+   const plan=planRecebimentos(total,due,Number(parts.value));
+   preview.innerHTML=`<div class="payment-plan-preview"><div><b>Prévia do plano · ${plan.length}x</b><b>${money(total)}</b></div><div class="payment-plan-list">${plan.map((x,i)=>`<div class="payment-plan-item"><span>Parcela ${i+1} de ${plan.length}</span><b>${money(x.amount)}</b> · ${dateBR(x.due_date)}</div>`).join("")}</div></div>`;
+  }catch(e){preview.innerHTML=`<p class="muted">${esc(e.message||"Preencha valor e primeiro vencimento para visualizar as parcelas.")}</p>`}
  };
- method.addEventListener("change",sync);sync();
+ method.addEventListener("change",sync);parts.addEventListener("change",sync);
+ ["rental_value","cleaning_fee","additional_value","due_date","event_date"].forEach(name=>form.elements.namedItem(name)?.addEventListener("input",sync));
+ sync();
 }
 
 async function saveContractForm(form){
@@ -556,10 +571,9 @@ async function saveContractForm(form){
  const dueDate=String(f.get("due_date")||o.event_date);
  const total=Number(o.rental_value)+Number(o.cleaning_fee)+Number(o.additional_value);
  const method=String(o.payment_terms||"PIX");
- const count=method==="Pix parcelado"||method==="Boleto bancário"?requested:1;
+ const count=["Pix parcelado","Boleto bancário","Cartão de crédito"].includes(method)?requested:1;
  if(method==="Pix parcelado"&&count<2)return toast("Pix parcelado exige 2 a 12 parcelas.");
- let plan;
- try{plan=planRecebimentos(total,dueDate,count)}catch(e){return toast(e.message)}
+ try{planRecebimentos(total,dueDate,count)}catch(e){return toast(e.message)}
  let conflictQ=sb.from("so_contracts").select("id").eq("event_date",o.event_date).eq("status","active");
  if(contractId)conflictQ=conflictQ.neq("id",contractId);
  const {data:conflict,error:conflictError}=await conflictQ;
@@ -567,57 +581,12 @@ async function saveContractForm(form){
  if(conflict?.length&&!confirm("Já existe outro evento ativo nesta data. Deseja continuar?"))return;
  form.querySelector("button[type=submit],button:not([type])")?.setAttribute("disabled","disabled");
  try{
-  if(contractId){
-   const [{data:current,error:currentError},{data:oldCharges,error:chargeError}]=await Promise.all([
-    sb.from("so_contracts").select("*").eq("id",contractId).single(),
-    sb.from("so_receivables").select("id,amount,due_date").eq("contract_id",contractId).order("created_at",{ascending:true})
-   ]);
-   if(currentError||chargeError)throw Error(currentError?.message||chargeError?.message);
-   const ids=(oldCharges||[]).map(x=>x.id);
-   const {data:received,error:paidError}=ids.length?
-    await sb.from("so_payments").select("id").in("receivable_id",ids).eq("reversed",false):
-    {data:[],error:null};
-   if(paidError)throw Error(paidError.message);
-   const oldTotal=Math.round((Number(current.rental_value||0)+Number(current.cleaning_fee||0)+Number(current.additional_value||0))*100);
-   const newTotal=Math.round(total*100);
-   if(received?.length&&(newTotal!==oldTotal||count!==ids.length||method!==(current.payment_terms||"PIX")||dueDate!==(oldCharges?.[0]?.due_date||current.event_date)))
-    throw Error("Já existem pagamentos. Não altere valor, parcelas, vencimento inicial ou forma de pagamento; regularize os recebimentos primeiro.");
-   if(!received?.length){
-    const extras=(oldCharges||[]).slice(plan.length).map(x=>x.id);
-    if(extras.length){
-     const {error}=await sb.from("so_receivables").delete().in("id",extras);
-     if(error)throw Error("Não foi possível remover parcelas antigas: "+error.message);
-    }
-    for(let i=0;i<Math.min(oldCharges?.length||0,plan.length);i++){
-     const part=plan[i];
-     const description="Contrato - "+o.event_name+(plan.length>1?" | Parcela "+(i+1)+"/"+plan.length:"");
-     const {error}=await sb.from("so_receivables").update({description,amount:part.amount,due_date:part.due_date}).eq("id",oldCharges[i].id);
-     if(error)throw Error("Falha ao atualizar parcela "+(i+1)+": "+error.message);
-    }
-    if(plan.length>(oldCharges?.length||0)){
-     const start=oldCharges?.length||0;
-     const inserts=plan.slice(start).map((part,i)=>newCharge(contractId,o.event_name,part,start+i,plan.length));
-     const {error}=await sb.from("so_receivables").insert(inserts);
-     if(error)throw Error("Falha ao criar parcelas: "+error.message);
-    }
-   }
-   const {error}=await sb.from("so_contracts").update(o).eq("id",contractId);
+   const {data:result,error}=await sb.rpc("so_save_contract_plan",{p_contract:o,p_due_date:dueDate,p_installment_count:count,p_contract_id:contractId||null});
    if(error)throw Error(error.message);
-   const {error:nfErr}=await sb.from("so_nfse").update({amount:total}).eq("contract_id",contractId).eq("status","draft");
-   if(nfErr)console.warn("NFS-e draft update:",nfErr.message);
-   await audit("update","contract",contractId,{event:o.event_name,total,method,installments:count});
-   toast("Contrato atualizado e cobranças revisadas.");
-  }else{
-   const {data:c,error}=await sb.from("so_contracts").insert({...o,status:"active"}).select().single();
-   if(error)throw Error(error.message);
-   const {error:chargeError}=await sb.from("so_receivables").insert(plan.map((part,i)=>newCharge(c.id,o.event_name,part,i,plan.length)));
-   if(chargeError)throw Error("Contrato criado, mas as parcelas não foram geradas: "+chargeError.message);
-   const {error:nfErr}=await sb.from("so_nfse").insert({contract_id:c.id,status:"draft",amount:total});
-   if(nfErr)console.warn("NFS-e draft creation:",nfErr.message);
-   await audit("create","contract",c.id,{event:o.event_name,total,method,installments:count});
-   if(window.__bookingContractRequestId){const requestId=window.__bookingContractRequestId;await sb.from("so_booking_requests").update({status:"converted",updated_at:new Date().toISOString()}).eq("id",requestId);await audit("convert","booking_request",requestId,{contract_id:c.id});window.__bookingContractRequestId=null;window.__bookingPrefill=null;}
-   toast("Contrato criado com "+count+" cobrança(s).");
-  }
+   const savedId=result?.contract_id||contractId;
+   await audit(contractId?"update":"create","contract",savedId,{event:o.event_name,total,method:result?.method||method,installments:result?.installment_count||count});
+   if(!contractId&&window.__bookingContractRequestId){const requestId=window.__bookingContractRequestId;await sb.from("so_booking_requests").update({status:"converted",updated_at:new Date().toISOString()}).eq("id",requestId);await audit("convert","booking_request",requestId,{contract_id:savedId});window.__bookingContractRequestId=null;window.__bookingPrefill=null;}
+   toast(contractId?"Contrato e plano atualizados com segurança.":"Contrato criado com "+(result?.installment_count||count)+" cobrança(s).");
   render();
  }catch(e){
   toast(e?.message||String(e));
@@ -629,12 +598,17 @@ function isOverdue(date){return !!date&&String(date)<new Date().toISOString().sl
 async function receber(){
  const [{data:r,error:re},{data:p,error:pe}]=await Promise.all([sb.from("so_receivables").select("*,so_contracts(event_name,client_id,payment_terms,so_clients(name,email,phone))").order("due_date"),sb.from("so_payments").select("*").eq("reversed",false)]);
  if(re||pe)return `<h1>A receber</h1><div class="warnbox">${esc(re?.message||pe?.message||"Falha ao carregar cobranças")}</div>`;
- return `<h1>A receber</h1><table><tr><th>Cliente / evento</th><th>Venc.</th><th>Parcela</th><th>Forma</th><th>Status</th><th></th></tr>${(r||[]).map(x=>{const paid=(p||[]).filter(y=>y.receivable_id===x.id).reduce((a,y)=>a+Number(y.amount),0),full=paid>=Number(x.amount)-0.001,partial=paid>0&&!full,late=!full&&isOverdue(x.due_date),st=full?"PAGO":late?(partial?"PARCIAL / ATRASADO":"ATRASADO"):partial?"PARCIAL":"PENDENTE",cls=full?"paid":late?"late":"";return `<tr><td>${esc(x.so_contracts?.so_clients?.name)}<br><span class=muted>${esc(x.so_contracts?.event_name)}</span></td><td>${dateBR(x.due_date)}</td><td>${money(x.amount)}<br><small class="muted">${esc(x.description)}</small></td><td>${esc(x.so_contracts?.payment_terms||"PIX")}</td><td><span class="badge ${cls}">${st}</span>${paid>0&&!full?`<br><small class="muted">Recebido: ${money(paid)}</small>`:""}</td><td><div class=row><button class="btn small" data-pix="${x.id}">Cobrar / confirmar</button><button class="btn small gray" data-print-charge="${x.id}">Imprimir cobrança</button></div></td></tr>`}).join("")}</table><div id=pixModal></div>`;
+ const rows=(r||[]).map(x=>{const paid=(p||[]).filter(y=>y.receivable_id===x.id).reduce((a,y)=>a+Number(y.amount),0),amount=Number(x.amount),balance=Math.max(0,amount-paid),full=balance<.001,partial=paid>0&&!full,late=!full&&isOverdue(x.due_date);return {...x,paid,amount,balance,full,partial,late}});
+ const total=rows.reduce((a,x)=>a+x.amount,0),paidTotal=rows.reduce((a,x)=>a+x.paid,0),open=Math.max(0,total-paidTotal),overdue=rows.filter(x=>x.late).reduce((a,x)=>a+x.balance,0);
+ return `<div class="top"><div><div class="page-kicker">Financeiro</div><h1>Parcelas a receber</h1><p class="muted">Acompanhe vencimentos, saldos e baixas de cada parcela.</p></div></div>
+ <div class="finance-kpis"><div class="card"><span>Total contratado</span><b>${money(total)}</b></div><div class="card"><span>Já recebido</span><b>${money(paidTotal)}</b></div><div class="card"><span>Saldo aberto</span><b>${money(open)}</b></div><div class="card"><span>Saldo atrasado</span><b>${money(overdue)}</b></div></div>
+ <table><tr><th>Cliente / evento</th><th>Vencimento</th><th>Parcela</th><th>Forma</th><th>Andamento</th><th></th></tr>${rows.map(x=>{const st=x.full?"PAGO":x.late?(x.partial?"PARCIAL / ATRASADO":"ATRASADO"):x.partial?"PARCIAL":"PENDENTE",cls=x.full?"paid":x.late?"late":"",percent=x.amount?Math.min(100,(x.paid/x.amount)*100):100;return `<tr><td><b>${esc(x.so_contracts?.so_clients?.name)}</b><br><span class=muted>${esc(x.so_contracts?.event_name)}</span></td><td>${dateBR(x.due_date)}</td><td><b>${money(x.amount)}</b><br><small class="muted">${esc(x.description)}</small></td><td>${esc(x.so_contracts?.payment_terms||"PIX")}</td><td><span class="badge ${cls}">${st}</span><div class="progress" title="${percent.toFixed(0)}% recebido"><span style="width:${percent}%"></span></div><small class="muted">${money(x.paid)} recebido · ${money(x.balance)} em aberto</small></td><td><div class=row><button class="btn small" data-pix="${x.id}">Cobrar / confirmar</button><button class="btn small gray" data-print-charge="${x.id}">Imprimir</button></div></td></tr>`}).join("")}</table><div id=pixModal></div>`;
 }
 async function recebimentos(){
  const {data,error}=await sb.from("so_payments").select("*,so_receivables(amount,description,due_date,so_contracts(event_name,so_clients(name,email,document)))").eq("reversed",false).order("paid_at",{ascending:false});
  if(error)return `<h1>Recebimentos</h1><div class="warnbox">${esc(error.message)}</div>`;
- return `<div class=top><h1>Recebimentos</h1><button class="btn gray" id=csvPay>Exportar CSV</button></div><table><tr><th>Data</th><th>Cliente</th><th>Evento</th><th>Valor</th><th>Forma</th><th>Referência</th><th></th></tr>${(data||[]).map(x=>{let cl=x.so_receivables?.so_contracts?.so_clients,ev=x.so_receivables?.so_contracts?.event_name,subj=`Solar Opará – Pagamento confirmado – ${ev||""}`,body=`Olá ${cl?.name||""},%0D%0A%0D%0AConfirmamos o recebimento de ${money(x.amount)} referente ao evento ${ev||""}.%0D%0AData: ${dtBR(x.paid_at)}.%0D%0AForma: ${x.method||"PIX"}.%0D%0A%0D%0AAtenciosamente,%0D%0ASolar Opará`;return `<tr><td>${dtBR(x.paid_at)}</td><td>${esc(cl?.name)}</td><td>${esc(ev)}</td><td>${money(x.amount)}</td><td>${esc(x.method||"PIX")}</td><td>${esc(x.reference)}</td><td><div class=row><button class="btn small gray" data-receipt="${x.id}">Recibo</button><a class="btn small" target=_blank href="mailto:${encodeURIComponent(cl?.email||"")}?subject=${encodeURIComponent(subj)}&body=${body}">E-mail</a></div></td></tr>`}).join("")}</table>`;
+ const canReverse=["admin","operator"].includes(profile?.role);
+ return `<div class=top><div><div class="page-kicker">Conciliação</div><h1>Pagamentos recebidos</h1><p class="muted">Histórico das baixas confirmadas, com recibo e correção auditável.</p></div><button class="btn gray" id=csvPay>Exportar CSV</button></div><table><tr><th>Data</th><th>Cliente</th><th>Evento / parcela</th><th>Valor</th><th>Forma</th><th>Referência</th><th></th></tr>${(data||[]).map(x=>{let cl=x.so_receivables?.so_contracts?.so_clients,ev=x.so_receivables?.so_contracts?.event_name,subj=`Solar Opará – Pagamento confirmado – ${ev||""}`,body=`Olá ${cl?.name||""},%0D%0A%0D%0AConfirmamos o recebimento de ${money(x.amount)} referente ao evento ${ev||""}.%0D%0AData: ${dtBR(x.paid_at)}.%0D%0AForma: ${x.method||"PIX"}.%0D%0A%0D%0AAtenciosamente,%0D%0ASolar Opará`;return `<tr><td>${dtBR(x.paid_at)}</td><td>${esc(cl?.name)}</td><td>${esc(ev)}<br><small class="muted">${esc(x.so_receivables?.description)}</small></td><td><b>${money(x.amount)}</b></td><td>${esc(x.method||"PIX")}</td><td>${esc(x.reference||"—")}</td><td><div class=row><button class="btn small gray" data-receipt="${x.id}">Recibo</button><a class="btn small" target=_blank href="mailto:${encodeURIComponent(cl?.email||"")}?subject=${encodeURIComponent(subj)}&body=${body}">E-mail</a>${canReverse?`<button class="btn small danger" data-reverse-payment="${x.id}">Estornar</button>`:""}</div></td></tr>`}).join("")}</table>`;
 }
 async function despesas(){
  const {data}=await sb.from("so_expenses").select("*").order("expense_date",{ascending:false});
@@ -760,15 +734,15 @@ async function openPix(rid){
  const terms=String(r.so_contracts?.payment_terms||"PIX");
  const pix=terms==="PIX"||terms==="Pix parcelado";
  const boleto=terms==="Boleto bancário"||terms==="Boleto";
- const defaultMethod=boleto?"Boleto bancário":pix?"PIX":terms;
- const choices=["PIX","Boleto bancário","Transferência bancária","Dinheiro","Cartão"];
+ const defaultMethod=boleto?"Boleto bancário":pix?"PIX":terms==="Cartão"?"Cartão de crédito":terms;
+ const choices=["PIX","Boleto bancário","Transferência bancária","Dinheiro","Cartão de crédito","Outro"];
  if(!choices.includes(defaultMethod))choices.push(defaultMethod);
  const options=choices.map(x=>'<option value="'+esc(x)+'"'+(x===defaultMethod?' selected':'')+'>'+esc(x)+'</option>').join("");
- let details="";
+ let details="",pixCode="";
  if(pix&&balance>0){
-  const payload=pixPayload(balance,r.txid);
-  const qr=await QRCode.toDataURL(payload);
-  details='<p><b>Pix da parcela:</b> '+money(balance)+'</p><img src="'+qr+'" alt="QR Code Pix" style="max-width:280px;width:100%"><div class="code">'+esc(payload)+'</div>';
+  pixCode=pixPayload(balance,r.txid);
+  const qr=await QRCode.toDataURL(pixCode);
+  details='<div class="qr-panel"><img src="'+qr+'" alt="QR Code Pix"><div><div class="page-kicker">Pix desta parcela</div><h3>'+money(balance)+'</h3><p class="method-note">O valor e o identificador pertencem somente a esta parcela.</p><div class="code">'+esc(pixCode)+'</div><button class="btn small gray" type="button" id="copyPix">Copiar Pix copia e cola</button></div></div>';
  }else if(boleto){
   details='<div class="warnbox">Boleto bancário: vencimento e recebimento registrados no sistema. Para emitir boleto com linha digitável ou código de barras é necessária integração com o banco emissor. Registre pagamento somente após confirmação bancária.</div>';
  }else{
@@ -777,42 +751,52 @@ async function openPix(rid){
  const fields=balance>0?
   '<form id="pf" class="form"><label>Valor recebido<input type="number" step="0.01" min="0.01" max="'+balance.toFixed(2)+'" name="amount" value="'+balance.toFixed(2)+'" required></label>'+
   '<label>Forma recebida<select name="method">'+options+'</select></label>'+
-  '<label>Data/hora<input type="datetime-local" name="paid_at" value="'+new Date().toISOString().slice(0,16)+'"></label>'+
+  '<label>Data/hora<input type="datetime-local" name="paid_at" value="'+localDateTimeValue()+'"></label>'+
   '<label>Referência/comprovante<input name="reference" placeholder="Código da transação ou confirmação bancária"></label>'+
   '<label class="full">Observação<textarea name="notes"></textarea></label>'+
   '<div class="full"><button class="btn" type="submit">Confirmar recebimento</button></div></form>':
-  '<p><b>Esta cobrança está totalmente paga.</b></p>';
+  '<div class="warnbox"><b>Esta cobrança está totalmente paga.</b> Use o histórico abaixo para conferir as baixas.</div>';
+ const history=(p||[]).sort((a,b)=>new Date(b.paid_at)-new Date(a.paid_at)).map(x=>`<div class="payment-history-row"><span>${dtBR(x.paid_at)} · ${esc(x.method||"PIX")}<br><small class="muted">${esc(x.reference||"Sem referência")}</small></span><b>${money(x.amount)}</b></div>`).join("");
  $("#pixModal").innerHTML='<div class="card"><h2>Cobrança / confirmar pagamento</h2>'+
   '<p><b>Cliente:</b> '+esc(r.so_contracts?.so_clients?.name)+'</p>'+
   '<p><b>Evento:</b> '+esc(r.so_contracts?.event_name)+'</p>'+
   '<p><b>Forma contratada:</b> '+esc(terms)+'</p>'+
   '<p><b>Vencimento:</b> '+dateBR(r.due_date)+'</p>'+
   '<p><b>Parcela:</b> '+money(r.amount)+' · <b>Saldo:</b> '+money(balance)+'</p>'+
-  details+fields+'</div>';
+  details+fields+(history?'<div class="payment-history"><h3>Histórico desta parcela</h3>'+history+'</div>':'')+'</div>';
+ if($("#copyPix"))$("#copyPix").onclick=async()=>{try{await navigator.clipboard.writeText(pixCode);toast("Pix copia e cola copiado.")}catch{toast("Não foi possível copiar automaticamente.")}};
  if(!$("#pf"))return;
  $("#pf").onsubmit=async e=>{
   e.preventDefault();
   const f=new FormData(e.target),amount=Number(f.get("amount")),method=String(f.get("method")||""),ref=String(f.get("reference")||"").trim();
   if(!Number.isFinite(amount)||amount<=0||amount>balance+0.001)return toast("Informe um valor até o saldo da cobrança.");
-  if(method==="Boleto bancário"&&!ref)return toast("Informe a referência da confirmação bancária do boleto.");
+  if(["Boleto bancário","Cartão de crédito"].includes(method)&&!ref)return toast("Informe a referência da confirmação do pagamento.");
   const submit=e.target.querySelector('button[type="submit"]');
   if(submit)submit.disabled=true;
   try{
    const at=String(f.get("paid_at")||"");
    const paidAt=at?new Date(at).toISOString():new Date().toISOString();
-   const {error:insertErr}=await sb.from("so_payments").insert({receivable_id:rid,amount,method,reference:ref||null,notes:String(f.get("notes")||""),paid_at:paidAt});
-   if(insertErr)throw Error(insertErr.message);
-   const {data:all,error:listErr}=await sb.from("so_payments").select("amount").eq("receivable_id",rid).eq("reversed",false);
-   if(listErr)throw Error(listErr.message);
-   const sum=(all||[]).reduce((a,x)=>a+Number(x.amount),0);
-   const status=sum>=Number(r.amount)-0.001?"paid":sum>0?"partial":"pending";
-   const {error:updateErr}=await sb.from("so_receivables").update({status}).eq("id",rid);
-   if(updateErr)throw Error("Recebimento salvo, mas o status precisa ser atualizado: "+updateErr.message);
-   await audit("confirm_payment","payment",rid,{amount,method});
-   toast("Pagamento confirmado e registrado como "+method+".");
+   const {data:result,error:paymentError}=await sb.rpc("so_record_payment",{p_receivable_id:rid,p_amount:amount,p_method:method,p_reference:ref||null,p_notes:String(f.get("notes")||""),p_paid_at:paidAt});
+   if(paymentError)throw Error(paymentError.message);
+   await audit("confirm_payment","payment",result?.payment_id||rid,{receivable_id:rid,amount,method:result?.method||method,status:result?.status});
+   toast("Pagamento confirmado. Saldo restante: "+money(result?.balance||0)+".");
    render();
   }catch(err){toast(err.message||String(err));if(submit)submit.disabled=false}
  };
+}
+
+async function reversePayment(paymentId){
+ const reason=prompt("Motivo do estorno (obrigatório):");
+ if(reason===null)return;
+ if(!reason.trim())return toast("Informe o motivo do estorno.");
+ if(!confirm("Confirmar o estorno? A baixa será preservada no histórico e o saldo da parcela será reaberto."))return;
+ try{
+  const {data,error}=await sb.rpc("so_reverse_payment",{p_payment_id:paymentId,p_reason:reason.trim()});
+  if(error)throw Error(error.message);
+  await audit("reverse_payment","payment",paymentId,{reason:reason.trim(),receivable_id:data?.receivable_id,status:data?.status,balance:data?.balance});
+  toast("Pagamento estornado. Saldo reaberto: "+money(data?.balance||0)+".");
+  render();
+ }catch(e){toast(e.message||String(e))}
 }
 
 async function printCharge(rid){
@@ -825,11 +809,11 @@ async function printCharge(rid){
  w.document.write(`<meta charset="utf-8"><title>Cobrança Solar Opará</title><style>body{font-family:Arial;max-width:760px;margin:32px auto}.box{border:1px solid #bbb;border-radius:8px;padding:14px;margin:16px 0}.warn{background:#fff4d6;padding:12px;border:1px solid #e4c368;border-radius:6px;font-weight:bold}.muted{color:#666}.qr{max-width:240px}.code{word-break:break-all;font-family:monospace;font-size:11px;background:#f5f5f5;padding:10px}</style><h1>Solar Opará — Cobrança</h1>${warning}<div class="box"><p><b>Cliente:</b> ${esc(r.so_contracts?.so_clients?.name)}</p><p><b>CPF/CNPJ:</b> ${esc(r.so_contracts?.so_clients?.document||"—")}</p><p><b>Evento:</b> ${esc(r.so_contracts?.event_name)}</p><p><b>Descrição:</b> ${esc(r.description)}</p><p><b>Vencimento:</b> ${dateBR(r.due_date)}</p><p><b>Forma:</b> ${esc(terms)}</p><p><b>Parcela:</b> ${money(r.amount)}</p><p><b>Recebido:</b> ${money(paid)}</p><p><b>Saldo:</b> ${money(balance)}</p></div>${pix&&balance>0?`<div class="box"><h2>Pagamento via Pix</h2><img class="qr" src="${qr}"><div class="code">${esc(payload)}</div></div>`:""}<p class="muted">Não substitui documento bancário ou fiscal oficial.</p><script>window.onload=()=>window.print()<\/script>`); w.document.close();
 }
 async function printPaymentPlan(contractId){
- const [{data:c,error:ce},{data:r,error:re}]=await Promise.all([sb.from("so_contracts").select("event_name,payment_terms,so_clients(name,document)").eq("id",contractId).single(),sb.from("so_receivables").select("*").eq("contract_id",contractId).order("due_date")]);
+ const [{data:c,error:ce},{data:r,error:re}]=await Promise.all([sb.from("so_contracts").select("event_name,payment_terms,so_clients(name,document)").eq("id",contractId).single(),sb.from("so_receivables").select("*,so_payments(amount,reversed)").eq("contract_id",contractId).order("due_date")]);
  if(ce||re||!c)return toast(ce?.message||re?.message||"Plano de pagamento não encontrado");
- const w=open("","_blank");if(!w)return toast("O navegador bloqueou a janela de impressão."); const total=(r||[]).reduce((a,x)=>a+Number(x.amount),0);
+ const w=open("","_blank");if(!w)return toast("O navegador bloqueou a janela de impressão."); const total=(r||[]).reduce((a,x)=>a+Number(x.amount),0),paid=(r||[]).reduce((sum,x)=>sum+(x.so_payments||[]).filter(p=>!p.reversed).reduce((a,p)=>a+Number(p.amount),0),0);
  const warn=(c.payment_terms==="Boleto bancário"||c.payment_terms==="Boleto")?'<div style="background:#fff4d6;border:1px solid #e4c368;padding:12px"><b>Não é boleto bancário oficial.</b> Carnê para controle interno.</div>':"";
- w.document.write(`<meta charset="utf-8"><title>Carnê Solar Opará</title><style>body{font-family:Arial;max-width:850px;margin:30px auto}table{width:100%;border-collapse:collapse}td,th{border:1px solid #bbb;padding:9px;text-align:left}.muted{color:#666}</style><h1>Solar Opará — Plano de pagamento</h1><p><b>Cliente:</b> ${esc(c.so_clients?.name)} · <b>CPF/CNPJ:</b> ${esc(c.so_clients?.document||"—")}</p><p><b>Evento:</b> ${esc(c.event_name)} · <b>Forma:</b> ${esc(c.payment_terms||"PIX")}</p>${warn}<table><tr><th>Parcela</th><th>Vencimento</th><th>Valor</th></tr>${(r||[]).map((x,i)=>`<tr><td>${i+1}/${r.length}</td><td>${dateBR(x.due_date)}</td><td>${money(x.amount)}</td></tr>`).join("")}<tr><td colspan="2"><b>Total</b></td><td><b>${money(total)}</b></td></tr></table><p class="muted">Planejamento de pagamentos; não substitui documento bancário ou fiscal.</p><script>window.onload=()=>window.print()<\/script>`); w.document.close();
+ w.document.write(`<meta charset="utf-8"><title>Carnê Solar Opará</title><style>body{font-family:Arial;max-width:850px;margin:30px auto;color:#171916}h1{color:#1e3528}table{width:100%;border-collapse:collapse;margin-top:18px}td,th{border:1px solid #bbb;padding:9px;text-align:left}th{background:#ebe3d7}.muted{color:#666}.paid{color:#1e633b;font-weight:bold}.open{color:#9e2a2b;font-weight:bold}.summary{display:flex;gap:24px;padding:14px;background:#f4f0e8;margin:14px 0}</style><h1>Solar Opará — Plano de pagamento</h1><p><b>Cliente:</b> ${esc(c.so_clients?.name)} · <b>CPF/CNPJ:</b> ${esc(c.so_clients?.document||"—")}</p><p><b>Evento:</b> ${esc(c.event_name)} · <b>Forma:</b> ${esc(c.payment_terms||"PIX")}</p><div class="summary"><span>Total: <b>${money(total)}</b></span><span>Recebido: <b>${money(paid)}</b></span><span>Em aberto: <b>${money(Math.max(0,total-paid))}</b></span></div>${warn}<table><tr><th>Parcela</th><th>Vencimento</th><th>Valor</th><th>Recebido</th><th>Saldo</th><th>Status</th></tr>${(r||[]).map((x,i)=>{const rp=(x.so_payments||[]).filter(p=>!p.reversed).reduce((a,p)=>a+Number(p.amount),0),bal=Math.max(0,Number(x.amount)-rp),done=bal<.001;return `<tr><td>${i+1}/${r.length}</td><td>${dateBR(x.due_date)}</td><td>${money(x.amount)}</td><td>${money(rp)}</td><td>${money(bal)}</td><td class="${done?"paid":"open"}">${done?"PAGO":isOverdue(x.due_date)?"ATRASADO":"EM ABERTO"}</td></tr>`}).join("")}<tr><td colspan="2"><b>Total</b></td><td><b>${money(total)}</b></td><td><b>${money(paid)}</b></td><td><b>${money(Math.max(0,total-paid))}</b></td><td></td></tr></table><p class="muted">Planejamento de pagamentos; não substitui documento bancário ou fiscal.</p><script>window.onload=()=>window.print()<\/script>`); w.document.close();
 }
 async function printReceipt(paymentId){
  const {data:x,error}=await sb.from("so_payments").select("*,so_receivables(description,due_date,so_contracts(event_name,so_clients(name,document)))").eq("id",paymentId).single(); if(error||!x)return toast(error?.message||"Pagamento não encontrado");
@@ -892,7 +876,7 @@ function bindPage(){
  $("#ctf").onsubmit=async e=>{e.preventDefault();await saveContractForm(e.target)};
  if($("#cancelContractEdit"))$("#cancelContractEdit").onclick=()=>{$("#contractForm").innerHTML=""};
 });
- document.querySelectorAll("[data-doc]").forEach(b=>b.onclick=()=>showDoc(b.dataset.doc,false));document.querySelectorAll("[data-manual]").forEach(b=>b.onclick=()=>showDoc(b.dataset.manual,true));document.querySelectorAll("[data-pix]").forEach(b=>b.onclick=()=>openPix(b.dataset.pix));document.querySelectorAll("[data-print-charge]").forEach(b=>b.onclick=()=>printCharge(b.dataset.printCharge));document.querySelectorAll("[data-payment-plan]").forEach(b=>b.onclick=()=>printPaymentPlan(b.dataset.paymentPlan));document.querySelectorAll("[data-receipt]").forEach(b=>b.onclick=()=>printReceipt(b.dataset.receipt));
+ document.querySelectorAll("[data-doc]").forEach(b=>b.onclick=()=>showDoc(b.dataset.doc,false));document.querySelectorAll("[data-manual]").forEach(b=>b.onclick=()=>showDoc(b.dataset.manual,true));document.querySelectorAll("[data-pix]").forEach(b=>b.onclick=()=>openPix(b.dataset.pix));document.querySelectorAll("[data-print-charge]").forEach(b=>b.onclick=()=>printCharge(b.dataset.printCharge));document.querySelectorAll("[data-payment-plan]").forEach(b=>b.onclick=()=>printPaymentPlan(b.dataset.paymentPlan));document.querySelectorAll("[data-receipt]").forEach(b=>b.onclick=()=>printReceipt(b.dataset.receipt));document.querySelectorAll("[data-reverse-payment]").forEach(b=>b.onclick=()=>reversePayment(b.dataset.reversePayment));
  if($("#newExpense"))$("#newExpense").onclick=()=>{$("#expenseForm").innerHTML=expenseForm();$("#ef").onsubmit=async e=>{e.preventDefault();let o=Object.fromEntries(new FormData(e.target));o.amount=Number(o.amount);let {data,error}=await sb.from("so_expenses").insert(o).select().single();if(error)return toast(error.message);await audit("create","expense",data.id,{amount:data.amount});toast("Despesa salva");render()}};
  document.querySelectorAll("[data-nf-edit]").forEach(b=>b.onclick=()=>{
   const n=(window.__solarNfse||[]).find(x=>String(x.id)===String(b.dataset.nfEdit));if(!n)return toast("NFS-e não encontrada");

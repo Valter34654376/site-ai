@@ -67,9 +67,9 @@ body {
   overflow-x: clip;
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans);
-  font-size: 15px;
-  line-height: 1.6;
+  font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -764,5 +764,112 @@ section[id],
 
   .brand-intro {
     display: none;
+  }
+}
+
+/* Legibilidade: conserva a direção editorial sem depender de tipos minúsculos. */
+:root {
+  --muted-foreground: #57544c;
+}
+
+.site-nav-links a,
+.site-nav-cta,
+.site-menu-button,
+.mobile-menu-footer p,
+.btn-primary,
+.btn-secondary,
+.hero-text-link,
+.film-card figcaption strong,
+.gallery-filters button,
+.gallery-caption-title,
+.footer-link {
+  font-size: 0.9375rem;
+}
+
+.eyebrow,
+.brand-location,
+.hero-place,
+.hero-scroll,
+.venue-fact > span,
+.architecture-note,
+.film-feature-copy span,
+.film-card figcaption > span,
+.film-card figcaption small,
+.film-sound-toggle,
+.story-film-controls button,
+.story-film-caption span,
+.occasion-index,
+.visit-address strong,
+.step-number,
+.calendar-kicker,
+.calendar-weekday,
+.calendar-legend,
+.gallery-filters button small,
+.gallery-count,
+.gallery-context,
+.gallery-caption-meta,
+.gallery-more-note,
+.lightbox-top,
+.lightbox-bottom p,
+.lightbox-credit,
+.contact-location strong,
+.contact-location address,
+.contact-location a,
+.contact-panel-heading p,
+.form-required-note,
+.form-label,
+.form-success,
+.form-error,
+.form-privacy,
+.form-submit-note,
+.form-success-note,
+.footer-label,
+.footer-bottom {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.hero-caption span,
+.monumental-caption span,
+.film-heading-copy > span,
+.story-film-intro > span,
+.gallery-footer p,
+.calendar-caption span {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.brand-intro-lockup span,
+.brand-intro > p {
+  font-size: 0.8125rem;
+}
+
+.venue-fact p,
+.occasion-body p,
+.booking-steps p,
+.booking-note,
+.calendar-status,
+.faq-item p,
+.footer-desc {
+  font-size: 0.9375rem;
+  line-height: 1.65;
+}
+
+.calendar-day {
+  min-height: 44px;
+  font-size: 0.875rem;
+}
+
+.booking-form input,
+.booking-form select,
+.booking-form textarea {
+  min-height: 46px;
+  font-size: 1rem;
+}
+
+@media (max-width: 640px) {
+  .calendar-day {
+    min-height: 42px;
+    font-size: 0.8125rem;
   }
 }
