@@ -10,10 +10,24 @@ import { Visit } from "@/components/site/Visit";
 import { BookingFlow } from "@/components/site/BookingFlow";
 import { Footer } from "@/components/site/Footer";
 import { gallery } from "@/lib/site-content";
+import { ReactLenis } from "lenis/react";
 
 export default function App() {
   return (
     <>
+      <ReactLenis
+        root
+        options={{
+          autoRaf: true,
+          anchors: { duration: 1.15, offset: -88 },
+          lerp: 0.09,
+          smoothWheel: true,
+          stopInertiaOnNavigate: true,
+          syncTouch: false,
+          wheelMultiplier: 0.85,
+          respectReducedMotion: true,
+        }}
+      />
       <BrandIntro />
       <a className="skip-link" href="#conteudo">
         Pular para o conteúdo
