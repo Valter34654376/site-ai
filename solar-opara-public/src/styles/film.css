@@ -35,45 +35,10 @@
   margin-bottom: 72px;
 }
 
-.film-heading-main {
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.film-heading .eyebrow {
-  color: #70c0c5;
-}
-
 .film-heading h2 {
   max-width: 16ch;
   font-size: clamp(2.6rem, 4.8vw, 5.2rem);
   line-height: 0.98;
-}
-
-.film-heading-copy {
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.film-heading-copy p {
-  max-width: 54ch;
-  color: rgba(247, 242, 233, 0.72);
-  font-size: 14px;
-  line-height: 1.8;
-}
-
-.film-heading-copy > span {
-  padding-top: 14px;
-  color: rgba(247, 242, 233, 0.52);
-  border-top: 1px solid rgba(247, 242, 233, 0.2);
-  font-size: 9px;
-  font-weight: 650;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
 }
 
 .film-experience {
@@ -115,45 +80,6 @@
 
 .film-feature video {
   object-position: 50% 48%;
-}
-
-.film-feature-shade {
-  position: absolute;
-  z-index: 1;
-  inset: 0;
-  background:
-    linear-gradient(180deg, rgba(3, 8, 5, 0.06) 42%, rgba(3, 8, 5, 0.74)),
-    linear-gradient(90deg, rgba(3, 8, 5, 0.18), transparent 48%);
-  pointer-events: none;
-}
-
-.film-feature-copy {
-  position: absolute;
-  z-index: 3;
-  right: 28px;
-  bottom: 28px;
-  left: 28px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 6px;
-}
-
-.film-feature-copy span,
-.film-card figcaption > span {
-  font-size: 9px;
-  font-weight: 650;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-}
-
-.film-feature-copy strong {
-  max-width: 24ch;
-  font-size: 18px;
-  font-weight: 450;
-  line-height: 1.2;
-  text-align: center;
 }
 
 .film-sound {
@@ -219,37 +145,6 @@
   box-shadow: 0 32px 75px rgba(0, 0, 0, 0.25);
 }
 
-.film-card figcaption {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 6px;
-  padding-top: 16px;
-  color: rgba(247, 242, 233, 0.56);
-}
-
-.film-card figcaption > span {
-  white-space: nowrap;
-}
-
-.film-card figcaption div {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-}
-
-.film-card figcaption strong {
-  color: #f7f2e9;
-  font-size: 12px;
-  font-weight: 520;
-}
-
-.film-card figcaption small {
-  font-size: 9px;
-}
-
 @media (hover: hover) and (pointer: fine) {
   .film-feature video {
     transition: transform 1.2s cubic-bezier(0.2, 0.72, 0.25, 1);
@@ -313,12 +208,6 @@
       -12px 12px 0 rgba(91, 180, 185, 0.07);
   }
 
-  .film-feature-copy {
-    right: 20px;
-    bottom: 22px;
-    left: 20px;
-  }
-
   .film-sound {
     top: 22px;
     right: 22px;
@@ -326,9 +215,5 @@
 
   .film-collection {
     gap: 16px;
-  }
-
-  .film-card figcaption strong {
-    font-size: 11px;
   }
 }

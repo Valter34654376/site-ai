@@ -48,24 +48,8 @@ export function StoryFilm() {
     <section
       id="historia"
       className="story-film-section"
-      aria-labelledby="story-film-title"
+      aria-label="Celebração no Solar Opará"
     >
-      <div className="section-wrap story-film-heading">
-        <Reveal>
-          <span className="eyebrow">Uma celebração por inteiro</span>
-          <h2 id="story-film-title">
-            Do primeiro gesto à última dança.
-          </h2>
-        </Reveal>
-        <Reveal className="story-film-intro">
-          <p>
-            Um filme completo revela o Solar ocupado por pessoas, encontros e
-            detalhes — da preparação aos momentos que ficam na memória.
-          </p>
-          <span>Filme 04 · Hi-Tech Wedding · 06:01</span>
-        </Reveal>
-      </div>
-
       <Reveal className="section-wrap story-film-stage">
         <div ref={frame} className="story-film-frame">
           <video
@@ -84,7 +68,6 @@ export function StoryFilm() {
               type="video/mp4"
             />
           </video>
-          <div className="story-film-shade" aria-hidden="true" />
           <div className="story-film-controls">
             <button type="button" onClick={togglePlayback}>
               {playing ? "Pausar filme" : "Reproduzir filme"}
@@ -96,10 +79,6 @@ export function StoryFilm() {
             >
               {muted ? "Ativar som" : "Silenciar"}
             </button>
-          </div>
-          <div className="story-film-caption">
-            <span>Solar Opará · Pirapora, MG</span>
-            <strong>Uma história vivida no espaço</strong>
           </div>
         </div>
       </Reveal>

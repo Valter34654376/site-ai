@@ -34,42 +34,25 @@ export function Hero() {
   const section = useRef<HTMLElement>(null);
   const video = useRef<HTMLVideoElement>(null);
   const playbackChoice = useRef<boolean | null>(null);
-  const syncPlayback = useRef<(() => void) | null>(null);
   const [playing, setPlaying] = useState(false);
   const [hasFrame, setHasFrame] = useState(false);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     const player = video.current;
-    if (!player || failed) return;
+    if (!player) return;
 
     const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
-    let inView = !("IntersectionObserver" in window);
     const sync = () => {
-      const wantsPlayback = playbackChoice.current ?? (!reducedMotion.matches && !videoConnection()?.saveData);
-      if (wantsPlayback && inView && !document.hidden) playHeroFilm(player);
+      player.autoplay = playbackChoice.current ?? !reducedMotion.matches;
+      if (player.autoplay) playHeroFilm(player);
       else player.pause();
     };
-    const observer = "IntersectionObserver" in window
-      ? new IntersectionObserver(([entry]) => {
-          inView = entry.isIntersecting && entry.intersectionRatio >= 0.15;
-          sync();
-        }, { threshold: 0.15 })
-      : null;
 
-    syncPlayback.current = sync;
-    observer?.observe(player);
-    reducedMotion.addEventListener("change", sync);
-    document.addEventListener("visibilitychange", sync);
     sync();
-    return () => {
-      syncPlayback.current = null;
-      observer?.disconnect();
-      reducedMotion.removeEventListener("change", sync);
-      document.removeEventListener("visibilitychange", sync);
-      player.pause();
-    };
-  }, [failed]);
+    reducedMotion.addEventListener("change", sync);
+    return () => reducedMotion.removeEventListener("change", sync);
+  }, []);
 
   useEffect(() => {
     const element = section.current;
@@ -110,7 +93,8 @@ export function Hero() {
     const player = video.current;
     if (!player || failed) return;
     playbackChoice.current = player.paused;
-    if (player.paused) playHeroFilm(player);
+    player.autoplay = playbackChoice.current;
+    if (player.autoplay) playHeroFilm(player);
     else player.pause();
   }
 
@@ -121,23 +105,24 @@ export function Hero() {
       className="hero-section"
       aria-labelledby="hero-title"
     >
-      <figure className="hero-visual">
+      <div className="hero-visual">
         <div className="hero-image-frame">
           <SafeImage
             item={heroFilm.poster}
             fallback={media.garden}
             fetchPriority="high"
             loading="eager"
-            sizes="(min-width: 1000px) and (min-aspect-ratio: 2/1) min(100vw, 225svh), (min-width: 2400px) 100vw, 420px"
+            sizes="(min-width: 1000px) and (min-aspect-ratio: 2/1) 100vw, (min-width: 1700px) 100vw, 420px"
             className="hero-media"
           />
           <video
             ref={video}
             className={hasFrame ? "hero-video is-ready" : "hero-video"}
+            autoPlay
             muted
             loop
             playsInline
-            preload="none"
+            preload="auto"
             aria-hidden="true"
             onPlay={() => setPlaying(true)}
             onPlaying={() => setHasFrame(true)}
@@ -147,17 +132,14 @@ export function Hero() {
               setPlaying(false);
               if (currentTarget.getAttribute("src") === heroFilm.wide) {
                 currentTarget.src = heroFilm.desktop;
-                syncPlayback.current?.();
+                if (currentTarget.autoplay) playHeroFilm(currentTarget);
                 return;
               }
               setFailed(true);
             }}
           />
         </div>
-        <figcaption className="hero-caption">
-          <span>Vídeo: {heroFilm.credit}</span>
-        </figcaption>
-      </figure>
+      </div>
       {!failed && (
         <button type="button" className="hero-playback" onClick={togglePlayback}>
           {playing ? "Pausar vídeo" : "Reproduzir vídeo"}

@@ -1,7 +1,6 @@
 import { Header } from "@/components/site/Header";
 import { Hero } from "@/components/site/Hero";
 import { About } from "@/components/site/About";
-import { BrandIntro } from "@/components/site/BrandIntro";
 import { Film } from "@/components/site/Film";
 import { Experiences } from "@/components/site/Experiences";
 import { StoryFilm } from "@/components/site/StoryFilm";
@@ -28,7 +27,6 @@ export default function App() {
           respectReducedMotion: true,
         }}
       />
-      <BrandIntro />
       <a className="skip-link" href="#conteudo">
         Pular para o conteúdo
       </a>

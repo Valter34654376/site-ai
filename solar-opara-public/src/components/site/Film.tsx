@@ -6,13 +6,11 @@ const secondaryFilms = [
     src: "/media/film/solar-detalhes.mp4",
     poster: "/media/film/solar-detalhes-poster.jpg",
     title: "Detalhes da celebração",
-    credit: "Sônia Gonçalves Decorações",
   },
   {
     src: "/media/film/solar-celebracao.mp4",
     poster: "/media/film/solar-celebracao-poster.jpg",
     title: "Uma noite no Solar",
-    credit: "Hi-Tech Wedding",
   },
 ];
 
@@ -47,20 +45,9 @@ export function Film() {
 
   return (
     <section id="filme" className="film-section" aria-labelledby="film-title">
-      <div className="section-wrap film-heading">
-        <Reveal className="film-heading-main">
-          <span className="eyebrow">O Solar em movimento</span>
-          <h2 id="film-title">A noite acende. O jardim respira.</h2>
-        </Reveal>
-        <Reveal className="film-heading-copy">
-          <p>
-            Luz, flores, água e arquitetura criam o ritmo de cada celebração.
-            Aqui, o espaço aparece como ele realmente é: vivo, acolhedor e
-            preparado para receber.
-          </p>
-          <span>Filmes reproduzidos diretamente no site</span>
-        </Reveal>
-      </div>
+      <Reveal className="section-wrap film-heading">
+        <h2 id="film-title">Vídeos</h2>
+      </Reveal>
 
       <div className="section-wrap film-experience">
         <Reveal className="film-feature">
@@ -75,11 +62,6 @@ export function Film() {
           >
             <source src="/media/film/solar-atmosfera.mp4" type="video/mp4" />
           </video>
-          <div className="film-feature-shade" aria-hidden="true" />
-          <div className="film-feature-copy">
-            <span>Filme 01 · 00:22</span>
-            <strong>Uma entrada para lembrar</strong>
-          </div>
           <button
             type="button"
             className="film-sound"
@@ -92,7 +74,7 @@ export function Film() {
         </Reveal>
 
         <div className="film-collection" aria-label="Mais filmes do Solar Opará">
-          {secondaryFilms.map((item, index) => (
+          {secondaryFilms.map((item) => (
             <Reveal className="film-card" key={item.src}>
               <video
                 controls
@@ -103,13 +85,6 @@ export function Film() {
               >
                 <source src={item.src} type="video/mp4" />
               </video>
-              <figcaption>
-                <span>Filme 0{index + 2}</span>
-                <div>
-                  <strong>{item.title}</strong>
-                  <small>{item.credit}</small>
-                </div>
-              </figcaption>
             </Reveal>
           ))}
         </div>

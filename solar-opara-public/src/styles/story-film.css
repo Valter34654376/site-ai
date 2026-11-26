@@ -17,54 +17,6 @@
   pointer-events: none;
 }
 
-.story-film-heading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  max-width: 780px;
-  margin-inline: auto;
-  gap: 22px;
-  margin-bottom: 56px;
-}
-
-.story-film-heading > .reveal:first-child {
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.story-film-heading h2 {
-  max-width: 16ch;
-  font-size: clamp(2.6rem, 4.8vw, 5.2rem);
-  line-height: 0.98;
-}
-
-.story-film-intro {
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.story-film-intro p {
-  max-width: 54ch;
-  color: #554f47;
-  font-size: 14px;
-  line-height: 1.8;
-}
-
-.story-film-intro span {
-  padding-top: 14px;
-  color: #625a50;
-  border-top: 1px solid rgba(23, 25, 22, 0.24);
-  font-size: 9px;
-  font-weight: 650;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-}
-
 .story-film-stage {
   position: relative;
 }
@@ -101,16 +53,6 @@
   object-fit: cover;
 }
 
-.story-film-shade {
-  position: absolute;
-  z-index: 1;
-  inset: 0;
-  background:
-    linear-gradient(180deg, transparent 58%, rgba(6, 10, 7, 0.72)),
-    linear-gradient(90deg, rgba(6, 10, 7, 0.18), transparent 45%);
-  pointer-events: none;
-}
-
 .story-film-controls {
   position: absolute;
   z-index: 3;
@@ -139,35 +81,6 @@
   transform: translateY(-2px);
 }
 
-.story-film-caption {
-  position: absolute;
-  z-index: 3;
-  right: 28px;
-  bottom: 28px;
-  left: 28px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 6px;
-  color: #fff;
-}
-
-.story-film-caption span {
-  font-size: 9px;
-  font-weight: 650;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-}
-
-.story-film-caption strong {
-  max-width: 28ch;
-  font-size: 17px;
-  font-weight: 450;
-  line-height: 1.2;
-  text-align: center;
-}
-
 @media (hover: hover) and (pointer: fine) {
   .story-film-frame video {
     transition: transform 1.2s cubic-bezier(0.2, 0.72, 0.25, 1);
@@ -179,10 +92,6 @@
 }
 
 @media (max-width: 900px) {
-  .story-film-heading {
-    gap: 22px;
-  }
-
   .story-film-frame {
     width: 100%;
   }
@@ -191,15 +100,6 @@
 @media (max-width: 700px) {
   .story-film-section {
     padding: 92px 0 104px;
-  }
-
-  .story-film-heading {
-    margin-bottom: 42px;
-  }
-
-  .story-film-heading h2 {
-    max-width: 12ch;
-    font-size: clamp(2.6rem, 11vw, 4rem);
   }
 
   .story-film-frame {
@@ -221,16 +121,5 @@
     min-height: 38px;
     padding: 7px 10px;
     font-size: 9px;
-  }
-
-  .story-film-caption {
-    right: 18px;
-    bottom: 18px;
-    left: 18px;
-    gap: 5px;
-  }
-
-  .story-film-caption strong {
-    font-size: 14px;
   }
 }
