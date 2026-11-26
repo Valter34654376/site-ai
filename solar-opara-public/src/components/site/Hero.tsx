@@ -1,10 +1,56 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SafeImage } from "./SafeImage";
 import { Icon } from "./Icon";
-import { media } from "@/lib/site-content";
+import { heroFilm, media } from "@/lib/site-content";
+
+function playHeroFilm(player: HTMLVideoElement) {
+  if (!player.getAttribute("src")) {
+    player.src = matchMedia("(max-width: 700px) and (orientation: portrait)").matches
+      ? heroFilm.mobile
+      : heroFilm.desktop;
+  }
+  // Autoplay can be blocked even for muted video. The poster and play button stay visible.
+  if (player.paused) void player.play().catch(() => {});
+}
 
 export function Hero() {
   const section = useRef<HTMLElement>(null);
+  const video = useRef<HTMLVideoElement>(null);
+  const playbackChoice = useRef<boolean | null>(null);
+  const [playing, setPlaying] = useState(false);
+  const [hasFrame, setHasFrame] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    const player = video.current;
+    if (!player || failed) return;
+
+    const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+    const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+    let inView = !("IntersectionObserver" in window);
+    const sync = () => {
+      const wantsPlayback = playbackChoice.current ?? (!reducedMotion.matches && !connection?.saveData);
+      if (wantsPlayback && inView && !document.hidden) playHeroFilm(player);
+      else player.pause();
+    };
+    const observer = "IntersectionObserver" in window
+      ? new IntersectionObserver(([entry]) => {
+          inView = entry.isIntersecting && entry.intersectionRatio >= 0.15;
+          sync();
+        }, { threshold: 0.15 })
+      : null;
+
+    observer?.observe(player);
+    reducedMotion.addEventListener("change", sync);
+    document.addEventListener("visibilitychange", sync);
+    sync();
+    return () => {
+      observer?.disconnect();
+      reducedMotion.removeEventListener("change", sync);
+      document.removeEventListener("visibilitychange", sync);
+      player.pause();
+    };
+  }, [failed]);
 
   useEffect(() => {
     const element = section.current;
@@ -41,6 +87,14 @@ export function Hero() {
     };
   }, []);
 
+  function togglePlayback() {
+    const player = video.current;
+    if (!player || failed) return;
+    playbackChoice.current = player.paused;
+    if (player.paused) playHeroFilm(player);
+    else player.pause();
+  }
+
   return (
     <section
       ref={section}
@@ -51,19 +105,38 @@ export function Hero() {
       <figure className="hero-visual">
         <div className="hero-image-frame">
           <SafeImage
-            item={media.hero}
+            item={heroFilm.poster}
             fallback={media.garden}
             fetchPriority="high"
             loading="eager"
-            sizes="(max-width: 700px) 1200px, 100vw"
             className="hero-media"
+          />
+          <video
+            ref={video}
+            className={hasFrame ? "hero-video is-ready" : "hero-video"}
+            muted
+            loop
+            playsInline
+            preload="none"
+            aria-hidden="true"
+            onPlay={() => setPlaying(true)}
+            onPlaying={() => setHasFrame(true)}
+            onPause={() => setPlaying(false)}
+            onError={() => {
+              setHasFrame(false);
+              setFailed(true);
+            }}
           />
         </div>
         <figcaption className="hero-caption">
-          <span>Luana & Carlos · Solar Opará</span>
-          <span>Fotografia: Oliver Fotos / Marcos Oliver</span>
+          <span>Vídeo: {heroFilm.credit}</span>
         </figcaption>
       </figure>
+      {!failed && (
+        <button type="button" className="hero-playback" onClick={togglePlayback}>
+          {playing ? "Pausar vídeo" : "Reproduzir vídeo"}
+        </button>
+      )}
 
       <div className="hero-content">
         <div className="hero-identity">

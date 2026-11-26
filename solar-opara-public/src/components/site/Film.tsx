@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Reveal } from "./Reveal";
 
 const secondaryFilms = [
@@ -20,12 +20,29 @@ export function Film() {
   const video = useRef<HTMLVideoElement>(null);
   const [muted, setMuted] = useState(true);
 
+  useEffect(() => {
+    const player = video.current;
+    if (!player || !("IntersectionObserver" in window)) return;
+
+    const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && entry.intersectionRatio >= 0.25 && !reducedMotion.matches) {
+        void player.play().catch(() => {});
+      } else {
+        player.pause();
+      }
+    }, { threshold: 0.25 });
+
+    observer.observe(player);
+    return () => observer.disconnect();
+  }, []);
+
   function toggleSound() {
     const player = video.current;
     if (!player) return;
     player.muted = !muted;
     setMuted((value) => !value);
-    if (player.paused) void player.play();
+    if (player.paused) void player.play().catch(() => {});
   }
 
   return (
@@ -49,11 +66,10 @@ export function Film() {
         <Reveal className="film-feature">
           <video
             ref={video}
-            autoPlay
             muted={muted}
             loop
             playsInline
-            preload="auto"
+            preload="none"
             poster="/media/film/solar-atmosfera-poster.jpg"
             aria-label="Atmosfera de uma celebração no Solar Opará"
           >
@@ -81,7 +97,7 @@ export function Film() {
               <video
                 controls
                 playsInline
-                preload="metadata"
+                preload="none"
                 poster={item.poster}
                 aria-label={item.title}
               >

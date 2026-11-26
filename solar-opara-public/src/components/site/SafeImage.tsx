@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, type ImgHTMLAttributes } from "react";
-import { BRAND_FALLBACK, media, mediaSrcSet, type MediaItem } from "@/lib/site-content";
+import { BRAND_FALLBACK, media, mediaSrcSet, type ImageAsset } from "@/lib/site-content";
 
 type Props = Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "srcSet" | "width" | "height"> & {
-  item: MediaItem;
-  fallback?: MediaItem;
+  item: ImageAsset;
+  fallback?: ImageAsset;
   full?: boolean;
 };
 
@@ -23,7 +23,7 @@ export function SafeImage({ item, fallback = media.fallback, full = false, alt =
       ref={imgRef}
       {...props}
       src={full ? item.fullSrc : item.src}
-      srcSet={full ? undefined : mediaSrcSet(item)}
+      srcSet={full ? undefined : mediaSrcSet(item) || undefined}
       width={item.width}
       height={item.height}
       alt={alt}

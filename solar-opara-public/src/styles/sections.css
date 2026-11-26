@@ -1,4 +1,4 @@
-/* Hero — photograph first, centered & uniform composition */
+/* Hero */
 .hero-section {
   --hero-shift: 0px;
   position: relative;
@@ -35,6 +35,7 @@
 .hero-image-frame::after {
   position: absolute;
   inset: 0;
+  z-index: 1;
   background:
     linear-gradient(180deg, rgba(6, 10, 7, 0.36), transparent 26%),
     linear-gradient(0deg, rgba(6, 10, 7, 0.82), rgba(6, 10, 7, 0.34) 36%, transparent 62%);
@@ -42,13 +43,52 @@
   pointer-events: none;
 }
 
-.hero-media {
+.hero-media,
+.hero-video {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 50% 42%;
-  filter: brightness(1.08);
+  object-position: center;
+}
+
+.hero-media {
   animation: hero-settle 1.55s both cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.hero-video {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.hero-video.is-ready {
+  opacity: 1;
+}
+
+.hero-playback {
+  position: absolute;
+  z-index: 3;
+  right: clamp(16px, 3vw, 46px);
+  bottom: 20px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.58);
+  background: rgba(14, 21, 16, 0.88);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.hero-playback:hover {
+  background: #0e1510;
+}
+
+.hero-playback:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
 }
 
 @keyframes hero-settle {
@@ -183,11 +223,6 @@
   letter-spacing: 0.04em;
   text-align: center;
   white-space: nowrap;
-}
-
-.hero-caption span + span::before {
-  margin-right: 8px;
-  content: "·";
 }
 
 .hero-scroll {
@@ -867,8 +902,13 @@
       linear-gradient(0deg, rgba(6, 10, 7, 0.74), transparent 48%);
   }
 
-  .hero-media {
-    object-position: 50% 42%;
+  .hero-playback {
+    top: 76px;
+    right: 14px;
+    bottom: auto;
+    grid-area: photo;
+    justify-self: end;
+    align-self: start;
   }
 
   .hero-content {

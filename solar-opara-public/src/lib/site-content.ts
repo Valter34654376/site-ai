@@ -1,6 +1,7 @@
 import catalog from "@/data/media-catalog.json";
 
 export const INSTAGRAM_URL = catalog.officialInstagram;
+export const heroFilm = catalog.heroFilm;
 export const ADMIN_URL = "https://solar-opara-web-production.up.railway.app";
 export const BRAND_FALLBACK = "/media/solar-opara-monogram.svg";
 export const MAP_URL =
@@ -24,23 +25,25 @@ export type MediaVariant = {
   height: number;
   bytes: number;
 };
-export type MediaItem = {
+export type ImageAsset = {
   id: string;
   src: string;
   fullSrc: string;
   width: number;
   height: number;
   variants: MediaVariant[];
+  alt: string;
+  objectPosition?: string;
+};
+export type MediaItem = ImageAsset & {
   categories: string[];
   category: string;
   caption: string;
-  alt: string;
   credit: string;
   sourcePage: string;
   orientation: string;
   featured: string[];
   locationNote?: string;
-  objectPosition?: string;
 };
 
 const SOCIAL_MEDIA_SOURCE = {
@@ -231,14 +234,13 @@ function featured(slot: string): MediaItem {
 }
 
 export const media = {
-  hero: featured("hero"),
   fallback: featured("wedding"),
   wedding: featured("wedding"),
   garden: featured("garden"),
   detail: featured("detail"),
 };
 
-export function mediaSrcSet(item: MediaItem) {
+export function mediaSrcSet(item: ImageAsset) {
   return item.variants
     .map((variant) => `${variant.src} ${variant.width}w`)
     .join(", ");

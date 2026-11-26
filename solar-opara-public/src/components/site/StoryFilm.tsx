@@ -73,7 +73,7 @@ export function StoryFilm() {
             muted={muted}
             loop
             playsInline
-            preload="metadata"
+            preload="none"
             poster="/media/film/solar-historia-completa-poster.jpg"
             onPlay={() => setPlaying(true)}
             onPause={() => setPlaying(false)}

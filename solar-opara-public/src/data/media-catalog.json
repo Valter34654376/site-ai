@@ -19,6 +19,21 @@
     "additionalAlbumPhotosAuthorized": true,
     "additionalInstruction": "O operador forneceu os posts DevLYbgDOMF e Depn5XCiXOv e solicitou que suas fotografias fossem adicionadas ao site."
   },
+  "heroFilm": {
+    "sourcePage": "https://www.instagram.com/solaroparaoficial/reel/DDsRDsvpf74/",
+    "credit": "Solar Opará",
+    "desktop": "/media/hero/solar-opara-reel-DDsRDsvpf74-720.mp4",
+    "mobile": "/media/hero/solar-opara-reel-DDsRDsvpf74-mobile.mp4",
+    "poster": {
+      "id": "solar-opara-reel-abertura",
+      "src": "/media/hero/solar-opara-reel-DDsRDsvpf74-poster.webp",
+      "fullSrc": "/media/hero/solar-opara-reel-DDsRDsvpf74-poster.webp",
+      "width": 1276,
+      "height": 720,
+      "variants": [],
+      "alt": "Caminho entre palmeiras na entrada do Solar Opará"
+    }
+  },
   "media": [
     {
       "id": "solar-celebracao-01",
@@ -46,7 +61,6 @@
       "rightsStatus": "owner-confirmed",
       "orientation": "horizontal",
       "featured": [
-        "hero",
         "wedding"
       ],
       "originalWidth": 1200,

@@ -25,12 +25,17 @@ for (const item of catalog.media) {
   assert(item.variants.some((variant) => variant.src === item.src));
   assert(item.variants.some((variant) => variant.src === item.fullSrc));
 }
-for (const slot of ["hero", "wedding", "garden", "detail"]) {
+for (const slot of ["wedding", "garden", "detail"]) {
   assert(catalog.media.some((item) => item.featured.includes(slot)), `Missing feature: ${slot}`);
 }
 const html = await readFile(path.join(root, "index.html"), "utf8");
-const hero = catalog.media.find((item) => item.featured.includes("hero"));
-assert(html.includes(hero.src), "Hero preload is stale");
+const { poster, desktop, mobile, sourcePage } = catalog.heroFilm;
+assert(sourcePage && poster.alt, "Missing hero film provenance or accessibility");
+assert(html.includes(poster.src), "Hero preload is stale");
+for (const [resource, maxBytes] of [[poster.src, 400_000], [desktop, 35_000_000], [mobile, 17_000_000]]) {
+  const info = await stat(path.join(root, "public", resource));
+  assert(info.size > 0 && info.size <= maxBytes, `Invalid hero media size: ${resource}`);
+}
 for (const resource of ["/media/solar-opara-monogram.svg", "/media/hero/solar-opara-casamento-social.jpg", "/favicon.svg"]) {
   await stat(path.join(root, "public", resource));
 }
