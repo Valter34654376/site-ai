@@ -59,12 +59,14 @@ table input,table select{min-width:180px}
 #pixModal .form{margin-top:16px}
 </style>
 <link rel="stylesheet" href="/dashboard.css">
+<link rel="stylesheet" href="/payments-online.css">
 </head>
 <body><div id="app"></div>
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
 import QRCode from "https://cdn.jsdelivr.net/npm/qrcode@1.5.4/+esm";
 import { loadDashboard, renderDashboard, bindDashboard } from "./dashboard.js";
+import { bindPaymentSetup, openOnlinePayment, paymentRequest, renderPaymentSetup } from "./payments-online.js";
 
 const SUPABASE_URL="https://bdfojankowlfuezdhdjl.supabase.co";
 const SUPABASE_KEY="sb_publishable_mHNwZ6rrplQy9P-0o3wfnQ_iRC_AvYY";
@@ -101,6 +103,7 @@ async function nfGateway(path,opt={}){
 let me=null, profile=null, route="dashboard";
 const $=s=>document.querySelector(s);
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const paymentsApi=(action,body)=>paymentRequest(action,body,sessionToken);
 const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const dateBR=v=>v?new Date(v+"T12:00:00").toLocaleDateString("pt-BR"):"—";
 const dtBR=v=>v?new Date(v).toLocaleString("pt-BR"):"—";
@@ -114,9 +117,9 @@ async function passwordDigest(username,password){
  return Array.from(new Uint8Array(bits),b=>b.toString(16).padStart(2,"0")).join("");
 }
 const navMeta={
- dashboard:["Início","◫"],clientes:["Clientes","◎"],agenda:["Agenda","▦"],solicitacoes:["Solicitações","✉"],contratos:["Contratos","▤"],receber:["Cobranças","↙"],recebimentos:["Pagamentos","✓"],despesas:["Despesas","↗"],nfse:["Notas fiscais","N"],usuarios:["Equipe","♙"],auditoria:["Histórico","⌁"]
+ dashboard:["Início","◫"],clientes:["Clientes","◎"],agenda:["Agenda","▦"],solicitacoes:["Solicitações","✉"],contratos:["Contratos","▤"],receber:["Cobranças","↙"],recebimentos:["Pagamentos","✓"],recebimentosOnline:["Recebimentos online","↗"],despesas:["Despesas","↗"],nfse:["Notas fiscais","N"],usuarios:["Equipe","♙"],auditoria:["Histórico","⌁"]
 };
-function nav(){return Object.entries(navMeta).filter(([x])=>profile?.role==="admin"||!["usuarios","auditoria"].includes(x)).map(([x,m])=>`<button data-route="${x}"${route===x?' class="active" aria-current="page"':""}><span class="nav-icon" aria-hidden="true">${m[1]}</span><span>${m[0]}</span></button>`).join("")}
+function nav(){return Object.entries(navMeta).filter(([x])=>profile?.role==="admin"||!["usuarios","auditoria","recebimentosOnline"].includes(x)).map(([x,m])=>`<button data-route="${x}"${route===x?' class="active" aria-current="page"':""}><span class="nav-icon" aria-hidden="true">${m[1]}</span><span>${m[0]}</span></button>`).join("")}
 function shell(body){return `<div class="layout"><aside class="side"><div class="brand"><img src="/favicon.svg" alt=""><div class="brand-copy"><strong>Solar Opará</strong><span>Gestão de Eventos</span></div></div>${nav()}<a class="public-site-link" href="https://id-preview--291a4cba-45b4-4e3c-914a-eb36003bbf3d.lovable.app/" target="_blank" rel="noopener"><span class="nav-icon">↗</span><span>Abrir site público</span></a><button id="logout" class="logout"><span class="nav-icon">↪</span><span>Sair</span></button></aside><main class="main${route==="dashboard"?" dashboard-main":""}">${body}</main></div>`}
 function bindNav(){
  document.querySelectorAll("[data-route]").forEach(button=>button.onclick=async()=>{
@@ -209,7 +212,7 @@ async function load(){
  }
  me=data.user;profile=data.user;sb=sessionClient(sessionToken);render();
 }
-const screens={clientes,agenda,solicitacoes,contratos,receber,recebimentos,despesas,nfse,usuarios,auditoria};
+const screens={clientes,agenda,solicitacoes,contratos,receber,recebimentos,recebimentosOnline,despesas,nfse,usuarios,auditoria};
 let renderRequest=0;
 async function render(){
  const request=++renderRequest, page=route;
@@ -646,15 +649,57 @@ async function saveContractForm(form){
 }
 
 function isOverdue(date){return !!date&&String(date)<new Date().toISOString().slice(0,10)}
+function canRecordPayment(){return ["admin","operator"].includes(profile?.role)}
+function onlineStates(){
+ return sb.from("so_online_checkouts").select("receivable_id,state").in("state",["preparing","open","review"]);
+}
+async function recebimentosOnline(){
+ if(profile?.role!=="admin")return '<div class="warnbox">Acesso exclusivo da administração.</div>';
+ const status=await paymentsApi("status").catch(()=>null);
+ return renderPaymentSetup(status,esc);
+}
 async function receber(){
- const [{data:r,error:re},{data:p,error:pe}]=await Promise.all([sb.from("so_receivables").select("*,so_contracts(event_name,client_id,payment_terms,so_clients(name,email,phone))").order("due_date"),sb.from("so_payments").select("*").eq("reversed",false)]);
- if(re||pe)return `<h1>A receber</h1><div class="warnbox">${esc(re?.message||pe?.message||"Falha ao carregar cobranças")}</div>`;
- return `<h1>A receber</h1><table><tr><th>Cliente / evento</th><th>Venc.</th><th>Parcela</th><th>Forma</th><th>Status</th><th></th></tr>${(r||[]).map(x=>{const paid=(p||[]).filter(y=>y.receivable_id===x.id).reduce((a,y)=>a+Number(y.amount),0),full=paid>=Number(x.amount)-0.001,partial=paid>0&&!full,late=!full&&isOverdue(x.due_date),st=full?"PAGO":late?(partial?"PARCIAL / ATRASADO":"ATRASADO"):partial?"PARCIAL":"PENDENTE",cls=full?"paid":late?"late":"";return `<tr><td>${esc(x.so_contracts?.so_clients?.name)}<br><span class=muted>${esc(x.so_contracts?.event_name)}</span></td><td>${dateBR(x.due_date)}</td><td>${money(x.amount)}<br><small class="muted">${esc(x.description)}</small></td><td>${esc(x.so_contracts?.payment_terms||"PIX")}</td><td><span class="badge ${cls}">${st}</span>${paid>0&&!full?`<br><small class="muted">Recebido: ${money(paid)}</small>`:""}</td><td><div class=row><button class="btn small" data-pix="${x.id}">Cobrar / confirmar</button><button class="btn small gray" data-print-charge="${x.id}">Imprimir cobrança</button></div></td></tr>`}).join("")}</table><dialog id=pixModal aria-labelledby=paymentTitle></dialog>`;
+ const [{data:r,error:re},{data:p,error:pe},{data:links}]=await Promise.all([
+  sb.from("so_receivables").select("*,so_contracts(event_name,status,payment_terms,so_clients(name))").order("due_date"),
+  sb.from("so_payments").select("receivable_id,amount").eq("reversed",false),
+  onlineStates()
+ ]);
+ if(re||pe)return '<h1>A receber</h1><div class="warnbox">'+esc(re?.message||pe?.message||"Falha ao carregar cobranças")+'</div>';
+ const protectedReceivables=new Set((links||[]).map(link=>link.receivable_id));
+ const paidByReceivable=new Map();
+ for(const item of p||[])paidByReceivable.set(item.receivable_id,(paidByReceivable.get(item.receivable_id)||0)+Math.round(Number(item.amount)*100));
+ const rows=(r||[]).map(item=>{
+  const paid=paidByReceivable.get(item.id)||0, total=Math.round(Number(item.amount)*100);
+  const full=total>0&&paid>=total, partial=paid>0&&!full;
+  const cancelled=item.status==="cancelled"||item.so_contracts?.status==="cancelled";
+  const late=!full&&!cancelled&&isOverdue(item.due_date);
+  const label=cancelled?"CANCELADO":full?"PAGO":late?(partial?"PARCIAL / ATRASADO":"ATRASADO"):partial?"PARCIAL":"PENDENTE";
+  const cls=full?"paid":late?"late":"";
+  const online=protectedReceivables.has(item.id);
+  const eligible=canRecordPayment()&&!full&&!cancelled&&total>paid&&["active","completed"].includes(item.so_contracts?.status);
+  const id=esc(item.id);
+  const actions=[
+   canRecordPayment()&&(online||eligible)?'<button type="button" class="btn small" data-online-payment="'+id+'">'+(online?"Ver link":"Link de pagamento")+'</button>':"",
+   canRecordPayment()&&!online&&!cancelled?'<button type="button" class="btn small'+(eligible?' gray':'')+'" data-pix="'+id+'">'+(full?"Ver pagamento":"Cobrar / confirmar")+'</button>':"",
+   !online?'<button type="button" class="btn small gray" data-print-charge="'+id+'">Imprimir cobrança</button>':""
+  ].join("");
+  return '<tr><td>'+esc(item.so_contracts?.so_clients?.name)+'<br><span class="muted">'+esc(item.so_contracts?.event_name)+'</span></td>'+
+   '<td>'+dateBR(item.due_date)+'</td><td>'+money(item.amount)+'<br><small class="muted">'+esc(item.description)+'</small></td>'+
+   '<td>'+esc(item.so_contracts?.payment_terms||"PIX")+'</td><td><span class="badge '+cls+'">'+label+'</span>'+
+   (partial?'<br><small class="muted">Recebido '+money(paid/100)+'</small>':"")+
+   (online?'<br><small class="muted">Cobrança online</small>':"")+'</td><td><div class="row">'+actions+'</div></td></tr>';
+ }).join("");
+ return '<h1>A receber</h1><table><tr><th>Cliente / evento</th><th>Venc.</th><th>Parcela</th><th>Forma</th><th>Status</th><th>Ações</th></tr>'+
+  rows+'</table><dialog id="pixModal" aria-labelledby="paymentTitle"></dialog><dialog id="onlinePaymentModal" aria-labelledby="onlinePaymentTitle"></dialog>';
 }
 async function recebimentos(){
- const {data,error}=await sb.from("so_payments").select("*,so_receivables(amount,description,due_date,so_contracts(event_name,so_clients(name,email,document)))").eq("reversed",false).order("paid_at",{ascending:false});
+ const [{data,error},{data:markers}]=await Promise.all([
+  sb.from("so_payments").select("*,so_receivables(amount,description,due_date,so_contracts(event_name,so_clients(name,email,document)))").eq("reversed",false).order("paid_at",{ascending:false}),
+  sb.from("so_online_transactions").select("payment_id")
+ ]);
+ const onlineReceipts=new Set((markers||[]).map(marker=>marker.payment_id));
  if(error)return `<h1>Recebimentos</h1><div class="warnbox">${esc(error.message)}</div>`;
- return `<div class=top><h1>Pagamentos</h1><button class="btn gray" id=csvPay>Exportar CSV</button></div><table><tr><th>Data</th><th>Cliente</th><th>Evento</th><th>Valor</th><th>Forma</th><th>Referência</th><th></th></tr>${(data||[]).map(x=>{let cl=x.so_receivables?.so_contracts?.so_clients,ev=x.so_receivables?.so_contracts?.event_name,subj=`Solar Opará – Pagamento confirmado – ${ev||""}`,body=`Olá ${cl?.name||""},%0D%0A%0D%0AConfirmamos o recebimento de ${money(x.amount)} referente ao evento ${ev||""}.%0D%0AData: ${dtBR(x.paid_at)}.%0D%0AForma: ${x.method||"PIX"}.%0D%0A%0D%0AAtenciosamente,%0D%0ASolar Opará`;return `<tr><td>${dtBR(x.paid_at)}</td><td>${esc(cl?.name)}</td><td>${esc(ev)}</td><td>${money(x.amount)}</td><td>${esc(x.method||"PIX")}</td><td>${esc(x.reference)}</td><td><div class=row><button class="btn small" data-payment-edit="${x.id}" data-receivable="${x.receivable_id}">Editar</button><button class="btn small gray" data-receipt="${x.id}">Recibo</button><a class="btn small" target=_blank href="mailto:${encodeURIComponent(cl?.email||"")}?subject=${encodeURIComponent(subj)}&body=${body}">E-mail</a></div></td></tr>`}).join("")}</table><dialog id=pixModal aria-labelledby=paymentTitle></dialog>`;
+ return `<div class=top><h1>Pagamentos</h1><button class="btn gray" id=csvPay>Exportar CSV</button></div><table><tr><th>Data</th><th>Cliente</th><th>Evento</th><th>Valor</th><th>Forma</th><th>Referência</th><th></th></tr>${(data||[]).map(x=>{let cl=x.so_receivables?.so_contracts?.so_clients,ev=x.so_receivables?.so_contracts?.event_name,subj=`Solar Opará – Pagamento confirmado – ${ev||""}`,body=`Olá ${cl?.name||""},%0D%0A%0D%0AConfirmamos o recebimento de ${money(x.amount)} referente ao evento ${ev||""}.%0D%0AData: ${dtBR(x.paid_at)}.%0D%0AForma: ${x.method||"PIX"}.%0D%0A%0D%0AAtenciosamente,%0D%0ASolar Opará`;return `<tr><td>${dtBR(x.paid_at)}</td><td>${esc(cl?.name)}</td><td>${esc(ev)}</td><td>${money(x.amount)}</td><td>${esc(x.method||"PIX")}</td><td>${esc(x.reference)}</td><td><div class=row>${onlineReceipts.has(x.id)?'<span class="badge paid">Sicoob</span>':canRecordPayment()?'<button class="btn small" data-payment-edit="'+esc(x.id)+'" data-receivable="'+esc(x.receivable_id)+'">Editar</button>':""}<button class="btn small gray" data-receipt="${x.id}">Recibo</button><a class="btn small" target=_blank href="mailto:${encodeURIComponent(cl?.email||"")}?subject=${encodeURIComponent(subj)}&body=${body}">E-mail</a></div></td></tr>`}).join("")}</table><dialog id=pixModal aria-labelledby=paymentTitle></dialog>`;
 }
 async function despesas(){
  const {data}=await sb.from("so_expenses").select("*").order("expense_date",{ascending:false});
@@ -771,16 +816,23 @@ async function auditoria(){
 function emv(i,v){return i+String(v.length).padStart(2,"0")+v}function crc(s){let c=65535;for(const h of s){c^=h.charCodeAt(0)<<8;for(let i=0;i<8;i++)c=(c&32768)?((c<<1)^4129)&65535:(c<<1)&65535}return c.toString(16).toUpperCase().padStart(4,"0")}
 function pixPayload(amount,tx){const ma=emv("00","br.gov.bcb.pix")+emv("01",PIX);let p=emv("00","01")+emv("26",ma)+emv("52","0000")+emv("53","986")+emv("54",Number(amount).toFixed(2))+emv("58","BR")+emv("59","SOLAR OPARA")+emv("60","PIRAPORA")+emv("62",emv("05",tx.slice(0,25)))+"6304";return p+crc(p)}
 async function openPix(rid,paymentId){
+ if(!canRecordPayment())return;
  const dialog=$("#pixModal");
  if(!dialog||dialog.open)return;
  dialog.innerHTML='<h2 id="paymentTitle">Carregando pagamento…</h2><button type="button" class="btn gray" data-close-payment>Fechar</button>';
  dialog.querySelector("[data-close-payment]").onclick=()=>dialog.close();
  dialog.showModal();
- const [{data:r,error:recErr},{data:p,error:payErr}]=await Promise.all([
+ const [{data:r,error:recErr},{data:p,error:payErr},{data:activeLinks}]=await Promise.all([
   sb.from("so_receivables").select("*,so_contracts(event_name,payment_terms,so_clients(name,email))").eq("id",rid).single(),
-  sb.from("so_payments").select("*").eq("receivable_id",rid).eq("reversed",false)
+  sb.from("so_payments").select("*").eq("receivable_id",rid).eq("reversed",false),
+  onlineStates().eq("receivable_id",rid)
  ]);
  if(!dialog.open||!dialog.isConnected)return;
+ if(activeLinks?.length){
+  dialog.querySelector("h2").textContent="Esta parcela tem cobrança online";
+  dialog.querySelector("h2").insertAdjacentHTML("afterend",'<p>Consulte o link em Cobranças para acompanhar a confirmação no Sicoob.</p>');
+  return;
+ }
  const payment=(p||[]).find(x=>x.id===paymentId);
  if(recErr||payErr||!r||(paymentId&&!payment)){
   dialog.querySelector("h2").textContent=recErr?.message||payErr?.message||"Pagamento ou cobrança não encontrado.";
@@ -865,7 +917,12 @@ async function openPix(rid,paymentId){
 }
 
 async function printCharge(rid){
- const [{data:r,error:re},{data:p,error:pe}]=await Promise.all([sb.from("so_receivables").select("*,so_contracts(event_name,payment_terms,so_clients(name,email,document))").eq("id",rid).single(),sb.from("so_payments").select("amount").eq("receivable_id",rid).eq("reversed",false)]);
+ const [{data:r,error:re},{data:p,error:pe},{data:activeLinks}]=await Promise.all([
+  sb.from("so_receivables").select("*,so_contracts(event_name,payment_terms,so_clients(name,email,document))").eq("id",rid).single(),
+  sb.from("so_payments").select("amount").eq("receivable_id",rid).eq("reversed",false),
+  onlineStates().eq("receivable_id",rid)
+ ]);
+ if(activeLinks?.length)return toast("Esta parcela tem cobrança online. Compartilhe o link em Cobranças.");
  if(re||pe||!r)return toast(re?.message||pe?.message||"Cobrança não encontrada");
  const paid=(p||[]).reduce((a,x)=>a+Number(x.amount),0),balance=Math.max(0,Number(r.amount)-paid),terms=String(r.so_contracts?.payment_terms||"PIX"),pix=terms==="PIX"||terms==="Pix parcelado";
  let qr="",payload=""; if(pix&&balance>0){payload=pixPayload(balance,r.txid);qr=await QRCode.toDataURL(payload)}
@@ -892,6 +949,11 @@ async function showDoc(cid,manual=false){
  else w.document.write(`<meta charset=utf-8><title>Contrato Solar Opará</title><style>body{font-family:Arial;max-width:900px;margin:30px auto;line-height:1.5}table{width:100%;border-collapse:collapse}td{border:1px solid #aaa;padding:8px}</style><button onclick=print()>Imprimir / Salvar PDF</button><h1>CONTRATO DE LOCAÇÃO DE ESPAÇO PARA EVENTOS – SOLAR OPARÁ</h1><table><tr><td>LOCADOR</td><td>SOLAR OPARÁ TURISMO E HOTEIS — CNPJ 33.958.617/0001-73</td></tr><tr><td>REPRESENTANTE</td><td>FLAVIA TATIANA RIBEIRO DE OLIVEIRA</td></tr><tr><td>LOCATÁRIO</td><td>${esc(cl.name)}</td></tr><tr><td>CPF/CNPJ</td><td>${esc(cl.document)}</td></tr><tr><td>EVENTO</td><td>${esc(c.event_name)}</td></tr><tr><td>DATA</td><td>${dateBR(c.event_date)}</td></tr><tr><td>CAPACIDADE</td><td>${esc(c.capacity)}</td></tr><tr><td>LOCAÇÃO</td><td>${money(c.rental_value)}</td></tr><tr><td>LIMPEZA</td><td>${money(c.cleaning_fee)}</td></tr><tr><td>ADICIONAIS</td><td>${money(c.additional_value)} — ${esc(c.additional_services)}</td></tr><tr><td>TOTAL</td><td>${money(total)}</td></tr><tr><td>CAUÇÃO/GARANTIA</td><td>${esc(c.guarantee_text)}</td></tr><tr><td>PAGAMENTO</td><td>${esc(c.payment_terms)}</td></tr><tr><td>OBSERVAÇÕES</td><td>${esc(c.observations)}</td></tr></table><h2>Vistoria e checklist</h2><p>As condições do espaço, montagem, uso e devolução devem ser conferidas pelas partes conforme o evento.</p><h2>Disposições gerais</h2><p>Este documento registra as condições operacionais e financeiras informadas no cadastro do evento.</p><p>Chave Pix: ${PIX}</p>`);w.document.close()
 }
 function bindPage(){
+ const setup=$(".pay-setup");
+ if(setup)bindPaymentSetup(setup,paymentsApi,render);
+ document.querySelectorAll("[data-online-payment]").forEach(button=>button.onclick=()=>openOnlinePayment($("#onlinePaymentModal"),button.dataset.onlinePayment,{
+  api:paymentsApi,escape:esc,money,settings:profile?.role==="admin"?()=>{route="recebimentosOnline";render()}:null
+ }));
  if($("#agendaPrev"))$("#agendaPrev").onclick=()=>{let d=window.solarAgendaMonth||new Date();window.solarAgendaMonth=new Date(d.getFullYear(),d.getMonth()-1,1);render()};
  if($("#agendaToday"))$("#agendaToday").onclick=()=>{let d=new Date();window.solarAgendaMonth=new Date(d.getFullYear(),d.getMonth(),1);render()};
  if($("#agendaNext"))$("#agendaNext").onclick=()=>{let d=window.solarAgendaMonth||new Date();window.solarAgendaMonth=new Date(d.getFullYear(),d.getMonth()+1,1);render()};

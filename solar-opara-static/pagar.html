@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src https://bdfojankowlfuezdhdjl.supabase.co; base-uri 'none'; form-action 'none'">
+  <title>Pagamento | Solar Opará</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/payments-online.css">
+  <script type="module" src="/pagar.js"></script>
+</head>
+<body class="pay-page">
+  <main>
+    <p class="pay-brand"><img src="/favicon.svg" width="40" height="40" alt="">Solar Opará</p>
+    <section class="pay-sheet" aria-labelledby="payTitle">
+      <h1 id="payTitle">Pagamento</h1>
+      <p class="pay-public-amount" id="payAmount" hidden></p>
+      <p class="pay-public-expiry" id="payExpiry" hidden></p>
+      <p id="payStatus" role="status">Carregando cobrança…</p>
+      <div class="pay-public-tools" id="payTools" hidden>
+        <img id="payQr" width="240" height="240" alt="QR Code Pix" hidden>
+        <label for="payCode" id="payLabel">Código de pagamento</label>
+        <textarea id="payCode" rows="2" readonly spellcheck="false"></textarea>
+        <button type="button" id="copyPayment">Copiar código</button>
+        <p id="copyResult" role="status"></p>
+      </div>
+      <button type="button" id="reloadPayment" hidden>Consultar novamente</button>
+    </section>
+    <noscript><p>Ative o JavaScript para consultar o pagamento.</p></noscript>
+  </main>
+</body>
+</html>
