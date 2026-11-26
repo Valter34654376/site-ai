@@ -66,6 +66,9 @@ export function Footer() {
             <a href="#galeria" className="footer-link">
               Galeria
             </a>
+            <a href="#valores" className="footer-link">
+              Valores
+            </a>
             <a href="#datas" className="footer-link">
               Disponibilidade
             </a>

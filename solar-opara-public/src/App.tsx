@@ -1,3 +1,4 @@
+import { useLayoutEffect } from "react";
 import { Header } from "@/components/site/Header";
 import { Hero } from "@/components/site/Hero";
 import { About } from "@/components/site/About";
@@ -6,12 +7,18 @@ import { Experiences } from "@/components/site/Experiences";
 import { StoryFilm } from "@/components/site/StoryFilm";
 import { Gallery } from "@/components/site/Gallery";
 import { Visit } from "@/components/site/Visit";
+import { Pricing } from "@/components/site/Pricing";
 import { BookingFlow } from "@/components/site/BookingFlow";
 import { Footer } from "@/components/site/Footer";
 import { gallery } from "@/lib/site-content";
 import { ReactLenis } from "lenis/react";
 
 export default function App() {
+  useLayoutEffect(() => {
+    const anchor = window.location.hash.slice(1);
+    if (anchor) document.getElementById(anchor)?.scrollIntoView({ behavior: "instant" });
+  }, []);
+
   return (
     <>
       <ReactLenis
@@ -39,6 +46,7 @@ export default function App() {
         <StoryFilm />
         <Gallery items={gallery} />
         <Visit />
+        <Pricing />
         <BookingFlow />
       </main>
       <Footer />

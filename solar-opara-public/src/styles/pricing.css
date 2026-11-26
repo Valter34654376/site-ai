@@ -1,0 +1,121 @@
+.pricing-section {
+  padding-block: clamp(68px, 8vw, 118px);
+  border-block: 1px solid var(--border);
+  background: var(--paper);
+}
+
+.pricing-heading {
+  margin-bottom: clamp(24px, 3.5vw, 42px);
+}
+
+.pricing-heading p {
+  margin-top: 12px;
+  color: var(--muted-foreground);
+}
+
+.pricing-options,
+.pricing-terms dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(14px, 2vw, 24px);
+}
+
+.pricing-option {
+  --pricing-rule: var(--border);
+  --pricing-muted: var(--muted-foreground);
+  padding: clamp(21px, 3.8vw, 49px);
+  border: 1px solid var(--pricing-rule);
+  background: var(--background);
+}
+
+.pricing-option-installments {
+  --pricing-rule: rgba(255, 255, 255, 0.27);
+  --pricing-muted: #e1ddd1;
+  border-color: var(--forest);
+  background: var(--forest);
+  color: var(--paper);
+}
+
+.pricing-option h3 {
+  font-size: clamp(1.1rem, 2vw, 1.4rem);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.pricing-amount {
+  margin-top: 9px;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 4.3rem);
+  font-weight: 550;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.055em;
+  line-height: 1.12;
+}
+
+.pricing-fee {
+  margin-top: 9px;
+  color: var(--pricing-muted);
+  font-size: 0.95rem;
+}
+
+.pricing-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 5px 16px;
+  margin-top: clamp(17px, 2.6vw, 28px);
+  padding-top: 14px;
+  border-top: 1px solid var(--pricing-rule);
+}
+
+.pricing-total span {
+  color: var(--pricing-muted);
+  font-size: 0.875rem;
+}
+
+.pricing-total strong {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.pricing-terms {
+  margin: 26px 0 0;
+  padding: 22px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.pricing-terms h3 {
+  margin-bottom: 13px;
+  font-size: 1.2rem;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+}
+
+.pricing-terms dt {
+  font-weight: 650;
+}
+
+.pricing-terms dd {
+  margin-top: 3px;
+  color: var(--muted-foreground);
+  font-size: 0.95rem;
+}
+
+.pricing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+@media (max-width: 660px) {
+  .pricing-options,
+  .pricing-terms dl {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pricing-actions > a {
+    flex: 1 0 100%;
+  }
+}
