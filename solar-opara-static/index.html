@@ -44,8 +44,6 @@ textarea{min-height:92px;resize:vertical}.form{display:grid;grid-template-column
 .login{display:flex;align-items:center;justify-content:center;padding:30px;background:linear-gradient(180deg,#f8f5ef,#eee8de)}.login .card{width:min(440px,100%);padding:30px;border-radius:22px}.login-logo{display:flex;align-items:center;gap:12px;margin-bottom:22px}.login-logo img{width:48px;height:48px}.login-logo strong{font-family:'Playfair Display',serif;font-size:25px}
 .code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all;background:#f3f0e9;border:1px dashed #d7cdbd;padding:11px;border-radius:10px;font-size:11px}.toast{position:fixed;right:20px;top:20px;background:#24231f;color:#fff;padding:13px 16px;border-radius:11px;z-index:9999;box-shadow:0 18px 40px rgba(0,0,0,.22)}
 .warnbox{background:#fff9ec;border:1px solid #ecd8a8;padding:13px 15px;border-radius:11px}
-.dashboard-hero{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:22px}.dashboard-hero p{margin:4px 0 0;color:var(--muted)}
-.summary-strip{margin-top:15px;background:#24231f;border-radius:14px;padding:18px 20px;color:#fff;display:flex;justify-content:space-between;gap:20px;align-items:center;box-shadow:none}.summary-strip strong{font-family:'Inter',Arial,sans-serif;font-size:26px;color:#f1ce82;font-weight:700;font-variant-numeric:tabular-nums lining-nums}.summary-strip span{font-size:12px;color:#aaa79f}
 .calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;margin-top:12px;min-width:0}.day{min-height:118px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:9px;min-width:0;overflow:hidden}.day b{font-size:12px}.evt{font-size:11px;line-height:1.35;background:#f8edda;border-left:3px solid var(--gold);padding:6px 7px;border-radius:6px;margin-top:5px;overflow-wrap:anywhere}
 .empty{padding:34px 18px;text-align:center;color:var(--muted);border:1px dashed #d9d1c5;border-radius:12px;background:#fff}.advanced-panel{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:#fbfaf7}.advanced-panel summary{cursor:pointer;font-weight:700;color:#57534c}.advanced-panel[open] summary{margin-bottom:12px}.advanced-grid{margin-top:8px}.subtle-note{font-size:12px;color:var(--muted);line-height:1.5}.badge.late{background:#fde8e3;color:#953b31}
 .money,td,th,input[type="number"],input[type="date"],input[type="datetime-local"]{font-variant-numeric:tabular-nums lining-nums}
@@ -55,16 +53,18 @@ table input,table select{min-width:180px}
 @media(max-width:1200px){th,td{padding:10px 11px}.main{padding:24px}}
 @media(max-width:1050px){.grid{grid-template-columns:repeat(2,1fr)}.main{padding:26px}.login-page{grid-template-columns:1fr}.login-art{display:none}}
 @media(max-width:850px){.layout{display:block}.side{position:static;width:100%;display:flex;gap:4px;overflow:auto;align-items:center}.brand{min-width:210px;border:0;margin:0;padding:3px 8px}.brand-copy span{display:none}.side button{min-width:max-content}.main{margin:0;width:100%;padding:18px;overflow-x:hidden}.form{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.top{flex-wrap:wrap}.calendar{overflow-x:auto}}
-@media(max-width:560px){.grid,.form{grid-template-columns:1fr}.dashboard-hero,.top{align-items:flex-start;flex-direction:column}.calendar{grid-template-columns:1fr 1fr}.main{padding:14px}h1{font-size:28px}h2{font-size:21px}.card{padding:14px}.btn{width:auto;max-width:100%}th,td{font-size:12px}.summary-strip{align-items:flex-start;flex-direction:column}.metric{min-height:105px}}
+@media(max-width:560px){.grid,.form{grid-template-columns:1fr}.top{align-items:flex-start;flex-direction:column}.calendar{grid-template-columns:1fr 1fr}.main{padding:14px}h1{font-size:28px}h2{font-size:21px}.card{padding:14px}.btn{width:auto;max-width:100%}th,td{font-size:12px}.metric{min-height:105px}}
 #pixModal{width:min(680px,calc(100% - 24px));max-height:calc(100dvh - 24px);padding:20px;border:1px solid var(--line);border-radius:14px;color:inherit}
 #pixModal::backdrop{background:#17171599}
 #pixModal .form{margin-top:16px}
 </style>
+<link rel="stylesheet" href="/dashboard.css">
 </head>
 <body><div id="app"></div>
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
 import QRCode from "https://cdn.jsdelivr.net/npm/qrcode@1.5.4/+esm";
+import { loadDashboard, renderDashboard, bindDashboard } from "./dashboard.js";
 
 const SUPABASE_URL="https://bdfojankowlfuezdhdjl.supabase.co";
 const SUPABASE_KEY="sb_publishable_mHNwZ6rrplQy9P-0o3wfnQ_iRC_AvYY";
@@ -116,9 +116,21 @@ async function passwordDigest(username,password){
 const navMeta={
  dashboard:["Início","◫"],clientes:["Clientes","◎"],agenda:["Agenda","▦"],solicitacoes:["Solicitações","✉"],contratos:["Contratos","▤"],receber:["Cobranças","↙"],recebimentos:["Pagamentos","✓"],despesas:["Despesas","↗"],nfse:["Notas fiscais","N"],usuarios:["Equipe","♙"],auditoria:["Histórico","⌁"]
 };
-function nav(){return Object.entries(navMeta).filter(([x])=>profile?.role==="admin"||!["usuarios","auditoria"].includes(x)).map(([x,m])=>`<button data-route="${x}" class="${route===x?"active":""}"><span class="nav-icon">${m[1]}</span><span>${m[0]}</span></button>`).join("")}
-function shell(body){return `<div class="layout"><aside class="side"><div class="brand"><img src="/favicon.svg" alt=""><div class="brand-copy"><strong>Solar Opará</strong><span>Gestão de Eventos</span></div></div>${nav()}<a class="public-site-link" href="https://id-preview--291a4cba-45b4-4e3c-914a-eb36003bbf3d.lovable.app/" target="_blank" rel="noopener"><span class="nav-icon">↗</span><span>Abrir site público</span></a><button id="logout" class="logout"><span class="nav-icon">↪</span><span>Sair</span></button></aside><main class="main">${body}</main></div>`}
-function bindNav(){document.querySelectorAll("[data-route]").forEach(b=>b.onclick=()=>{route=b.dataset.route;render()});$("#logout").onclick=async()=>{if(sessionToken)await publicClient.rpc("so_local_logout",{p_token:sessionToken});await googleClient.auth.signOut();sessionStorage.removeItem("solar_session");sessionToken="";me=null;profile=null;location.reload()}}
+function nav(){return Object.entries(navMeta).filter(([x])=>profile?.role==="admin"||!["usuarios","auditoria"].includes(x)).map(([x,m])=>`<button data-route="${x}"${route===x?' class="active" aria-current="page"':""}><span class="nav-icon" aria-hidden="true">${m[1]}</span><span>${m[0]}</span></button>`).join("")}
+function shell(body){return `<div class="layout"><aside class="side"><div class="brand"><img src="/favicon.svg" alt=""><div class="brand-copy"><strong>Solar Opará</strong><span>Gestão de Eventos</span></div></div>${nav()}<a class="public-site-link" href="https://id-preview--291a4cba-45b4-4e3c-914a-eb36003bbf3d.lovable.app/" target="_blank" rel="noopener"><span class="nav-icon">↗</span><span>Abrir site público</span></a><button id="logout" class="logout"><span class="nav-icon">↪</span><span>Sair</span></button></aside><main class="main${route==="dashboard"?" dashboard-main":""}">${body}</main></div>`}
+function bindNav(){
+ document.querySelectorAll("[data-route]").forEach(button=>button.onclick=async()=>{
+  const previous=route;
+  route=button.dataset.route;
+  if(!await render())return;
+  if(previous!==route)window.scrollTo(0,0);
+  if(button.dataset.openForm){
+   document.getElementById(button.dataset.openForm)?.click();
+   $("#ctf select")?.focus();
+  }
+ });
+ $("#logout").onclick=async()=>{if(sessionToken)await publicClient.rpc("so_local_logout",{p_token:sessionToken});await googleClient.auth.signOut();sessionStorage.removeItem("solar_session");sessionToken="";me=null;profile=null;location.reload()};
+}
 function setApp(h){$("#app").innerHTML=h}
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function rpcWithRetry(client,name,args={},tries=3){
@@ -197,31 +209,36 @@ async function load(){
  }
  me=data.user;profile=data.user;sb=sessionClient(sessionToken);render();
 }
+const screens={clientes,agenda,solicitacoes,contratos,receber,recebimentos,despesas,nfse,usuarios,auditoria};
+let renderRequest=0;
 async function render(){
- let body=""; try{
- if(route==="dashboard")body=await dashboard();
- if(route==="clientes")body=await clientes();
- if(route==="agenda")body=await agenda();
- if(route==="solicitacoes")body=await solicitacoes();
- if(route==="contratos")body=await contratos();
- if(route==="receber")body=await receber();
- if(route==="recebimentos")body=await recebimentos();
- if(route==="despesas")body=await despesas();
- if(route==="nfse")body=await nfse();
- if(route==="usuarios")body=await usuarios();
- if(route==="auditoria")body=await auditoria();
- setApp(shell(body));bindNav();bindPage();
- }catch(e){console.error(e);setApp(shell(`<div class=card><h2>Não foi possível carregar esta tela</h2><p class="muted">Atualize a página e tente novamente. Se o problema continuar, procure o administrador.</p><button class="btn" onclick="location.reload()">Atualizar</button></div>`));bindNav()}
-}
-async function dashboard(){
- const [{data:c},{data:r},{data:p},{data:e},{data:b}]=await Promise.all([sb.from("so_contracts").select("*"),sb.from("so_receivables").select("*"),sb.from("so_payments").select("*").eq("reversed",false),sb.from("so_expenses").select("*"),sb.from("so_booking_requests").select("id,status").eq("status","new")]);
- const total=(r||[]).reduce((a,x)=>a+Number(x.amount),0),paid=(p||[]).reduce((a,x)=>a+Number(x.amount),0),exp=(e||[]).reduce((a,x)=>a+Number(x.amount),0),saldo=paid-exp;
- return `<div class="dashboard-hero"><div><div class="page-kicker">Resumo</div><h1>Visão geral</h1><p>As principais informações do Solar Opará em um só lugar.</p></div><button class=btn data-route="contratos">＋ Novo contrato</button></div><div class=grid>
- <div class="card metric"><span>Contratos</span><b>${(c||[]).length}</b><small>eventos cadastrados</small></div>
- <div class="card metric"><span>Em aberto</span><b>${money(Math.max(0,total-paid))}</b><small>valores a receber</small></div>
- <div class="card metric"><span>Recebido</span><b>${money(paid)}</b><small>pagamentos registrados</small></div>
- <div class="card metric"><span>Despesas</span><b>${money(exp)}</b><small>saídas registradas</small></div><div class="card metric"><span>Novas solicitações</span><b>${(b||[]).length}</b><small>pedidos vindos do site</small></div></div>
- <div class="summary-strip"><div><span>Saldo registrado</span><br><strong>${money(saldo)}</strong></div><div><span>Pix oficial</span><br><b>33.958.617/0001-73</b></div></div>`;
+ const request=++renderRequest, page=route;
+ try{
+  let body, overview, format;
+  if(page==="dashboard"){
+   if(!$(".ops-dashboard")){
+    setApp(shell('<section class="ops-dashboard" aria-busy="true"><h1>Visão geral</h1><p class="muted" role="status">Carregando indicadores…</p></section>'));
+    bindNav();
+   }
+   overview=await loadDashboard(sb);
+   format={esc,money,dateBR,pix:PIX,canWrite:["admin","operator"].includes(profile?.role)};
+   body=renderDashboard(overview,format);
+  }else{
+   body=await screens[page]();
+  }
+  if(request!==renderRequest)return false;
+  setApp(shell(body));
+  bindNav();
+  bindPage();
+  if(overview)bindDashboard($(".ops-dashboard"),overview,format,{refresh:render,confirmPayment:openPix,notify:toast});
+  return true;
+ }catch(e){
+  if(request!==renderRequest)return false;
+  console.error(e);
+  setApp(shell('<div class=card><h2>Não foi possível carregar esta tela</h2><p class="muted">Atualize a página e tente novamente. Se o problema continuar, procure o administrador.</p><button class="btn" onclick="location.reload()">Atualizar</button></div>'));
+  bindNav();
+  return false;
+ }
 }
 async function clientes(){
  const {data}=await sb.from("so_clients").select("*").order("created_at",{ascending:false});
