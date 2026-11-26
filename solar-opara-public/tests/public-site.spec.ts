@@ -338,7 +338,7 @@ test("local photographic fallback survives a missing hero", async ({
   test.skip(!["desktop", "mobile"].includes(info.project.name));
   await isolatedBooking(page);
   await page.route(
-    "**/media/hero/*-poster.webp",
+    "**/media/hero/*-poster*.webp",
     (route) => route.abort(),
   );
   await ready(page);

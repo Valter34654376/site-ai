@@ -29,10 +29,18 @@ for (const slot of ["wedding", "garden", "detail"]) {
   assert(catalog.media.some((item) => item.featured.includes(slot)), `Missing feature: ${slot}`);
 }
 const html = await readFile(path.join(root, "index.html"), "utf8");
-const { poster, desktop, mobile, sourcePage } = catalog.heroFilm;
+const { poster, desktop, mobile, wide, sourcePage } = catalog.heroFilm;
 assert(sourcePage && poster.alt, "Missing hero film provenance or accessibility");
-assert(html.includes(poster.src), "Hero preload is stale");
-for (const [resource, maxBytes] of [[poster.src, 400_000], [desktop, 35_000_000], [mobile, 17_000_000]]) {
+for (const variant of poster.variants) {
+  assert(html.includes(variant.src), `Missing hero poster preload: ${variant.src}`);
+  const info = await stat(path.join(root, "public", variant.src));
+  assert(info.size === variant.bytes && info.size < 400_000, `Invalid hero poster size: ${variant.src}`);
+}
+for (const [resource, maxBytes] of [
+  [desktop, 35_000_000],
+  [mobile, 17_000_000],
+  [wide, 52_000_000],
+]) {
   const info = await stat(path.join(root, "public", resource));
   assert(info.size > 0 && info.size <= maxBytes, `Invalid hero media size: ${resource}`);
 }

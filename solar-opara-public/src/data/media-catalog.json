@@ -24,13 +24,27 @@
     "credit": "Solar Opará",
     "desktop": "/media/hero/solar-opara-reel-DDsRDsvpf74-720.mp4",
     "mobile": "/media/hero/solar-opara-reel-DDsRDsvpf74-mobile.mp4",
+    "wide": "/media/hero/solar-opara-reel-DDsRDsvpf74-wide-1440.mp4",
     "poster": {
       "id": "solar-opara-reel-abertura",
       "src": "/media/hero/solar-opara-reel-DDsRDsvpf74-poster.webp",
       "fullSrc": "/media/hero/solar-opara-reel-DDsRDsvpf74-poster.webp",
       "width": 1276,
       "height": 720,
-      "variants": [],
+      "variants": [
+        {
+          "src": "/media/hero/solar-opara-reel-DDsRDsvpf74-poster.webp",
+          "width": 1276,
+          "height": 720,
+          "bytes": 185322
+        },
+        {
+          "src": "/media/hero/solar-opara-reel-DDsRDsvpf74-poster-wide.webp",
+          "width": 2552,
+          "height": 1440,
+          "bytes": 363820
+        }
+      ],
       "alt": "Caminho entre palmeiras na entrada do Solar Opará"
     }
   },

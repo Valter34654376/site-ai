@@ -67,6 +67,19 @@
   opacity: 1;
 }
 
+@media (min-width: 1000px) and (min-aspect-ratio: 2/1) {
+  .hero-image-frame {
+    background: radial-gradient(ellipse at 50% 45%, #25352b, #111b15 85%);
+  }
+
+  .hero-media,
+  .hero-video {
+    width: min(100%, 225svh);
+    margin-inline: auto;
+    mask-image: linear-gradient(to right, transparent, #000 4.5%, #000 95.5%, transparent);
+  }
+}
+
 .hero-playback {
   position: absolute;
   z-index: 3;

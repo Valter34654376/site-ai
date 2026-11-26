@@ -3,12 +3,29 @@ import { SafeImage } from "./SafeImage";
 import { Icon } from "./Icon";
 import { heroFilm, media } from "@/lib/site-content";
 
-function playHeroFilm(player: HTMLVideoElement) {
-  if (!player.getAttribute("src")) {
-    player.src = matchMedia("(max-width: 700px) and (orientation: portrait)").matches
-      ? heroFilm.mobile
-      : heroFilm.desktop;
+function videoConnection() {
+  return (navigator as Navigator & {
+    connection?: { saveData?: boolean; effectiveType?: string; downlink?: number };
+  }).connection;
+}
+
+function heroSource() {
+  if (matchMedia("(max-width: 700px) and (orientation: portrait)").matches) {
+    return heroFilm.mobile;
   }
+
+  const wideFrame = matchMedia("(min-width: 1000px) and (min-aspect-ratio: 2/1)").matches;
+  const largeFrame = (wideFrame && innerWidth * devicePixelRatio >= 1800) ||
+    matchMedia("(min-width: 2400px)").matches;
+  const connection = videoConnection();
+  const limitedBandwidth = connection?.saveData ||
+    ["slow-2g", "2g"].includes(connection?.effectiveType ?? "") ||
+    (connection?.effectiveType === "3g" && (connection.downlink ?? 0) < 2);
+  return largeFrame && !limitedBandwidth ? heroFilm.wide : heroFilm.desktop;
+}
+
+function playHeroFilm(player: HTMLVideoElement) {
+  if (!player.getAttribute("src")) player.src = heroSource();
   // Autoplay can be blocked even for muted video. The poster and play button stay visible.
   if (player.paused) void player.play().catch(() => {});
 }
@@ -17,6 +34,7 @@ export function Hero() {
   const section = useRef<HTMLElement>(null);
   const video = useRef<HTMLVideoElement>(null);
   const playbackChoice = useRef<boolean | null>(null);
+  const syncPlayback = useRef<(() => void) | null>(null);
   const [playing, setPlaying] = useState(false);
   const [hasFrame, setHasFrame] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -26,10 +44,9 @@ export function Hero() {
     if (!player || failed) return;
 
     const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
-    const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
     let inView = !("IntersectionObserver" in window);
     const sync = () => {
-      const wantsPlayback = playbackChoice.current ?? (!reducedMotion.matches && !connection?.saveData);
+      const wantsPlayback = playbackChoice.current ?? (!reducedMotion.matches && !videoConnection()?.saveData);
       if (wantsPlayback && inView && !document.hidden) playHeroFilm(player);
       else player.pause();
     };
@@ -40,11 +57,13 @@ export function Hero() {
         }, { threshold: 0.15 })
       : null;
 
+    syncPlayback.current = sync;
     observer?.observe(player);
     reducedMotion.addEventListener("change", sync);
     document.addEventListener("visibilitychange", sync);
     sync();
     return () => {
+      syncPlayback.current = null;
       observer?.disconnect();
       reducedMotion.removeEventListener("change", sync);
       document.removeEventListener("visibilitychange", sync);
@@ -109,6 +128,7 @@ export function Hero() {
             fallback={media.garden}
             fetchPriority="high"
             loading="eager"
+            sizes="(min-width: 1000px) and (min-aspect-ratio: 2/1) min(100vw, 225svh), (min-width: 2400px) 100vw, 420px"
             className="hero-media"
           />
           <video
@@ -122,8 +142,14 @@ export function Hero() {
             onPlay={() => setPlaying(true)}
             onPlaying={() => setHasFrame(true)}
             onPause={() => setPlaying(false)}
-            onError={() => {
+            onError={({ currentTarget }) => {
               setHasFrame(false);
+              setPlaying(false);
+              if (currentTarget.getAttribute("src") === heroFilm.wide) {
+                currentTarget.src = heroFilm.desktop;
+                syncPlayback.current?.();
+                return;
+              }
               setFailed(true);
             }}
           />
