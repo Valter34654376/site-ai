@@ -56,6 +56,9 @@ table input,table select{min-width:180px}
 @media(max-width:1050px){.grid{grid-template-columns:repeat(2,1fr)}.main{padding:26px}.login-page{grid-template-columns:1fr}.login-art{display:none}}
 @media(max-width:850px){.layout{display:block}.side{position:static;width:100%;display:flex;gap:4px;overflow:auto;align-items:center}.brand{min-width:210px;border:0;margin:0;padding:3px 8px}.brand-copy span{display:none}.side button{min-width:max-content}.main{margin:0;width:100%;padding:18px;overflow-x:hidden}.form{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.top{flex-wrap:wrap}.calendar{overflow-x:auto}}
 @media(max-width:560px){.grid,.form{grid-template-columns:1fr}.dashboard-hero,.top{align-items:flex-start;flex-direction:column}.calendar{grid-template-columns:1fr 1fr}.main{padding:14px}h1{font-size:28px}h2{font-size:21px}.card{padding:14px}.btn{width:auto;max-width:100%}th,td{font-size:12px}.summary-strip{align-items:flex-start;flex-direction:column}.metric{min-height:105px}}
+#pixModal{width:min(680px,calc(100% - 24px));max-height:calc(100dvh - 24px);padding:20px;border:1px solid var(--line);border-radius:14px;color:inherit}
+#pixModal::backdrop{background:#17171599}
+#pixModal .form{margin-top:16px}
 </style>
 </head>
 <body><div id="app"></div>
@@ -629,12 +632,12 @@ function isOverdue(date){return !!date&&String(date)<new Date().toISOString().sl
 async function receber(){
  const [{data:r,error:re},{data:p,error:pe}]=await Promise.all([sb.from("so_receivables").select("*,so_contracts(event_name,client_id,payment_terms,so_clients(name,email,phone))").order("due_date"),sb.from("so_payments").select("*").eq("reversed",false)]);
  if(re||pe)return `<h1>A receber</h1><div class="warnbox">${esc(re?.message||pe?.message||"Falha ao carregar cobranças")}</div>`;
- return `<h1>A receber</h1><table><tr><th>Cliente / evento</th><th>Venc.</th><th>Parcela</th><th>Forma</th><th>Status</th><th></th></tr>${(r||[]).map(x=>{const paid=(p||[]).filter(y=>y.receivable_id===x.id).reduce((a,y)=>a+Number(y.amount),0),full=paid>=Number(x.amount)-0.001,partial=paid>0&&!full,late=!full&&isOverdue(x.due_date),st=full?"PAGO":late?(partial?"PARCIAL / ATRASADO":"ATRASADO"):partial?"PARCIAL":"PENDENTE",cls=full?"paid":late?"late":"";return `<tr><td>${esc(x.so_contracts?.so_clients?.name)}<br><span class=muted>${esc(x.so_contracts?.event_name)}</span></td><td>${dateBR(x.due_date)}</td><td>${money(x.amount)}<br><small class="muted">${esc(x.description)}</small></td><td>${esc(x.so_contracts?.payment_terms||"PIX")}</td><td><span class="badge ${cls}">${st}</span>${paid>0&&!full?`<br><small class="muted">Recebido: ${money(paid)}</small>`:""}</td><td><div class=row><button class="btn small" data-pix="${x.id}">Cobrar / confirmar</button><button class="btn small gray" data-print-charge="${x.id}">Imprimir cobrança</button></div></td></tr>`}).join("")}</table><div id=pixModal></div>`;
+ return `<h1>A receber</h1><table><tr><th>Cliente / evento</th><th>Venc.</th><th>Parcela</th><th>Forma</th><th>Status</th><th></th></tr>${(r||[]).map(x=>{const paid=(p||[]).filter(y=>y.receivable_id===x.id).reduce((a,y)=>a+Number(y.amount),0),full=paid>=Number(x.amount)-0.001,partial=paid>0&&!full,late=!full&&isOverdue(x.due_date),st=full?"PAGO":late?(partial?"PARCIAL / ATRASADO":"ATRASADO"):partial?"PARCIAL":"PENDENTE",cls=full?"paid":late?"late":"";return `<tr><td>${esc(x.so_contracts?.so_clients?.name)}<br><span class=muted>${esc(x.so_contracts?.event_name)}</span></td><td>${dateBR(x.due_date)}</td><td>${money(x.amount)}<br><small class="muted">${esc(x.description)}</small></td><td>${esc(x.so_contracts?.payment_terms||"PIX")}</td><td><span class="badge ${cls}">${st}</span>${paid>0&&!full?`<br><small class="muted">Recebido: ${money(paid)}</small>`:""}</td><td><div class=row><button class="btn small" data-pix="${x.id}">Cobrar / confirmar</button><button class="btn small gray" data-print-charge="${x.id}">Imprimir cobrança</button></div></td></tr>`}).join("")}</table><dialog id=pixModal aria-labelledby=paymentTitle></dialog>`;
 }
 async function recebimentos(){
  const {data,error}=await sb.from("so_payments").select("*,so_receivables(amount,description,due_date,so_contracts(event_name,so_clients(name,email,document)))").eq("reversed",false).order("paid_at",{ascending:false});
  if(error)return `<h1>Recebimentos</h1><div class="warnbox">${esc(error.message)}</div>`;
- return `<div class=top><h1>Recebimentos</h1><button class="btn gray" id=csvPay>Exportar CSV</button></div><table><tr><th>Data</th><th>Cliente</th><th>Evento</th><th>Valor</th><th>Forma</th><th>Referência</th><th></th></tr>${(data||[]).map(x=>{let cl=x.so_receivables?.so_contracts?.so_clients,ev=x.so_receivables?.so_contracts?.event_name,subj=`Solar Opará – Pagamento confirmado – ${ev||""}`,body=`Olá ${cl?.name||""},%0D%0A%0D%0AConfirmamos o recebimento de ${money(x.amount)} referente ao evento ${ev||""}.%0D%0AData: ${dtBR(x.paid_at)}.%0D%0AForma: ${x.method||"PIX"}.%0D%0A%0D%0AAtenciosamente,%0D%0ASolar Opará`;return `<tr><td>${dtBR(x.paid_at)}</td><td>${esc(cl?.name)}</td><td>${esc(ev)}</td><td>${money(x.amount)}</td><td>${esc(x.method||"PIX")}</td><td>${esc(x.reference)}</td><td><div class=row><button class="btn small gray" data-receipt="${x.id}">Recibo</button><a class="btn small" target=_blank href="mailto:${encodeURIComponent(cl?.email||"")}?subject=${encodeURIComponent(subj)}&body=${body}">E-mail</a></div></td></tr>`}).join("")}</table>`;
+ return `<div class=top><h1>Pagamentos</h1><button class="btn gray" id=csvPay>Exportar CSV</button></div><table><tr><th>Data</th><th>Cliente</th><th>Evento</th><th>Valor</th><th>Forma</th><th>Referência</th><th></th></tr>${(data||[]).map(x=>{let cl=x.so_receivables?.so_contracts?.so_clients,ev=x.so_receivables?.so_contracts?.event_name,subj=`Solar Opará – Pagamento confirmado – ${ev||""}`,body=`Olá ${cl?.name||""},%0D%0A%0D%0AConfirmamos o recebimento de ${money(x.amount)} referente ao evento ${ev||""}.%0D%0AData: ${dtBR(x.paid_at)}.%0D%0AForma: ${x.method||"PIX"}.%0D%0A%0D%0AAtenciosamente,%0D%0ASolar Opará`;return `<tr><td>${dtBR(x.paid_at)}</td><td>${esc(cl?.name)}</td><td>${esc(ev)}</td><td>${money(x.amount)}</td><td>${esc(x.method||"PIX")}</td><td>${esc(x.reference)}</td><td><div class=row><button class="btn small" data-payment-edit="${x.id}" data-receivable="${x.receivable_id}">Editar</button><button class="btn small gray" data-receipt="${x.id}">Recibo</button><a class="btn small" target=_blank href="mailto:${encodeURIComponent(cl?.email||"")}?subject=${encodeURIComponent(subj)}&body=${body}">E-mail</a></div></td></tr>`}).join("")}</table><dialog id=pixModal aria-labelledby=paymentTitle></dialog>`;
 }
 async function despesas(){
  const {data}=await sb.from("so_expenses").select("*").order("expense_date",{ascending:false});
@@ -750,68 +753,97 @@ async function auditoria(){
 
 function emv(i,v){return i+String(v.length).padStart(2,"0")+v}function crc(s){let c=65535;for(const h of s){c^=h.charCodeAt(0)<<8;for(let i=0;i<8;i++)c=(c&32768)?((c<<1)^4129)&65535:(c<<1)&65535}return c.toString(16).toUpperCase().padStart(4,"0")}
 function pixPayload(amount,tx){const ma=emv("00","br.gov.bcb.pix")+emv("01",PIX);let p=emv("00","01")+emv("26",ma)+emv("52","0000")+emv("53","986")+emv("54",Number(amount).toFixed(2))+emv("58","BR")+emv("59","SOLAR OPARA")+emv("60","PIRAPORA")+emv("62",emv("05",tx.slice(0,25)))+"6304";return p+crc(p)}
-async function openPix(rid){
+async function openPix(rid,paymentId){
+ const dialog=$("#pixModal");
+ if(!dialog||dialog.open)return;
+ dialog.innerHTML='<h2 id="paymentTitle">Carregando pagamento…</h2><button type="button" class="btn gray" data-close-payment>Fechar</button>';
+ dialog.querySelector("[data-close-payment]").onclick=()=>dialog.close();
+ dialog.showModal();
  const [{data:r,error:recErr},{data:p,error:payErr}]=await Promise.all([
   sb.from("so_receivables").select("*,so_contracts(event_name,payment_terms,so_clients(name,email))").eq("id",rid).single(),
   sb.from("so_payments").select("*").eq("receivable_id",rid).eq("reversed",false)
  ]);
- if(recErr||payErr||!r)return toast(recErr?.message||payErr?.message||"Cobrança não encontrada.");
- const paid=(p||[]).reduce((a,x)=>a+Number(x.amount),0),balance=Math.max(0,Number(r.amount)-paid);
+ if(!dialog.open||!dialog.isConnected)return;
+ const payment=(p||[]).find(x=>x.id===paymentId);
+ if(recErr||payErr||!r||(paymentId&&!payment)){
+  dialog.querySelector("h2").textContent=recErr?.message||payErr?.message||"Pagamento ou cobrança não encontrado.";
+  return;
+ }
+ const paid=(p||[]).filter(x=>x.id!==paymentId).reduce((a,x)=>a+Math.round(Number(x.amount)*100),0);
+ const total=Math.round(Number(r.amount)*100);
+ const balance=Math.max(0,total-paid);
  const terms=String(r.so_contracts?.payment_terms||"PIX");
- const pix=terms==="PIX"||terms==="Pix parcelado";
- const boleto=terms==="Boleto bancário"||terms==="Boleto";
- const defaultMethod=boleto?"Boleto bancário":pix?"PIX":terms;
+ const pix=/^pix(?: parcelado)?$/i.test(terms);
+ const defaultMethod=payment?.method||(pix?"PIX":terms==="Boleto"?"Boleto bancário":terms);
  const choices=["PIX","Boleto bancário","Transferência bancária","Dinheiro","Cartão"];
  if(!choices.includes(defaultMethod))choices.push(defaultMethod);
  const options=choices.map(x=>'<option value="'+esc(x)+'"'+(x===defaultMethod?' selected':'')+'>'+esc(x)+'</option>').join("");
- let details="";
- if(pix&&balance>0){
-  const payload=pixPayload(balance,r.txid);
-  const qr=await QRCode.toDataURL(payload);
-  details='<p><b>Pix da parcela:</b> '+money(balance)+'</p><img src="'+qr+'" alt="QR Code Pix" style="max-width:280px;width:100%"><div class="code">'+esc(payload)+'</div>';
- }else if(boleto){
-  details='<div class="warnbox">Boleto bancário: vencimento e recebimento registrados no sistema. Para emitir boleto com linha digitável ou código de barras é necessária integração com o banco emissor. Registre pagamento somente após confirmação bancária.</div>';
- }else{
-  details='<p class="muted">Selecione a forma realmente recebida e confirme após verificar o pagamento.</p>';
- }
+ const at=new Date(payment?.paid_at||Date.now());
+ const localAt=new Date(at.getTime()-at.getTimezoneOffset()*60000).toISOString().slice(0,16);
  const fields=balance>0?
-  '<form id="pf" class="form"><label>Valor recebido<input type="number" step="0.01" min="0.01" max="'+balance.toFixed(2)+'" name="amount" value="'+balance.toFixed(2)+'" required></label>'+
+  '<form id="pf" class="form"><label>Valor recebido (R$)<input type="number" inputmode="decimal" step="0.01" min="0.01" max="'+(balance/100).toFixed(2)+'" name="amount" value="'+Number(payment?.amount??balance/100).toFixed(2)+'" required></label>'+
   '<label>Forma recebida<select name="method">'+options+'</select></label>'+
-  '<label>Data/hora<input type="datetime-local" name="paid_at" value="'+new Date().toISOString().slice(0,16)+'"></label>'+
-  '<label>Referência/comprovante<input name="reference" placeholder="Código da transação ou confirmação bancária"></label>'+
-  '<label class="full">Observação<textarea name="notes"></textarea></label>'+
-  '<div class="full"><button class="btn" type="submit">Confirmar recebimento</button></div></form>':
-  '<p><b>Esta cobrança está totalmente paga.</b></p>';
- $("#pixModal").innerHTML='<div class="card"><h2>Cobrança / confirmar pagamento</h2>'+
+  '<label>Data/hora do pagamento<input type="datetime-local" name="paid_at" value="'+localAt+'" required></label>'+
+  '<label>Referência/comprovante<input name="reference" value="'+esc(payment?.reference||"")+'"></label>'+
+  '<label class="full">Observação<textarea name="notes">'+esc(payment?.notes||"")+'</textarea></label>'+
+  '<p class="full" role="alert" id="paymentError" hidden></p>'+
+  '<div class="full row"><button class="btn" type="submit">'+(payment?"Salvar pagamento":"Confirmar recebimento")+'</button><button type="button" class="btn gray" data-close-payment>Cancelar</button></div></form>':
+  '<p><b>Esta cobrança está totalmente paga.</b></p><button type="button" class="btn gray" data-close-payment>Fechar</button>';
+ dialog.innerHTML='<h2 id="paymentTitle">'+(payment?"Editar pagamento":"Confirmar pagamento")+'</h2>'+
   '<p><b>Cliente:</b> '+esc(r.so_contracts?.so_clients?.name)+'</p>'+
   '<p><b>Evento:</b> '+esc(r.so_contracts?.event_name)+'</p>'+
-  '<p><b>Forma contratada:</b> '+esc(terms)+'</p>'+
   '<p><b>Vencimento:</b> '+dateBR(r.due_date)+'</p>'+
-  '<p><b>Parcela:</b> '+money(r.amount)+' · <b>Saldo:</b> '+money(balance)+'</p>'+
-  details+fields+'</div>';
- if(!$("#pf"))return;
- $("#pf").onsubmit=async e=>{
-  e.preventDefault();
-  const f=new FormData(e.target),amount=Number(f.get("amount")),method=String(f.get("method")||""),ref=String(f.get("reference")||"").trim();
-  if(!Number.isFinite(amount)||amount<=0||amount>balance+0.001)return toast("Informe um valor até o saldo da cobrança.");
-  if(method==="Boleto bancário"&&!ref)return toast("Informe a referência da confirmação bancária do boleto.");
-  const submit=e.target.querySelector('button[type="submit"]');
-  if(submit)submit.disabled=true;
+  '<p><b>Parcela:</b> '+money(r.amount)+' · <b>'+ (payment?"Valor disponível para este pagamento":"Saldo") +':</b> '+money(balance/100)+'</p>'+
+  fields+(!payment&&pix&&balance>0?'<details><summary>Mostrar QR Code Pix para cobrar</summary><div data-payment-qr></div></details>':"");
+ dialog.querySelector("[data-close-payment]").onclick=()=>dialog.close();
+ const qrBox=dialog.querySelector("[data-payment-qr]");
+ if(qrBox)qrBox.parentElement.ontoggle=async()=>{
+  if(!qrBox.parentElement.open||qrBox.textContent)return;
   try{
-   const at=String(f.get("paid_at")||"");
-   const paidAt=at?new Date(at).toISOString():new Date().toISOString();
-   const {error:insertErr}=await sb.from("so_payments").insert({receivable_id:rid,amount,method,reference:ref||null,notes:String(f.get("notes")||""),paid_at:paidAt});
-   if(insertErr)throw Error(insertErr.message);
-   const {data:all,error:listErr}=await sb.from("so_payments").select("amount").eq("receivable_id",rid).eq("reversed",false);
-   if(listErr)throw Error(listErr.message);
-   const sum=(all||[]).reduce((a,x)=>a+Number(x.amount),0);
-   const status=sum>=Number(r.amount)-0.001?"paid":sum>0?"partial":"pending";
-   const {error:updateErr}=await sb.from("so_receivables").update({status}).eq("id",rid);
-   if(updateErr)throw Error("Recebimento salvo, mas o status precisa ser atualizado: "+updateErr.message);
-   await audit("confirm_payment","payment",rid,{amount,method});
-   toast("Pagamento confirmado e registrado como "+method+".");
-   render();
-  }catch(err){toast(err.message||String(err));if(submit)submit.disabled=false}
+   const payload=pixPayload(balance/100,r.txid||"***");
+   const qr=await QRCode.toDataURL(payload);
+   qrBox.innerHTML='<img src="'+qr+'" alt="QR Code Pix" style="max-width:280px;width:100%"><div class="code">'+esc(payload)+'</div>';
+  }catch{qrBox.textContent="Não foi possível gerar o QR Code."}
+ };
+ const form=dialog.querySelector("#pf");
+ if(!form)return;
+ form.onsubmit=async e=>{
+  e.preventDefault();
+  const f=new FormData(form),amount=Number(f.get("amount")),method=String(f.get("method")),ref=String(f.get("reference")).trim();
+  const errorBox=dialog.querySelector("#paymentError");
+  const showError=message=>{errorBox.textContent=message;errorBox.hidden=false};
+  if(!Number.isFinite(amount)||amount<=0||Math.round(amount*100)>balance)return showError("Informe um valor até o saldo disponível.");
+  if(method==="Boleto bancário"&&!ref)return showError("Informe a referência da confirmação bancária do boleto.");
+  const submit=form.querySelector('[type="submit"]');
+  const cancel=form.querySelector("[data-close-payment]");
+  submit.disabled=cancel.disabled=true;
+  dialog.oncancel=e=>e.preventDefault();
+  errorBox.hidden=true;
+  let saved=false;
+  try{
+   const {data:current,error:currentError}=await sb.from("so_payments").select("id,amount").eq("receivable_id",rid).eq("reversed",false);
+   if(currentError)throw Error(currentError.message);
+   const currentPaid=(current||[]).filter(x=>x.id!==paymentId).reduce((a,x)=>a+Math.round(Number(x.amount)*100),0);
+   if(currentPaid+Math.round(amount*100)>total)throw Error("O saldo mudou. Feche e reabra o formulário antes de registrar o pagamento.");
+   const values={amount,method,reference:ref||null,notes:String(f.get("notes")),paid_at:new Date(String(f.get("paid_at"))).toISOString()};
+   const write=payment?sb.from("so_payments").update(values).eq("id",paymentId).eq("reversed",false):sb.from("so_payments").insert({...values,receivable_id:rid});
+   const {data:row,error:writeError}=await write.select("id").single();
+   if(writeError)throw Error(writeError.message);
+   saved=true;
+   const {data:all,error:listError}=await sb.from("so_payments").select("amount").eq("receivable_id",rid).eq("reversed",false);
+   if(listError)throw Error(listError.message);
+   const sum=(all||[]).reduce((a,x)=>a+Math.round(Number(x.amount)*100),0);
+   const status=sum>=total?"paid":sum>0?"partial":"pending";
+   const {error:updateError}=await sb.from("so_receivables").update({status}).eq("id",rid);
+   if(updateError)throw Error(updateError.message);
+   await audit(payment?"update":"confirm_payment","payment",row.id,{amount,method,receivable_id:rid});
+   toast(payment?"Pagamento atualizado.":"Pagamento confirmado e registrado como "+method+".");
+  }catch(err){
+   if(!saved){showError(err.message||String(err));submit.disabled=cancel.disabled=false;dialog.oncancel=null;return}
+   toast("Pagamento salvo. Não foi possível concluir a atualização da cobrança ou do histórico: "+err.message);
+  }
+  dialog.close();
+  render();
  };
 }
 
@@ -893,6 +925,7 @@ function bindPage(){
  if($("#cancelContractEdit"))$("#cancelContractEdit").onclick=()=>{$("#contractForm").innerHTML=""};
 });
  document.querySelectorAll("[data-doc]").forEach(b=>b.onclick=()=>showDoc(b.dataset.doc,false));document.querySelectorAll("[data-manual]").forEach(b=>b.onclick=()=>showDoc(b.dataset.manual,true));document.querySelectorAll("[data-pix]").forEach(b=>b.onclick=()=>openPix(b.dataset.pix));document.querySelectorAll("[data-print-charge]").forEach(b=>b.onclick=()=>printCharge(b.dataset.printCharge));document.querySelectorAll("[data-payment-plan]").forEach(b=>b.onclick=()=>printPaymentPlan(b.dataset.paymentPlan));document.querySelectorAll("[data-receipt]").forEach(b=>b.onclick=()=>printReceipt(b.dataset.receipt));
+ document.querySelectorAll("[data-payment-edit]").forEach(b=>b.onclick=()=>openPix(b.dataset.receivable,b.dataset.paymentEdit));
  if($("#newExpense"))$("#newExpense").onclick=()=>{$("#expenseForm").innerHTML=expenseForm();$("#ef").onsubmit=async e=>{e.preventDefault();let o=Object.fromEntries(new FormData(e.target));o.amount=Number(o.amount);let {data,error}=await sb.from("so_expenses").insert(o).select().single();if(error)return toast(error.message);await audit("create","expense",data.id,{amount:data.amount});toast("Despesa salva");render()}};
  document.querySelectorAll("[data-nf-edit]").forEach(b=>b.onclick=()=>{
   const n=(window.__solarNfse||[]).find(x=>String(x.id)===String(b.dataset.nfEdit));if(!n)return toast("NFS-e não encontrada");
