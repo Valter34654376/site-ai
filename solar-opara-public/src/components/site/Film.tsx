@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Reveal } from "./Reveal";
+import { playVideo, useAutoplayVideo } from "./useAutoplayVideo";
 
 const secondaryFilms = [
   {
@@ -14,33 +15,36 @@ const secondaryFilms = [
   },
 ];
 
+function FilmCard({ item }: { item: (typeof secondaryFilms)[number] }) {
+  const { video, loadSource } = useAutoplayVideo();
+  return (
+    <Reveal className="film-card">
+      <video
+        ref={video}
+        src={loadSource ? item.src : undefined}
+        autoPlay
+        muted
+        loop
+        controls
+        playsInline
+        preload="auto"
+        poster={item.poster}
+        aria-label={item.title}
+      />
+    </Reveal>
+  );
+}
+
 export function Film() {
-  const video = useRef<HTMLVideoElement>(null);
+  const { video, loadSource } = useAutoplayVideo();
   const [muted, setMuted] = useState(true);
-
-  useEffect(() => {
-    const player = video.current;
-    if (!player || !("IntersectionObserver" in window)) return;
-
-    const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting && entry.intersectionRatio >= 0.25 && !reducedMotion.matches) {
-        void player.play().catch(() => {});
-      } else {
-        player.pause();
-      }
-    }, { threshold: 0.25 });
-
-    observer.observe(player);
-    return () => observer.disconnect();
-  }, []);
 
   function toggleSound() {
     const player = video.current;
     if (!player) return;
     player.muted = !muted;
     setMuted((value) => !value);
-    if (player.paused) void player.play().catch(() => {});
+    playVideo(player);
   }
 
   return (
@@ -53,15 +57,15 @@ export function Film() {
         <Reveal className="film-feature">
           <video
             ref={video}
+            src={loadSource ? "/media/film/solar-atmosfera.mp4" : undefined}
+            autoPlay
             muted={muted}
             loop
             playsInline
-            preload="none"
+            preload="auto"
             poster="/media/film/solar-atmosfera-poster.jpg"
             aria-label="Atmosfera de uma celebração no Solar Opará"
-          >
-            <source src="/media/film/solar-atmosfera.mp4" type="video/mp4" />
-          </video>
+          />
           <button
             type="button"
             className="film-sound"
@@ -75,17 +79,7 @@ export function Film() {
 
         <div className="film-collection" aria-label="Mais filmes do Solar Opará">
           {secondaryFilms.map((item) => (
-            <Reveal className="film-card" key={item.src}>
-              <video
-                controls
-                playsInline
-                preload="none"
-                poster={item.poster}
-                aria-label={item.title}
-              >
-                <source src={item.src} type="video/mp4" />
-              </video>
-            </Reveal>
+            <FilmCard key={item.src} item={item} />
           ))}
         </div>
       </div>

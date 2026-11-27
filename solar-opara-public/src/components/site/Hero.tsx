@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { SafeImage } from "./SafeImage";
 import { Icon } from "./Icon";
+import { toggleVideoPause, useAutoplayVideo } from "./useAutoplayVideo";
 import { heroFilm, media } from "@/lib/site-content";
 
 function videoConnection() {
@@ -24,35 +25,12 @@ function heroSource() {
   return largeFrame && !limitedBandwidth ? heroFilm.wide : heroFilm.desktop;
 }
 
-function playHeroFilm(player: HTMLVideoElement) {
-  if (!player.getAttribute("src")) player.src = heroSource();
-  // Autoplay can be blocked even for muted video. The poster and play button stay visible.
-  if (player.paused) void player.play().catch(() => {});
-}
-
 export function Hero() {
   const section = useRef<HTMLElement>(null);
-  const video = useRef<HTMLVideoElement>(null);
-  const playbackChoice = useRef<boolean | null>(null);
-  const [playing, setPlaying] = useState(false);
+  const { video } = useAutoplayVideo(true);
+  const [source, setSource] = useState(heroSource);
+  const [paused, setPaused] = useState(false);
   const [hasFrame, setHasFrame] = useState(false);
-  const [failed, setFailed] = useState(false);
-
-  useEffect(() => {
-    const player = video.current;
-    if (!player) return;
-
-    const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
-    const sync = () => {
-      player.autoplay = playbackChoice.current ?? !reducedMotion.matches;
-      if (player.autoplay) playHeroFilm(player);
-      else player.pause();
-    };
-
-    sync();
-    reducedMotion.addEventListener("change", sync);
-    return () => reducedMotion.removeEventListener("change", sync);
-  }, []);
 
   useEffect(() => {
     const element = section.current;
@@ -90,12 +68,7 @@ export function Hero() {
   }, []);
 
   function togglePlayback() {
-    const player = video.current;
-    if (!player || failed) return;
-    playbackChoice.current = player.paused;
-    player.autoplay = playbackChoice.current;
-    if (player.autoplay) playHeroFilm(player);
-    else player.pause();
+    if (video.current) setPaused(toggleVideoPause(video.current));
   }
 
   return (
@@ -117,32 +90,25 @@ export function Hero() {
           />
           <video
             ref={video}
+            src={source}
             className={hasFrame ? "hero-video is-ready" : "hero-video"}
-            autoPlay
+            autoPlay={!paused}
             muted
             loop
             playsInline
             preload="auto"
             aria-hidden="true"
-            onPlay={() => setPlaying(true)}
             onPlaying={() => setHasFrame(true)}
-            onPause={() => setPlaying(false)}
-            onError={({ currentTarget }) => {
+            onError={() => {
               setHasFrame(false);
-              setPlaying(false);
-              if (currentTarget.getAttribute("src") === heroFilm.wide) {
-                currentTarget.src = heroFilm.desktop;
-                if (currentTarget.autoplay) playHeroFilm(currentTarget);
-                return;
-              }
-              setFailed(true);
+              if (source !== heroFilm.desktop) setSource(heroFilm.desktop);
             }}
           />
         </div>
       </div>
-      {!failed && (
+      {hasFrame && (
         <button type="button" className="hero-playback" onClick={togglePlayback}>
-          {playing ? "Pausar vídeo" : "Reproduzir vídeo"}
+          {paused ? "Retomar vídeo" : "Pausar vídeo"}
         </button>
       )}
 

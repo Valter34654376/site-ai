@@ -1,32 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Reveal } from "./Reveal";
+import { toggleVideoPause, useAutoplayVideo } from "./useAutoplayVideo";
 
 export function StoryFilm() {
-  const frame = useRef<HTMLDivElement>(null);
-  const video = useRef<HTMLVideoElement>(null);
+  const { video, loadSource } = useAutoplayVideo();
   const [muted, setMuted] = useState(true);
-  const [playing, setPlaying] = useState(false);
-
-  useEffect(() => {
-    const container = frame.current;
-    const player = video.current;
-    if (!container || !player) return;
-
-    const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry?.isIntersecting && !reducedMotion.matches) {
-          player.play().catch(() => setPlaying(false));
-        } else {
-          player.pause();
-        }
-      },
-      { threshold: 0.28 },
-    );
-
-    observer.observe(container);
-    return () => observer.disconnect();
-  }, []);
+  const [paused, setPaused] = useState(false);
+  const [hasPlayed, setHasPlayed] = useState(false);
 
   function toggleSound() {
     const player = video.current;
@@ -34,14 +14,10 @@ export function StoryFilm() {
     const nextMuted = !player.muted;
     player.muted = nextMuted;
     setMuted(nextMuted);
-    if (player.paused) player.play().catch(() => setPlaying(false));
   }
 
   function togglePlayback() {
-    const player = video.current;
-    if (!player) return;
-    if (player.paused) player.play().catch(() => setPlaying(false));
-    else player.pause();
+    if (video.current) setPaused(toggleVideoPause(video.current));
   }
 
   return (
@@ -51,27 +27,25 @@ export function StoryFilm() {
       aria-label="Celebração no Solar Opará"
     >
       <Reveal className="section-wrap story-film-stage">
-        <div ref={frame} className="story-film-frame">
+        <div className="story-film-frame">
           <video
             ref={video}
+            src={loadSource ? "/media/film/solar-historia-completa.mp4" : undefined}
+            autoPlay={!paused}
             muted={muted}
             loop
             playsInline
-            preload="none"
+            preload="auto"
             poster="/media/film/solar-historia-completa-poster.jpg"
-            onPlay={() => setPlaying(true)}
-            onPause={() => setPlaying(false)}
+            onPlaying={() => setHasPlayed(true)}
             aria-label="Filme completo de uma celebração no Solar Opará"
-          >
-            <source
-              src="/media/film/solar-historia-completa.mp4"
-              type="video/mp4"
-            />
-          </video>
+          />
           <div className="story-film-controls">
-            <button type="button" onClick={togglePlayback}>
-              {playing ? "Pausar filme" : "Reproduzir filme"}
-            </button>
+            {hasPlayed && (
+              <button type="button" onClick={togglePlayback}>
+                {paused ? "Retomar vídeo" : "Pausar vídeo"}
+              </button>
+            )}
             <button
               type="button"
               onClick={toggleSound}

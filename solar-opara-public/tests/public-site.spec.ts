@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Locator, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
 import catalog from "../src/data/media-catalog.json" with { type: "json" };
@@ -203,39 +203,86 @@ test("navigation marks the current section and keeps dates close on mobile", asy
   await expect(page.locator('.site-nav-links [aria-current="location"]')).toHaveCount(0);
 });
 
-test("featured films play natively without Instagram links", async ({
+async function expectAutoplay(video: Locator) {
+  await expect(video).toHaveJSProperty("muted", true);
+  await expect(video).toHaveJSProperty("loop", true);
+  await expect(video).toHaveJSProperty("playsInline", true);
+  await expect.poll(() => video.evaluate((player: HTMLVideoElement) =>
+    !player.paused && player.currentTime > 0.15,
+  )).toBe(true);
+}
+
+test("the opening plays without a click on the first visit and after reload", async ({
+  page,
+}, info) => {
+  test.skip(!["desktop", "mobile"].includes(info.project.name));
+  await ready(page);
+  const opening = page.locator(".hero-video");
+  await expectAutoplay(opening);
+  await expect(opening).toHaveClass(/is-ready/);
+  await expect(page.getByRole("button", { name: /Reproduzir vídeo/i })).toHaveCount(0);
+
+  await opening.evaluate((player: HTMLVideoElement) => {
+    player.currentTime = player.duration - 0.1;
+  });
+  await expect.poll(() => opening.evaluate((player: HTMLVideoElement) =>
+    !player.paused && player.currentTime > 0.15 && player.currentTime < 4,
+  )).toBe(true);
+
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await expectAutoplay(opening);
+  await expect(opening).toHaveClass(/is-ready/);
+});
+
+test("the ultrawide opening uses its higher resolution and plays on arrival", async ({
+  page,
+}, info) => {
+  test.skip(info.project.name !== "desktop");
+  await page.setViewportSize({ width: 3440, height: 1440 });
+  await ready(page);
+  const opening = page.locator(".hero-video");
+  await expectAutoplay(opening);
+  await expect(opening).toHaveAttribute("src", catalog.heroFilm.wide);
+});
+
+test("films below the opening start when visible without Instagram links", async ({
   page,
 }, info) => {
   test.skip(info.project.name !== "desktop");
   await isolatedBooking(page);
   await ready(page);
   await expect(page.locator("#filme iframe")).toHaveCount(0);
-  await page.locator("#filme").scrollIntoViewIfNeeded();
   const featured = page.locator(".film-feature video");
+  await expect(featured).not.toHaveAttribute("src");
+  await featured.scrollIntoViewIfNeeded();
   await expect(featured).toBeVisible();
-  await expect(featured.locator("source")).toHaveAttribute(
+  await expect(featured).toHaveAttribute(
     "src",
     "/media/film/solar-atmosfera.mp4",
   );
-  await expect(featured).toHaveJSProperty("muted", true);
-  await expect(featured).toHaveJSProperty("loop", true);
+  await expectAutoplay(featured);
   await expect(page.locator("#filme a")).toHaveCount(0);
-  await expect(page.locator(".film-card video")).toHaveCount(2);
+  const cards = page.locator(".film-card video");
+  await expect(cards).toHaveCount(2);
+  for (const card of await cards.all()) {
+    await card.scrollIntoViewIfNeeded();
+    await expectAutoplay(card);
+  }
   const sound = page.locator(".film-sound");
   await sound.click();
   await expect(featured).toHaveJSProperty("muted", false);
   await expect(sound).toHaveAttribute("aria-pressed", "true");
 
   const story = page.locator("#historia");
-  await story.scrollIntoViewIfNeeded();
+  const storyVideo = story.locator("video");
+  await storyVideo.scrollIntoViewIfNeeded();
   await expect(story.locator("iframe, a")).toHaveCount(0);
-  await expect(story.locator("video source")).toHaveAttribute(
+  await expect(storyVideo).toHaveAttribute(
     "src",
     "/media/film/solar-historia-completa.mp4",
   );
-  await expect(
-    story.getByRole("button", { name: "Reproduzir filme" }),
-  ).toBeVisible();
+  await expectAutoplay(storyVideo);
+  await expect(story.getByRole("button", { name: "Pausar vídeo" })).toBeVisible();
 });
 
 test("editorial gallery filters, incremental loading and fullscreen navigation", async ({
