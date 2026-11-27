@@ -60,6 +60,7 @@ table input,table select{min-width:180px}
 </style>
 <link rel="stylesheet" href="/dashboard.css">
 <link rel="stylesheet" href="/payments-online.css">
+<link rel="stylesheet" href="/expenses.css">
 </head>
 <body><div id="app"></div>
 <script type="module">
@@ -67,6 +68,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
 import QRCode from "https://cdn.jsdelivr.net/npm/qrcode@1.5.4/+esm";
 import { loadDashboard, renderDashboard, bindDashboard, readRows } from "./dashboard.js";
 import { bindPaymentSetup, openOnlinePayment, paymentRequest, renderPaymentSetup } from "./payments-online.js";
+import { bindExpenses, renderExpenses } from "./expenses.js";
 
 const SUPABASE_URL="https://bdfojankowlfuezdhdjl.supabase.co";
 const SUPABASE_KEY="sb_publishable_mHNwZ6rrplQy9P-0o3wfnQ_iRC_AvYY";
@@ -120,7 +122,7 @@ const navMeta={
  dashboard:["Início","◫"],clientes:["Clientes","◎"],agenda:["Agenda","▦"],solicitacoes:["Solicitações","✉"],contratos:["Contratos","▤"],receber:["Cobranças","↙"],recebimentos:["Pagamentos","✓"],recebimentosOnline:["Recebimentos online","↗"],despesas:["Despesas","↗"],nfse:["Notas fiscais","N"],usuarios:["Equipe","♙"],auditoria:["Histórico","⌁"]
 };
 function nav(){return Object.entries(navMeta).filter(([x])=>profile?.role==="admin"||!["usuarios","auditoria","recebimentosOnline"].includes(x)).map(([x,m])=>`<button data-route="${x}"${route===x?' class="active" aria-current="page"':""}><span class="nav-icon" aria-hidden="true">${m[1]}</span><span>${m[0]}</span></button>`).join("")}
-function shell(body){return `<div class="layout"><aside class="side"><div class="brand"><img src="/favicon.svg" alt=""><div class="brand-copy"><strong>Solar Opará</strong><span>Gestão de Eventos</span></div></div>${nav()}<a class="public-site-link" href="https://solar-opara-public-production.up.railway.app/" target="_blank" rel="noopener"><span class="nav-icon">↗</span><span>Abrir site público</span></a><button id="logout" class="logout"><span class="nav-icon">↪</span><span>Sair</span></button></aside><main class="main${route==="dashboard"?" dashboard-main":""}">${body}</main></div>`}
+function shell(body){return `<div class="layout"><aside class="side"><div class="brand"><img src="/favicon.svg" alt=""><div class="brand-copy"><strong>Solar Opará</strong><span>Gestão de Eventos</span></div></div>${nav()}<a class="public-site-link" href="https://solar-opara-public-production.up.railway.app/" target="_blank" rel="noopener"><span class="nav-icon">↗</span><span>Abrir site público</span></a><button id="logout" class="logout"><span class="nav-icon">↪</span><span>Sair</span></button></aside><main class="main${route==="dashboard"?" dashboard-main":route==="despesas"?" expenses-main":""}">${body}</main></div>`}
 function bindNav(){
  document.querySelectorAll("[data-route]").forEach(button=>button.onclick=async()=>{
   const previous=route;
@@ -718,10 +720,9 @@ async function recebimentos(){
  return `<div class=top><h1>Pagamentos</h1><button class="btn gray" id=csvPay>Exportar CSV</button></div><table><tr><th>Data</th><th>Cliente</th><th>Evento</th><th>Valor</th><th>Forma</th><th>Referência</th><th></th></tr>${(data||[]).map(x=>{let cl=x.so_receivables?.so_contracts?.so_clients,ev=x.so_receivables?.so_contracts?.event_name,subj=`Solar Opará – Pagamento confirmado – ${ev||""}`,body=`Olá ${cl?.name||""},%0D%0A%0D%0AConfirmamos o recebimento de ${money(x.amount)} referente ao evento ${ev||""}.%0D%0AData: ${dtBR(x.paid_at)}.%0D%0AForma: ${x.method||"PIX"}.%0D%0A%0D%0AAtenciosamente,%0D%0ASolar Opará`;return `<tr><td>${dtBR(x.paid_at)}</td><td>${esc(cl?.name)}</td><td>${esc(ev)}</td><td>${money(x.amount)}</td><td>${esc(x.method||"PIX")}</td><td>${esc(x.reference)}</td><td><div class=row>${onlineReceipts.has(x.id)?'<span class="badge paid">Sicoob</span>':canRecordPayment()?'<button class="btn small" data-payment-edit="'+esc(x.id)+'" data-receivable="'+esc(x.receivable_id)+'">Editar</button>':""}<button class="btn small gray" data-receipt="${x.id}">Recibo</button><a class="btn small" target=_blank href="mailto:${encodeURIComponent(cl?.email||"")}?subject=${encodeURIComponent(subj)}&body=${body}">E-mail</a></div></td></tr>`}).join("")}</table><dialog id=pixModal aria-labelledby=paymentTitle></dialog>`;
 }
 async function despesas(){
- const {data}=await sb.from("so_expenses").select("*").order("expense_date",{ascending:false});
- return `<div class=top><h1>Despesas</h1><button class=btn id=newExpense>+ Nova despesa</button></div><div id=expenseForm></div><table><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th></tr>${(data||[]).map(x=>`<tr><td>${dateBR(x.expense_date)}</td><td>${esc(x.description)}</td><td>${esc(x.category)}</td><td>${money(x.amount)}</td></tr>`).join("")}</table>`;
+ const records=await readRows(sb,"so_expenses","id,expense_date,description,category,amount").catch(()=>null);
+ return renderExpenses(records,{dateBR,esc,money},canRecordPayment());
 }
-function expenseForm(){return `<div class=card><form id=ef class=form><label>Descrição<input name=description required></label><label>Categoria<input name=category></label><label>Valor<input type=number step=.01 name=amount required></label><label>Data<input type=date name=expense_date required></label><label class=full>Observações<textarea name=notes></textarea></label><div class=full><button class=btn>Salvar</button></div></form></div>`}
 function nfStatusLabel(v){
  return ({draft:"RASCUNHO",ready:"PRONTA",issued:"EMITIDA",cancelled:"CANCELADA",error:"ERRO"})[v]||String(v||"").toUpperCase();
 }
@@ -1021,7 +1022,8 @@ function bindPage(){
 });
  document.querySelectorAll("[data-doc]").forEach(b=>b.onclick=()=>showDoc(b.dataset.doc,false));document.querySelectorAll("[data-manual]").forEach(b=>b.onclick=()=>showDoc(b.dataset.manual,true));document.querySelectorAll("[data-pix]").forEach(b=>b.onclick=()=>openPix(b.dataset.pix));document.querySelectorAll("[data-print-charge]").forEach(b=>b.onclick=()=>printCharge(b.dataset.printCharge));document.querySelectorAll("[data-payment-plan]").forEach(b=>b.onclick=()=>printPaymentPlan(b.dataset.paymentPlan));document.querySelectorAll("[data-receipt]").forEach(b=>b.onclick=()=>printReceipt(b.dataset.receipt));
  document.querySelectorAll("[data-payment-edit]").forEach(b=>b.onclick=()=>openPix(b.dataset.receivable,b.dataset.paymentEdit));
- if($("#newExpense"))$("#newExpense").onclick=()=>{$("#expenseForm").innerHTML=expenseForm();$("#ef").onsubmit=async e=>{e.preventDefault();let o=Object.fromEntries(new FormData(e.target));o.amount=Number(o.amount);let {data,error}=await sb.from("so_expenses").insert(o).select().single();if(error)return toast(error.message);await audit("create","expense",data.id,{amount:data.amount});toast("Despesa salva");render()}};
+ const expenses=$(".expense-page");
+ if(expenses)bindExpenses(expenses,{client:sb,audit,notify:toast,refresh:render});
  document.querySelectorAll("[data-nf-edit]").forEach(b=>b.onclick=()=>{
   const n=(window.__solarNfse||[]).find(x=>String(x.id)===String(b.dataset.nfEdit));if(!n)return toast("NFS-e não encontrada");
   $("#nfForm").innerHTML=nfDraftForm(n);$("#nfForm").scrollIntoView({behavior:"smooth",block:"start"});
