@@ -25,6 +25,7 @@ F.generate=async id=>{
  const cl=c.so_clients||{},pdf=await L.PDFDocument.load(master),font=await pdf.embedFont(L.StandardFonts.Helvetica),p=pdf.getPages();
  const d=(pg,t,x,y,w,s,opt)=>F.drawTop(pg,t||"",x,y,w,s,font,opt||{});
  const total=Number(c.rental_value||0)+Number(c.cleaning_fee||0)+Number(c.additional_value||0);
+ const entry=(c.so_receivables||[]).find(row=>row.is_entry&&row.status!=="cancelled");
  const extra=[c.additional_services,Number(c.additional_value||0)>0?F.money(c.additional_value):""].filter(Boolean).join(" - ");
  d(p[0],cl.name,297.5,204.7,224,10.25,{maxLines:2,minSize:7});
  d(p[0],cl.document,297.5,235.5,224,10,{maxLines:1,minSize:7});
@@ -41,7 +42,11 @@ F.generate=async id=>{
  d(p[0],extra,297.5,416.5,224,8.2,{maxLines:1,minSize:6.1});
  d(p[0],F.money(total),297.5,430.5,224,8.4,{maxLines:1,minSize:6.2});
  d(p[0],c.guarantee_text,297.5,445.5,224,8.2,{maxLines:1,minSize:6.1});
- d(p[0],c.payment_terms||"PIX",297.5,459.6,224,8.4,{maxLines:1,minSize:6.2});
+ d(p[0],c.payment_terms||"PIX",297.5,459.6,224,entry?7:8.4,{maxLines:1,minSize:6.2});
+ if(entry){
+  const plan=`Entrada ${F.money(entry.amount)} em ${F.brDate(entry.due_date)} · Saldo ${F.money(total-Number(entry.amount))}`;
+  d(p[0],plan,297.5,467.2,224,6.8,{maxLines:1,minSize:6.2});
+ }
  d(p[0],c.observations,297.5,475.6,224,8.2,{maxLines:1,minSize:6.1});
  const tenant="LOCATÁRIO(A): "+(cl.name||"")+", CPF/CNPJ nº "+(cl.document||"")+", endereço "+(cl.address||"")+", telefone "+(cl.phone||"")+", e-mail "+(cl.email||"")+".";
  d(p[0],tenant,70.9,606,448,9.5,{maxLines:3,minSize:7,lineHeight:10.7});

@@ -1,6 +1,6 @@
 (()=>{
 const F=window.SolarDocFiel=window.SolarDocFiel||{};
-F.MASTER="/CONTRATO_SOLAR_OPARA_MASTER.pdf";
+F.MASTER="/CONTRATO_SOLAR_OPARA_MASTER.pdf?v=2";
 F.SB="https://bdfojankowlfuezdhdjl.supabase.co";
 F.KEY="sb_publishable_mHNwZ6rrplQy9P-0o3wfnQ_iRC_AvYY";
 F.session=()=>sessionStorage.getItem("solar_session")||"";
@@ -10,7 +10,7 @@ F.ensurePdfLib=async()=>{
  return window.PDFLib;
 };
 F.getContract=async id=>{
- const r=await fetch(F.SB+"/rest/v1/so_contracts?id=eq."+encodeURIComponent(id)+"&select=*,so_clients(*)",{headers:{apikey:F.KEY,"x-solar-session":F.session()}});
+ const r=await fetch(F.SB+"/rest/v1/so_contracts?id=eq."+encodeURIComponent(id)+"&select=*,so_clients(*),so_receivables(amount,due_date,is_entry,status)",{headers:{apikey:F.KEY,"x-solar-session":F.session()}});
  if(!r.ok)throw new Error("Não foi possível carregar o contrato.");
  const a=await r.json();if(!a[0])throw new Error("Contrato não encontrado.");return a[0];
 };

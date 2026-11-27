@@ -8,7 +8,7 @@ const sbUrl="https://bdfojankowlfuezdhdjl.supabase.co";
 const sbKey="sb_publishable_mHNwZ6rrplQy9P-0o3wfnQ_iRC_AvYY";
 const session=()=>sessionStorage.getItem("solar_session")||"";
 async function getContract(id){
- const r=await fetch(sbUrl+"/rest/v1/so_contracts?id=eq."+encodeURIComponent(id)+"&select=*,so_clients(*)",{headers:{apikey:sbKey,"x-solar-session":session()}});
+ const r=await fetch(sbUrl+"/rest/v1/so_contracts?id=eq."+encodeURIComponent(id)+"&select=*,so_clients(*),so_receivables(amount,due_date,is_entry,status)",{headers:{apikey:sbKey,"x-solar-session":session()}});
  if(!r.ok)throw new Error("Não foi possível carregar o contrato.");
  const a=await r.json(); if(!a[0])throw new Error("Contrato não encontrado."); return a[0];
 }
@@ -26,6 +26,7 @@ table{width:100%;border-collapse:collapse;margin:8px 0 14px}td,th{border:1px sol
 </style>`;
 function contractHtml(c){
  const cl=c.so_clients||{},total=Number(c.rental_value||0)+Number(c.cleaning_fee||0)+Number(c.additional_value||0);
+ const entry=(c.so_receivables||[]).find(row=>row.is_entry&&row.status!=="cancelled");
  return `<!doctype html><html><head><meta charset="utf-8"><title>Contrato Solar Opará - ${esc(c.event_name)}</title>${baseStyle}</head><body>
  <div class="toolbar"><button onclick="print()">Imprimir / Salvar PDF</button></div>
  <h1>CONTRATO DE LOCAÇÃO DE ESPAÇO PARA EVENTOS</h1><h2>SOLAR OPARÁ</h2>
@@ -48,6 +49,7 @@ function contractHtml(c){
  <tr><td>TAXA DE LIMPEZA PÓS-EVENTO</td><td>${money(c.cleaning_fee)}</td></tr>
  <tr><td>SERVIÇOS ADICIONAIS</td><td>${esc(c.additional_services)}</td></tr>
  <tr><td>VALOR TOTAL</td><td>${money(total)}</td></tr>
+ ${entry?`<tr><td>ENTRADA</td><td>${money(entry.amount)} · Vencimento ${dateBR(entry.due_date)}</td></tr><tr><td>SALDO CONTRATADO</td><td>${money(total-Number(entry.amount))}</td></tr>`:""}
  <tr><td>CAUÇÃO / GARANTIA</td><td>${esc(c.guarantee_text)}</td></tr>
  <tr><td>FORMA DE PAGAMENTO</td><td>${esc(c.payment_terms)}</td></tr>
  <tr><td>OBSERVAÇÕES</td><td>${esc(c.observations)}</td></tr>

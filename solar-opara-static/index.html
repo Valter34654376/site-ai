@@ -35,6 +35,7 @@ table{width:100%;max-width:100%;border-collapse:separate;border-spacing:0;backgr
 th,td{padding:12px 14px;border-bottom:1px solid #eee9e0;text-align:left;font-size:13px;vertical-align:middle;line-height:1.4}th{background:#fbf8f2;color:#716d64;font-size:10px;text-transform:uppercase;letter-spacing:.75px;font-weight:800;white-space:nowrap;position:sticky;top:0;z-index:1}tbody tr:hover td{background:#fffcf6}tr:last-child td{border-bottom:0}
 label{display:block;font-size:12px;font-weight:700;margin-bottom:8px;color:#53504a;min-width:0}input,select,textarea{width:100%;min-width:0;padding:11px 12px;border:1px solid #d9d3c9;border-radius:10px;margin-top:5px;background:#fff;outline:none;transition:.18s;color:#24231f}input:focus,select:focus,textarea:focus{border-color:#cf9a47;box-shadow:0 0 0 3px rgba(207,154,71,.12)}
 textarea{min-height:92px;resize:vertical}.form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px 18px;align-items:start}.full{grid-column:1/-1;min-width:0}
+label[data-balance-due][hidden]{display:none}
 .badge{display:inline-block;padding:5px 9px;border-radius:999px;background:var(--warn);font-size:10px;font-weight:800;letter-spacing:.3px}.paid{background:var(--ok);color:#276d3b}
 .muted{color:var(--muted);line-height:1.5}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;min-width:0}
 .login-page{min-height:100vh;display:grid;grid-template-columns:1.05fr .95fr;background:#171715}
@@ -549,13 +550,14 @@ function contractDateTimeInput(v){
  const g=t=>p.find(x=>x.type===t)?.value||"";
  return g("year")+"-"+g("month")+"-"+g("day")+"T"+g("hour")+":"+g("minute");
 }
-function contractForm(data=null,dueDate="",installments=1){
+function contractForm(data=null,dueDate="",installments=1,entry=null){
  const opts=$("#clientOpts")?.innerHTML||"";
  const selectedOpts=opts.replace(/<option value="([^"]+)"/g,(m,id)=>`<option value="${id}"${String(data?.client_id||"")===String(id)?" selected":""}`);
- const pay=data?.payment_terms==="Boleto"?"Boleto bancário":data?.payment_terms||"PIX";
- const paymentOptions=["PIX","Pix parcelado","Boleto bancário","Dinheiro","Transferência bancária","Cartão","Outro"].map(x=>`<option value="${esc(x)}"${x===pay?" selected":""}>${esc(x)}</option>`).join("");
+ const pay=data?.payment_terms==="Boleto"?"Boleto bancário":data?.payment_terms==="Cartão"?"Cartão de crédito":data?.payment_terms||"PIX";
+ const paymentOptions=["PIX","Pix parcelado","Boleto bancário","Dinheiro","Transferência bancária","Cartão de crédito","Outro"].map(x=>`<option value="${esc(x)}"${x===pay?" selected":""}>${esc(x)}</option>`).join("");
  const v=x=>esc(x??"");
- return `<div class=card><div class=top><div><h2>${data?"Editar contrato":"Novo contrato"}</h2>${data?'<p class="muted">Altere os campos e salve. O mesmo contrato será atualizado, sem duplicar.</p>':""}</div></div><form id=ctf class=form>
+ const editing=!!data?.id;
+ return `<div class=card><div class=top><div><h2>${editing?"Editar contrato":"Novo contrato"}</h2></div></div><form id=ctf class=form>
  <input type=hidden name=contract_id value="${v(data?.id)}">
  <label>Cliente<select name=client_id required>${selectedOpts}</select></label>
  <label>Evento<input name=event_name required value="${v(data?.event_name)}"></label>
@@ -568,127 +570,88 @@ function contractForm(data=null,dueDate="",installments=1){
  <label>Valor locação<input type=number step=.01 name=rental_value required value="${v(data?.rental_value??0)}"></label>
  <label>Taxa limpeza<input type=number step=.01 name=cleaning_fee value="${v(data?.cleaning_fee??0)}"></label>
  <label>Valor adicional<input type=number step=.01 name=additional_value value="${v(data?.additional_value??0)}"></label>
- <label>Vencimento da cobrança<input type=date name=due_date value="${v(dueDate||data?.event_date||"")}"></label>
+ <label>Valor da entrada (R$)<input type=number step=.01 min=0 inputmode=decimal name=entry_amount placeholder="0,00" value="${v(entry?.amount)}"></label>
+ <label>Vencimento da entrada<input type=date name=entry_due_date value="${v(entry?.due_date)}"></label>
+ <label data-balance-due>Primeiro vencimento do saldo<input type=date name=due_date value="${v(dueDate||data?.event_date||"")}"></label>
+ <p class="full muted" data-contract-balance role="status"></p>
  <label class=full>Serviços adicionais<input name=additional_services value="${v(data?.additional_services)}"></label>
  <label class=full>Caução/garantia<input name=guarantee_text value="${v(data?.guarantee_text)}"></label>
  <label>Forma de pagamento<select name=payment_terms>${paymentOptions}</select></label>
- <label>Quantidade de parcelas<select name=installment_count>${Array.from({length:12},(_,i)=>i+1).map(n=>`<option value="${n}"${n===installments?" selected":""}>${n}x</option>`).join("")}</select></label>
+ <label>Parcelas do saldo<select name=installment_count>${Array.from({length:12},(_,i)=>i+1).map(n=>`<option value="${n}"${n===installments?" selected":""}>${n}x</option>`).join("")}</select></label>
  <p class="muted full">Pix parcelado = cobranças Pix mensais independentes (não é crédito bancário). Boleto bancário: registro e controle das parcelas; emissão de boleto exige integração com o banco.</p>
  <label class=full>Observações<textarea name=observations>${v(data?.observations)}</textarea></label>
- <div class="full row"><button class=btn>${data?"Salvar alterações":"Salvar contrato e gerar cobrança"}</button>${data?'<button type=button class="btn gray" id="cancelContractEdit">Cancelar</button>':""}</div>
+ <div class="full row"><button type=submit class=btn>${editing?"Salvar alterações":"Salvar contrato e gerar cobrança"}</button>${editing?'<button type=button class="btn gray" id="cancelContractEdit">Cancelar</button>':""}</div>
  </form></div>`;
 }
 
-function planRecebimentos(total, firstDate, count){
- const cents=Math.round(Number(total)*100);
- if(!Number.isFinite(cents)||cents<0)throw Error("Valor do contrato inválido.");
- if(!Number.isInteger(count)||count<1||count>12)throw Error("Escolha de 1 a 12 parcelas.");
- if(cents>0&&cents<count)throw Error("Valor insuficiente para o número de parcelas.");
- if(!/^\d{4}-\d{2}-\d{2}$/.test(firstDate))throw Error("Informe a data do primeiro vencimento.");
- const [year,month,day]=firstDate.split("-").map(Number);
- const first=new Date(Date.UTC(year,month-1,day));
- if(first.toISOString().slice(0,10)!==firstDate)throw Error("Vencimento inválido.");
- const base=Math.floor(cents/count),extra=cents%count;
- return Array.from({length:count},(_,i)=>{
-  const start=new Date(Date.UTC(year,month-1+i,1));
-  const last=new Date(Date.UTC(start.getUTCFullYear(),start.getUTCMonth()+1,0)).getUTCDate();
-  const date=new Date(Date.UTC(start.getUTCFullYear(),start.getUTCMonth(),Math.min(day,last)));
-  return {amount:(base+(i<extra?1:0))/100,due_date:date.toISOString().slice(0,10)};
- });
-}
-function newCharge(contractId,eventName,part,position,totalParts){
- const tx=("SO"+Date.now().toString(36)+id().replaceAll("-","").slice(0,9)).toUpperCase().slice(0,25);
- return {contract_id:contractId,description:"Contrato - "+eventName+(totalParts>1?" | Parcela "+(position+1)+"/"+totalParts:""),amount:part.amount,due_date:part.due_date,txid:tx};
-}
 function bindPaymentPlan(form){
  if(!form)return;
- const method=form.elements.namedItem("payment_terms"),parts=form.elements.namedItem("installment_count");
- if(!method||!parts)return;
+ const method=form.elements.payment_terms,parts=form.elements.installment_count;
+ const entry=form.elements.entry_amount,entryDate=form.elements.entry_due_date;
+ const balanceDue=form.elements.due_date;
+ const summary=form.querySelector("[data-contract-balance]");
  const sync=()=>{
-  const allow=method.value==="Pix parcelado"||method.value==="Boleto bancário";
-  parts.disabled=!allow;
-  if(!allow)parts.value="1";
-  if(method.value==="Pix parcelado"&&Number(parts.value)<2)parts.value="2";
+  const total=["rental_value","cleaning_fee","additional_value"].reduce(
+   (cents,field)=>cents+Math.round(Number(form.elements[field].value||0)*100),0);
+  const entryCents=Math.round(Number(entry.value||0)*100);
+  const hasEntry=entryCents>0;
+  const entryOnly=hasEntry&&entryCents===total;
+  entry.setCustomValidity(hasEntry&&entryCents>total?"A entrada não pode ultrapassar o total do contrato.":"");
+  entryDate.disabled=!hasEntry;
+  entryDate.required=hasEntry;
+  if(hasEntry&&!entryDate.value)entryDate.value=new Intl.DateTimeFormat("sv-SE",{timeZone:"America/Sao_Paulo",dateStyle:"short"}).format(new Date());
+  balanceDue.disabled=entryOnly;
+  form.querySelector("[data-balance-due]").hidden=entryOnly;
+  const parcelled=["Pix parcelado","Boleto bancário","Cartão de crédito"].includes(method.value);
+  parts.disabled=!parcelled||entryOnly;
+  const needsTwo=method.value==="Pix parcelado"&&!hasEntry;
+  parts.options[0].disabled=needsTwo;
+  if(!parcelled)parts.value="1";
+  else if(needsTwo&&parts.value==="1")parts.value="2";
+  const text="Total "+money(total/100)+" · Entrada "+money(entryCents/100)+" · Saldo "+money(Math.max(0,total-entryCents)/100);
+  if(summary.textContent!==text)summary.textContent=text;
  };
- method.addEventListener("change",sync);sync();
+ form.addEventListener("input",sync);
+ form.addEventListener("change",sync);
+ sync();
 }
 
 async function saveContractForm(form){
- const f=new FormData(form),contractId=String(f.get("contract_id")||""),o=Object.fromEntries(f);
- const requested=Number(f.get("installment_count")||1);
- delete o.contract_id;delete o.due_date;delete o.installment_count;
- ["capacity"].forEach(k=>o[k]=o[k]?Number(o[k]):null);
- ["rental_value","cleaning_fee","additional_value"].forEach(k=>o[k]=Number(o[k]||0));
- const dueDate=String(f.get("due_date")||o.event_date);
- const total=Number(o.rental_value)+Number(o.cleaning_fee)+Number(o.additional_value);
- const method=String(o.payment_terms||"PIX");
- const count=method==="Pix parcelado"||method==="Boleto bancário"?requested:1;
- if(method==="Pix parcelado"&&count<2)return toast("Pix parcelado exige 2 a 12 parcelas.");
- let plan;
- try{plan=planRecebimentos(total,dueDate,count)}catch(e){return toast(e.message)}
- let conflictQ=sb.from("so_contracts").select("id").eq("event_date",o.event_date).eq("status","active");
- if(contractId)conflictQ=conflictQ.neq("id",contractId);
- const {data:conflict,error:conflictError}=await conflictQ;
- if(conflictError)return toast(conflictError.message);
- if(conflict?.length&&!confirm("Já existe outro evento ativo nesta data. Deseja continuar?"))return;
- form.querySelector("button[type=submit],button:not([type])")?.setAttribute("disabled","disabled");
+ const submit=form.querySelector("button[type=submit]");
+ if(submit.disabled)return;
+ submit.disabled=true;
+ const f=new FormData(form);
+ const {contract_id:contractId,due_date:dueDate,installment_count:installments,...contract}=Object.fromEntries(f);
+ const requestId=!contractId&&window.__bookingContractRequestId;
  try{
-  if(contractId){
-   const [{data:current,error:currentError},{data:oldCharges,error:chargeError}]=await Promise.all([
-    sb.from("so_contracts").select("*").eq("id",contractId).single(),
-    sb.from("so_receivables").select("id,amount,due_date").eq("contract_id",contractId).order("created_at",{ascending:true})
-   ]);
-   if(currentError||chargeError)throw Error(currentError?.message||chargeError?.message);
-   const ids=(oldCharges||[]).map(x=>x.id);
-   const {data:received,error:paidError}=ids.length?
-    await sb.from("so_payments").select("id").in("receivable_id",ids).eq("reversed",false):
-    {data:[],error:null};
-   if(paidError)throw Error(paidError.message);
-   const oldTotal=Math.round((Number(current.rental_value||0)+Number(current.cleaning_fee||0)+Number(current.additional_value||0))*100);
-   const newTotal=Math.round(total*100);
-   if(received?.length&&(newTotal!==oldTotal||count!==ids.length||method!==(current.payment_terms||"PIX")||dueDate!==(oldCharges?.[0]?.due_date||current.event_date)))
-    throw Error("Já existem pagamentos. Não altere valor, parcelas, vencimento inicial ou forma de pagamento; regularize os recebimentos primeiro.");
-   if(!received?.length){
-    const extras=(oldCharges||[]).slice(plan.length).map(x=>x.id);
-    if(extras.length){
-     const {error}=await sb.from("so_receivables").delete().in("id",extras);
-     if(error)throw Error("Não foi possível remover parcelas antigas: "+error.message);
-    }
-    for(let i=0;i<Math.min(oldCharges?.length||0,plan.length);i++){
-     const part=plan[i];
-     const description="Contrato - "+o.event_name+(plan.length>1?" | Parcela "+(i+1)+"/"+plan.length:"");
-     const {error}=await sb.from("so_receivables").update({description,amount:part.amount,due_date:part.due_date}).eq("id",oldCharges[i].id);
-     if(error)throw Error("Falha ao atualizar parcela "+(i+1)+": "+error.message);
-    }
-    if(plan.length>(oldCharges?.length||0)){
-     const start=oldCharges?.length||0;
-     const inserts=plan.slice(start).map((part,i)=>newCharge(contractId,o.event_name,part,start+i,plan.length));
-     const {error}=await sb.from("so_receivables").insert(inserts);
-     if(error)throw Error("Falha ao criar parcelas: "+error.message);
-    }
-   }
-   const {error}=await sb.from("so_contracts").update(o).eq("id",contractId);
-   if(error)throw Error(error.message);
-   const {error:nfErr}=await sb.from("so_nfse").update({amount:total}).eq("contract_id",contractId).eq("status","draft");
-   if(nfErr)console.warn("NFS-e draft update:",nfErr.message);
-   await audit("update","contract",contractId,{event:o.event_name,total,method,installments:count});
-   toast("Contrato atualizado e cobranças revisadas.");
-  }else{
-   const {data:c,error}=await sb.from("so_contracts").insert({...o,status:"active"}).select().single();
-   if(error)throw Error(error.message);
-   const {error:chargeError}=await sb.from("so_receivables").insert(plan.map((part,i)=>newCharge(c.id,o.event_name,part,i,plan.length)));
-   if(chargeError)throw Error("Contrato criado, mas as parcelas não foram geradas: "+chargeError.message);
-   const {error:nfErr}=await sb.from("so_nfse").insert({contract_id:c.id,status:"draft",amount:total});
-   if(nfErr)console.warn("NFS-e draft creation:",nfErr.message);
-   await audit("create","contract",c.id,{event:o.event_name,total,method,installments:count});
-   if(window.__bookingContractRequestId){const requestId=window.__bookingContractRequestId;await sb.from("so_booking_requests").update({status:"converted",updated_at:new Date().toISOString()}).eq("id",requestId);await audit("convert","booking_request",requestId,{contract_id:c.id});window.__bookingContractRequestId=null;window.__bookingPrefill=null;}
-   toast("Contrato criado com "+count+" cobrança(s).");
+  let conflictQ=sb.from("so_contracts").select("id").eq("event_date",contract.event_date).eq("status","active");
+  if(contractId)conflictQ=conflictQ.neq("id",contractId);
+  const {data:conflict,error:conflictError}=await conflictQ;
+  if(conflictError)throw conflictError;
+  if(conflict?.length&&!confirm("Já existe outro evento ativo nesta data. Deseja continuar?"))return;
+
+  const {data:result,error}=await sb.rpc("so_save_contract_plan",{
+   p_contract:contract,p_due_date:dueDate||contract.event_date||null,
+   p_installment_count:Number(installments||1),p_contract_id:contractId||null
+  });
+  if(error||!result?.ok)throw error||Error("Não foi possível salvar o contrato.");
+  if(requestId){
+   window.__bookingContractRequestId=null;
+   window.__bookingPrefill=null;
   }
-  render();
- }catch(e){
-  toast(e?.message||String(e));
-  form.querySelector("button[type=submit],button:not([type])")?.removeAttribute("disabled");
- }
+  await audit(contractId?"update":"create","contract",result.contract_id,{
+   event:contract.event_name,total:result.total,method:result.method,installments:result.installment_count,entry:result.entry_amount
+  }).catch(console.warn);
+
+  if(requestId){
+   const {error:bookingError}=await sb.from("so_booking_requests").update({status:"converted",updated_at:new Date().toISOString()}).eq("id",requestId);
+   if(bookingError)toast("Contrato salvo. A situação da solicitação ainda precisa ser atualizada.");
+   else await audit("convert","booking_request",requestId,{contract_id:result.contract_id}).catch(console.warn);
+  }
+  toast(contractId?"Contrato atualizado.":"Contrato criado com "+result.charge_count+(result.charge_count===1?" cobrança.":" cobranças."));
+  await render();
+ }catch(e){toast(e?.message||String(e))}
+ finally{submit.disabled=false}
 }
 
 function isOverdue(date){return !!date&&String(date)<new Date().toISOString().slice(0,10)}
@@ -973,11 +936,14 @@ async function printCharge(rid){
  w.document.write(`<meta charset="utf-8"><title>Cobrança Solar Opará</title><style>body{font-family:Arial;max-width:760px;margin:32px auto}.box{border:1px solid #bbb;border-radius:8px;padding:14px;margin:16px 0}.warn{background:#fff4d6;padding:12px;border:1px solid #e4c368;border-radius:6px;font-weight:bold}.muted{color:#666}.qr{max-width:240px}.code{word-break:break-all;font-family:monospace;font-size:11px;background:#f5f5f5;padding:10px}</style><h1>Solar Opará — Cobrança</h1>${warning}<div class="box"><p><b>Cliente:</b> ${esc(r.so_contracts?.so_clients?.name)}</p><p><b>CPF/CNPJ:</b> ${esc(r.so_contracts?.so_clients?.document||"—")}</p><p><b>Evento:</b> ${esc(r.so_contracts?.event_name)}</p><p><b>Descrição:</b> ${esc(r.description)}</p><p><b>Vencimento:</b> ${dateBR(r.due_date)}</p><p><b>Forma:</b> ${esc(terms)}</p><p><b>Parcela:</b> ${money(r.amount)}</p><p><b>Recebido:</b> ${money(paid)}</p><p><b>Saldo:</b> ${money(balance)}</p></div>${pix&&balance>0?`<div class="box"><h2>Pagamento via Pix</h2><img class="qr" src="${qr}"><div class="code">${esc(payload)}</div></div>`:""}<p class="muted">Não substitui documento bancário ou fiscal oficial.</p><script>window.onload=()=>window.print()<\/script>`); w.document.close();
 }
 async function printPaymentPlan(contractId){
- const [{data:c,error:ce},{data:r,error:re}]=await Promise.all([sb.from("so_contracts").select("event_name,payment_terms,so_clients(name,document)").eq("id",contractId).single(),sb.from("so_receivables").select("*").eq("contract_id",contractId).order("due_date")]);
+ const [{data:c,error:ce},{data:r,error:re}]=await Promise.all([sb.from("so_contracts").select("event_name,payment_terms,so_clients(name,document)").eq("id",contractId).single(),sb.from("so_receivables").select("amount,due_date,is_entry").eq("contract_id",contractId).neq("status","cancelled").order("is_entry",{ascending:false}).order("due_date")]);
  if(ce||re||!c)return toast(ce?.message||re?.message||"Plano de pagamento não encontrado");
  const w=open("","_blank");if(!w)return toast("O navegador bloqueou a janela de impressão."); const total=(r||[]).reduce((a,x)=>a+Number(x.amount),0);
+ const installmentCount=(r||[]).filter(row=>!row.is_entry).length;
+ let installment=0;
+ const lines=(r||[]).map(row=>`<tr><td>${row.is_entry?"Entrada":++installment+"/"+installmentCount}</td><td>${dateBR(row.due_date)}</td><td>${money(row.amount)}</td></tr>`).join("");
  const warn=(c.payment_terms==="Boleto bancário"||c.payment_terms==="Boleto")?'<div style="background:#fff4d6;border:1px solid #e4c368;padding:12px"><b>Não é boleto bancário oficial.</b> Carnê para controle interno.</div>':"";
- w.document.write(`<meta charset="utf-8"><title>Carnê Solar Opará</title><style>body{font-family:Arial;max-width:850px;margin:30px auto}table{width:100%;border-collapse:collapse}td,th{border:1px solid #bbb;padding:9px;text-align:left}.muted{color:#666}</style><h1>Solar Opará — Plano de pagamento</h1><p><b>Cliente:</b> ${esc(c.so_clients?.name)} · <b>CPF/CNPJ:</b> ${esc(c.so_clients?.document||"—")}</p><p><b>Evento:</b> ${esc(c.event_name)} · <b>Forma:</b> ${esc(c.payment_terms||"PIX")}</p>${warn}<table><tr><th>Parcela</th><th>Vencimento</th><th>Valor</th></tr>${(r||[]).map((x,i)=>`<tr><td>${i+1}/${r.length}</td><td>${dateBR(x.due_date)}</td><td>${money(x.amount)}</td></tr>`).join("")}<tr><td colspan="2"><b>Total</b></td><td><b>${money(total)}</b></td></tr></table><p class="muted">Planejamento de pagamentos; não substitui documento bancário ou fiscal.</p><script>window.onload=()=>window.print()<\/script>`); w.document.close();
+ w.document.write(`<meta charset="utf-8"><title>Carnê Solar Opará</title><style>body{font-family:Arial;max-width:850px;margin:30px auto}table{width:100%;border-collapse:collapse}td,th{border:1px solid #bbb;padding:9px;text-align:left}.muted{color:#666}</style><h1>Solar Opará — Plano de pagamento</h1><p><b>Cliente:</b> ${esc(c.so_clients?.name)} · <b>CPF/CNPJ:</b> ${esc(c.so_clients?.document||"—")}</p><p><b>Evento:</b> ${esc(c.event_name)} · <b>Forma:</b> ${esc(c.payment_terms||"PIX")}</p>${warn}<table><tr><th>Parcela</th><th>Vencimento</th><th>Valor</th></tr>${lines}<tr><td colspan="2"><b>Total</b></td><td><b>${money(total)}</b></td></tr></table><p class="muted">Planejamento de pagamentos; não substitui documento bancário ou fiscal.</p><script>window.onload=()=>window.print()<\/script>`); w.document.close();
 }
 async function printReceipt(paymentId){
  const {data:x,error}=await sb.from("so_payments").select("*,so_receivables(description,due_date,so_contracts(event_name,so_clients(name,document)))").eq("id",paymentId).single(); if(error||!x)return toast(error?.message||"Pagamento não encontrado");
@@ -986,9 +952,12 @@ async function printReceipt(paymentId){
 }
 
 async function showDoc(cid,manual=false){
- const {data:c}=await sb.from("so_contracts").select("*,so_clients(*)").eq("id",cid).single();const cl=c.so_clients,total=Number(c.rental_value)+Number(c.cleaning_fee)+Number(c.additional_value);
+ const {data:c,error}=await sb.from("so_contracts").select("*,so_clients(*),so_receivables(amount,due_date,is_entry,status)").eq("id",cid).single();
+ if(error||!c)return toast("Não foi possível carregar o contrato.");
+ const cl=c.so_clients||{},total=Number(c.rental_value)+Number(c.cleaning_fee)+Number(c.additional_value);
+ const entry=(c.so_receivables||[]).find(row=>row.is_entry&&row.status!=="cancelled");
  const w=open("","_blank");if(manual)w.document.write(`<meta charset=utf-8><title>Manual Solar Opará</title><style>body{font-family:Arial;max-width:900px;margin:30px auto;line-height:1.55}</style><button onclick=print()>Imprimir / Salvar PDF</button><h1>ORIENTAÇÕES PARA USO – SOLAR OPARÁ</h1><p><b>Locatário:</b> ${esc(cl.name)} — <b>CPF/CNPJ:</b> ${esc(cl.document)}</p><p><b>Evento:</b> ${esc(c.event_name)} — <b>Data:</b> ${dateBR(c.event_date)}</p><h2>Checklist operacional</h2><p>Montagem, fornecedores, horários, capacidade, limpeza, segurança e devolução do espaço devem seguir as condições combinadas para o evento.</p><h2>Declaração de ciência</h2><p>O locatário declara que recebeu as orientações de uso do Solar Opará e se compromete a observá-las durante montagem, realização e desmontagem.</p><br>____________________________________<br>Assinatura do locatário`);
- else w.document.write(`<meta charset=utf-8><title>Contrato Solar Opará</title><style>body{font-family:Arial;max-width:900px;margin:30px auto;line-height:1.5}table{width:100%;border-collapse:collapse}td{border:1px solid #aaa;padding:8px}</style><button onclick=print()>Imprimir / Salvar PDF</button><h1>CONTRATO DE LOCAÇÃO DE ESPAÇO PARA EVENTOS – SOLAR OPARÁ</h1><table><tr><td>LOCADOR</td><td>SOLAR OPARÁ TURISMO E HOTEIS — CNPJ 33.958.617/0001-73</td></tr><tr><td>REPRESENTANTE</td><td>FLAVIA TATIANA RIBEIRO DE OLIVEIRA</td></tr><tr><td>LOCATÁRIO</td><td>${esc(cl.name)}</td></tr><tr><td>CPF/CNPJ</td><td>${esc(cl.document)}</td></tr><tr><td>EVENTO</td><td>${esc(c.event_name)}</td></tr><tr><td>DATA</td><td>${dateBR(c.event_date)}</td></tr><tr><td>CAPACIDADE</td><td>${esc(c.capacity)}</td></tr><tr><td>LOCAÇÃO</td><td>${money(c.rental_value)}</td></tr><tr><td>LIMPEZA</td><td>${money(c.cleaning_fee)}</td></tr><tr><td>ADICIONAIS</td><td>${money(c.additional_value)} — ${esc(c.additional_services)}</td></tr><tr><td>TOTAL</td><td>${money(total)}</td></tr><tr><td>CAUÇÃO/GARANTIA</td><td>${esc(c.guarantee_text)}</td></tr><tr><td>PAGAMENTO</td><td>${esc(c.payment_terms)}</td></tr><tr><td>OBSERVAÇÕES</td><td>${esc(c.observations)}</td></tr></table><h2>Vistoria e checklist</h2><p>As condições do espaço, montagem, uso e devolução devem ser conferidas pelas partes conforme o evento.</p><h2>Disposições gerais</h2><p>Este documento registra as condições operacionais e financeiras informadas no cadastro do evento.</p><p>Chave Pix: ${PIX}</p>`);w.document.close()
+ else w.document.write(`<meta charset=utf-8><title>Contrato Solar Opará</title><style>body{font-family:Arial;max-width:900px;margin:30px auto;line-height:1.5}table{width:100%;border-collapse:collapse}td{border:1px solid #aaa;padding:8px}</style><button onclick=print()>Imprimir / Salvar PDF</button><h1>CONTRATO DE LOCAÇÃO DE ESPAÇO PARA EVENTOS – SOLAR OPARÁ</h1><table><tr><td>LOCADOR</td><td>SOLAR OPARÁ TURISMO E HOTEIS — CNPJ 33.958.617/0001-73</td></tr><tr><td>REPRESENTANTE</td><td>FLAVIA TATIANA RIBEIRO DE OLIVEIRA</td></tr><tr><td>LOCATÁRIO</td><td>${esc(cl.name)}</td></tr><tr><td>CPF/CNPJ</td><td>${esc(cl.document)}</td></tr><tr><td>EVENTO</td><td>${esc(c.event_name)}</td></tr><tr><td>DATA</td><td>${dateBR(c.event_date)}</td></tr><tr><td>CAPACIDADE</td><td>${esc(c.capacity)}</td></tr><tr><td>LOCAÇÃO</td><td>${money(c.rental_value)}</td></tr><tr><td>LIMPEZA</td><td>${money(c.cleaning_fee)}</td></tr><tr><td>ADICIONAIS</td><td>${money(c.additional_value)} — ${esc(c.additional_services)}</td></tr><tr><td>TOTAL</td><td>${money(total)}</td></tr>${entry?`<tr><td>ENTRADA</td><td>${money(entry.amount)} · Vencimento ${dateBR(entry.due_date)}</td></tr><tr><td>SALDO CONTRATADO</td><td>${money(total-Number(entry.amount))}</td></tr>`:""}<tr><td>CAUÇÃO/GARANTIA</td><td>${esc(c.guarantee_text)}</td></tr><tr><td>PAGAMENTO</td><td>${esc(c.payment_terms)}</td></tr><tr><td>OBSERVAÇÕES</td><td>${esc(c.observations)}</td></tr></table><h2>Vistoria e checklist</h2><p>As condições do espaço, montagem, uso e devolução devem ser conferidas pelas partes conforme o evento.</p><h2>Disposições gerais</h2><p>Este documento registra as condições operacionais e financeiras informadas no cadastro do evento.</p><p>Chave Pix: ${PIX}</p>`);w.document.close()
 }
 function bindPage(){
  const setup=$(".pay-setup");
@@ -1038,8 +1007,11 @@ function bindPage(){
  const id=b.dataset.editContract;
  const item=(window.__solarContracts||[]).find(x=>String(x.id)===String(id));
  if(!item)return toast("Contrato não encontrado");
- const {data:rows}=await sb.from("so_receivables").select("due_date").eq("contract_id",id).order("created_at",{ascending:true});
- $("#contractForm").innerHTML=contractForm(item,rows?.[0]?.due_date||item.event_date||"",Math.max(1,rows?.length||0));
+ const {data:rows,error}=await sb.from("so_receivables").select("amount,due_date,is_entry").eq("contract_id",id).neq("status","cancelled").order("due_date");
+ if(error)return toast("Não foi possível carregar as cobranças do contrato.");
+ const entry=(rows||[]).find(row=>row.is_entry);
+ const installments=(rows||[]).filter(row=>!row.is_entry);
+ $("#contractForm").innerHTML=contractForm(item,installments[0]?.due_date||item.event_date||"",Math.max(1,installments.length),entry);
  bindPaymentPlan($("#ctf"));
  $("#contractForm").scrollIntoView({behavior:"smooth",block:"start"});
  $("#ctf").onsubmit=async e=>{e.preventDefault();await saveContractForm(e.target)};
