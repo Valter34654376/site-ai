@@ -38,9 +38,6 @@ textarea{min-height:92px;resize:vertical}.form{display:grid;grid-template-column
 .badge{display:inline-block;padding:5px 9px;border-radius:999px;background:var(--warn);font-size:10px;font-weight:800;letter-spacing:.3px}.paid{background:var(--ok);color:#276d3b}
 .muted{color:var(--muted);line-height:1.5}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;min-width:0}
 .login-page{min-height:100vh;display:grid;grid-template-columns:1.05fr .95fr;background:#171715}
-.login-art{position:relative;overflow:hidden;padding:65px;display:flex;flex-direction:column;justify-content:flex-end;background:radial-gradient(circle at 35% 20%,rgba(227,173,75,.38),transparent 23%),linear-gradient(145deg,#201e18,#111)}
-.login-art:before{content:"";position:absolute;width:520px;height:520px;border:1px solid rgba(229,176,79,.16);border-radius:50%;top:-170px;left:-140px;box-shadow:0 0 0 55px rgba(229,176,79,.04),0 0 0 110px rgba(229,176,79,.025)}
-.login-art h2{position:relative;font-size:48px;color:#f4d592;max-width:500px;margin:0}.login-art p{position:relative;color:#aaa69c;max-width:500px;line-height:1.6}
 .login{display:flex;align-items:center;justify-content:center;padding:30px;background:linear-gradient(180deg,#f8f5ef,#eee8de)}.login .card{width:min(440px,100%);padding:30px;border-radius:22px}.login-logo{display:flex;align-items:center;gap:12px;margin-bottom:22px}.login-logo img{width:48px;height:48px}.login-logo strong{font-family:'Playfair Display',serif;font-size:25px}
 .code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all;background:#f3f0e9;border:1px dashed #d7cdbd;padding:11px;border-radius:10px;font-size:11px}.toast{position:fixed;right:20px;top:20px;background:#24231f;color:#fff;padding:13px 16px;border-radius:11px;z-index:9999;box-shadow:0 18px 40px rgba(0,0,0,.22)}
 .warnbox{background:#fff9ec;border:1px solid #ecd8a8;padding:13px 15px;border-radius:11px}
@@ -51,7 +48,7 @@ td code,.code{max-width:100%;overflow-wrap:anywhere}
 td .btn{white-space:nowrap}
 table input,table select{min-width:180px}
 @media(max-width:1200px){th,td{padding:10px 11px}.main{padding:24px}}
-@media(max-width:1050px){.grid{grid-template-columns:repeat(2,1fr)}.main{padding:26px}.login-page{grid-template-columns:1fr}.login-art{display:none}}
+@media(max-width:1050px){.grid{grid-template-columns:repeat(2,1fr)}.main{padding:26px}}
 @media(max-width:850px){.layout{display:block}.side{position:static;width:100%;display:flex;gap:4px;overflow:auto;align-items:center}.brand{min-width:210px;border:0;margin:0;padding:3px 8px}.brand-copy span{display:none}.side button{min-width:max-content}.main{margin:0;width:100%;padding:18px;overflow-x:hidden}.form{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.top{flex-wrap:wrap}.calendar{overflow-x:auto}}
 @media(max-width:560px){.grid,.form{grid-template-columns:1fr}.top{align-items:flex-start;flex-direction:column}.calendar{grid-template-columns:1fr 1fr}.main{padding:14px}h1{font-size:28px}h2{font-size:21px}.card{padding:14px}.btn{width:auto;max-width:100%}th,td{font-size:12px}.metric{min-height:105px}}
 #pixModal{width:min(680px,calc(100% - 24px));max-height:calc(100dvh - 24px);padding:20px;border:1px solid var(--line);border-radius:14px;color:inherit}
@@ -61,6 +58,7 @@ table input,table select{min-width:180px}
 <link rel="stylesheet" href="/dashboard.css">
 <link rel="stylesheet" href="/payments-online.css">
 <link rel="stylesheet" href="/expenses.css">
+<link rel="stylesheet" href="/panel-appearance.css">
 </head>
 <body><div id="app"></div>
 <script type="module">
@@ -118,12 +116,39 @@ async function passwordDigest(username,password){
  const bits=await crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-256",salt:enc.encode("solar-opara:"+username.toLowerCase()),iterations:150000},key,256);
  return Array.from(new Uint8Array(bits),b=>b.toString(16).padStart(2,"0")).join("");
 }
-const navMeta={
- dashboard:["Início","◫"],clientes:["Clientes","◎"],agenda:["Agenda","▦"],solicitacoes:["Solicitações","✉"],contratos:["Contratos","▤"],receber:["Cobranças","↙"],recebimentos:["Pagamentos","✓"],recebimentosOnline:["Recebimentos online","↗"],despesas:["Despesas","↗"],nfse:["Notas fiscais","N"],usuarios:["Equipe","♙"],auditoria:["Histórico","⌁"]
-};
-function nav(){return Object.entries(navMeta).filter(([x])=>profile?.role==="admin"||!["usuarios","auditoria","recebimentosOnline"].includes(x)).map(([x,m])=>`<button data-route="${x}"${route===x?' class="active" aria-current="page"':""}><span class="nav-icon" aria-hidden="true">${m[1]}</span><span>${m[0]}</span></button>`).join("")}
-function shell(body){return `<div class="layout"><aside class="side"><div class="brand"><img src="/favicon.svg" alt=""><div class="brand-copy"><strong>Solar Opará</strong><span>Gestão de Eventos</span></div></div>${nav()}<a class="public-site-link" href="https://solar-opara-public-production.up.railway.app/" target="_blank" rel="noopener"><span class="nav-icon">↗</span><span>Abrir site público</span></a><button id="logout" class="logout"><span class="nav-icon">↪</span><span>Sair</span></button></aside><main class="main${route==="dashboard"?" dashboard-main":route==="despesas"?" expenses-main":""}">${body}</main></div>`}
+const navSections = [
+ [["dashboard", "Início", "overview"], ["clientes", "Clientes", "person"], ["agenda", "Agenda", "calendar"],
+  ["solicitacoes", "Solicitações", "mail"], ["contratos", "Contratos", "document"]],
+ [["receber", "Cobranças", "incoming"], ["recebimentos", "Pagamentos", "check"],
+  ["recebimentosOnline", "Recebimentos online", "card"], ["despesas", "Despesas", "outgoing"], ["nfse", "Notas fiscais", "document"]],
+ [["usuarios", "Equipe", "person"], ["auditoria", "Histórico", "history"]],
+];
+function panelIcon(name) {return `<span class="panel-icon panel-icon--${name}" aria-hidden="true"></span>`}
+function nav() {
+ const admin=profile?.role==="admin";
+ const adminRoutes=["usuarios","auditoria","recebimentosOnline"];
+ return navSections.map(section=>section.filter(([key])=>admin||!adminRoutes.includes(key)))
+  .filter(section=>section.length)
+  .map(section=>`<div class="panel-nav-group">${section.map(([key,label,icon])=>
+   `<button type="button" data-route="${key}"${route===key?' class="active" aria-current="page"':""}>${panelIcon(icon)}<span>${label}</span></button>`).join("")}</div>`).join("");
+}
+function shell(body) {
+ const pageClass=route==="dashboard"?" dashboard-main":route==="despesas"?" expenses-main":"";
+ return `<div class="layout panel-shell"><aside class="side panel-sidebar">
+   <div class="brand"><img src="/favicon.svg" alt=""><div class="brand-copy"><strong>Solar Opará</strong><span>Gestão de Eventos</span></div></div>
+   <nav class="panel-menu" aria-label="Menu principal">${nav()}</nav>
+   <div class="panel-side-actions">
+     <a class="public-site-link" href="https://solar-opara-public-production.up.railway.app/" target="_blank" rel="noopener">${panelIcon("outgoing")}<span class="panel-action-text">Abrir site público</span></a>
+     <button type="button" id="logout" class="logout">${panelIcon("exit")}<span class="panel-action-text">Sair</span></button>
+   </div>
+ </aside><main class="main${pageClass}">${body}</main></div>`;
+}
 function bindNav(){
+ const menu=$(".panel-menu"),active=menu?.querySelector('[aria-current="page"]');
+ if(active&&menu.scrollWidth>menu.clientWidth){
+  const item=active.getBoundingClientRect(),rail=menu.getBoundingClientRect();
+  if(item.right>rail.right)menu.scrollLeft+=item.right-rail.right+10;
+ }
  document.querySelectorAll("[data-route]").forEach(button=>button.onclick=async()=>{
   const previous=route;
   route=button.dataset.route;
@@ -194,14 +219,14 @@ async function loginView(){
  const googleResult=await finishGoogleLogin();
  if(googleResult===true)return render();
  const denied=typeof googleResult==="string"?`<div class="warnbox" style="margin:14px 0">${esc(googleResult)}</div>`:"";
- setApp(`<div class="login-page"><section class="login-art"><h2>Gestão simples para momentos importantes.</h2><p>Clientes, agenda, contratos, financeiro, Pix, documentos e NFS-e organizados em um único lugar.</p></section><section class="login"><div class="card"><div class="login-logo"><img src="/favicon.svg" alt=""><div><strong>Solar Opará</strong><div class="muted">Gestão de Eventos</div></div></div><h1 style="font-size:28px">Bem-vindo de volta</h1><p class="muted">Entre com uma conta Google autorizada pelo administrador.</p>${denied}<button class="btn" style="width:100%;margin-top:14px" id="googleLoginBtn">G&nbsp;&nbsp;Continuar com Google</button><p class="muted" style="font-size:12px;margin-top:16px">Use sua conta Google autorizada para acessar.</p></div></section></div>`);
+ setApp(`<div class="login-page panel-signin"><main class="login"><div class="card"><div class="login-logo"><img src="/favicon.svg" alt=""><div><strong>Solar Opará</strong><div class="muted">Gestão de Eventos</div></div></div><h1>Bem-vindo de volta</h1><p class="muted">Entre com uma conta Google autorizada.</p>${denied}<button type="button" class="btn" id="googleLoginBtn">Continuar com Google</button></div></main></div>`);
  $("#googleLoginBtn").onclick=async()=>{
    const b=$("#googleLoginBtn"); b.disabled=true; b.textContent="Abrindo Google...";
    const {error}=await googleClient.auth.signInWithOAuth({
      provider:"google",
      options:{redirectTo:location.origin,queryParams:{prompt:"select_account"}}
    });
-   if(error){b.disabled=false;b.textContent="G  Continuar com Google";toast("Não foi possível abrir o login Google");}
+   if(error){b.disabled=false;b.textContent="Continuar com Google";toast("Não foi possível abrir o login Google");}
  };
 }
 async function load(){
@@ -209,7 +234,7 @@ async function load(){
  const {data,error}=await rpcWithRetry(publicClient,"so_local_session",{p_token:sessionToken},3);
  if(error){
    console.error("Falha temporária ao validar sessão",error);
-   setApp('<div class="login-page"><section class="login"><div class="card"><h1 style="font-size:28px">Reconectando...</h1><p class="muted">O serviço está demorando para responder. Sua sessão foi preservada.</p><button class="btn" style="width:100%" onclick="location.reload()">Tentar novamente</button></div></section></div>');
+   setApp('<div class="login-page panel-signin"><main class="login"><div class="card"><h1>Reconectando…</h1><p class="muted">O serviço está demorando para responder. Sua sessão foi preservada.</p><button type="button" class="btn" onclick="location.reload()">Tentar novamente</button></div></main></div>');
    return;
  }
  if(!data?.ok){
