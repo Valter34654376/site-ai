@@ -731,6 +731,19 @@ button.dash-metric:hover {
   color: var(--dash-ink);
 }
 
+.dash-forecast-coverage {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dash-forecast-coverage p {
+  margin: 0;
+}
+
+.dash-forecast-recovery {
+  background: #935921;
+}
+
 .dash-forecast-scroll {
   margin-top: 9px;
 }

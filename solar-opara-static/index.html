@@ -132,6 +132,8 @@ function bindNav(){
   if(previous!==route)window.scrollTo(0,0);
   if(button.dataset.openForm){
    document.getElementById(button.dataset.openForm)?.click();
+   const dateField=$("#ctf input[name=event_date]");
+   if(dateField&&button.dataset.contractDate)dateField.value=button.dataset.contractDate;
    $("#ctf select")?.focus();
   }
  });
@@ -413,6 +415,9 @@ async function agenda(){
  const reservations=approved.map(x=>({event_date:x.event_date,label:x.event_type||"Reserva aprovada",origin:"reservation",subtitle:x.name,status:"aprovada"}));
  const evs=[...current,...legacy,...reservations].sort((a,b)=>String(a.event_date).localeCompare(String(b.event_date)));
  const originName={legacy:"PLANILHA",reservation:"RESERVA APROVADA",system:"SISTEMA"};
+ const contractedDates=new Set(contracts.filter(x=>["active","completed"].includes(x.status)).map(x=>x.event_date));
+ const reviewable=responses[0].status==="fulfilled";
+ const actions=reviewable&&canRecordPayment();
  window.__solarAgendaEvents=evs;
  const ref=window.solarAgendaMonth||new Date(),y=ref.getFullYear(),m=ref.getMonth(),days=new Date(y,m+1,0).getDate(),first=new Date(y,m,1).getDay();
  const cells=[...Array(first).fill(null),...Array.from({length:days},(_,i)=>i+1)];
@@ -424,7 +429,10 @@ async function agenda(){
  <div id="agendaPdfPanel"></div>
  <div id="agendaImportPreview"></div>
  <div class="card"><h2 style="text-transform:capitalize">${ref.toLocaleDateString("pt-BR",{month:"long",year:"numeric"})}</h2><div class="calendar">${["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"].map(d=>`<div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#8b877f;padding:4px">${d}</div>`).join("")}${cells.map(d=>{if(!d)return '<div class="day" style="opacity:.35"></div>';let iso=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;let dayEvents=monthEvents.filter(x=>x.event_date===iso);return `<div class="day"><b>${d}</b>${dayEvents.map(x=>`<div class="evt ${x.origin==="legacy"?"imported":""}">${esc(x.label)}<br><span class="muted">${x.origin==="system"?esc(x.subtitle):originName[x.origin]+" · "+esc(x.subtitle)}</span></div>`).join("")}</div>`}).join("")}</div></div>
- <div class="card"><h2>Eventos do mês</h2>${monthEvents.length?`<table><tr><th>Data</th><th>Evento</th><th>Origem</th></tr>${monthEvents.map(x=>`<tr><td>${dateBR(x.event_date)}</td><td><b>${esc(x.label)}</b><br><span class="muted">${esc(x.subtitle)}</span></td><td>${originName[x.origin]}</td></tr>`).join("")}</table>`:'<div class="empty">Nenhum evento neste mês.</div>'}</div>`;
+ <div class="card"><h2>Eventos do mês</h2>${monthEvents.length?`<table><tr><th>Data</th><th>Evento</th><th>Origem</th>${actions?'<th>Ações</th>':""}</tr>${monthEvents.map(x=>{
+  const pending=reviewable&&x.origin==="legacy"&&!contractedDates.has(x.event_date);
+  return `<tr><td>${dateBR(x.event_date)}</td><td><b>${esc(x.label)}</b><br><span class="muted">${esc(x.subtitle)}</span></td><td>${originName[x.origin]}${pending?'<br><small class="muted">Sem contrato nesta data</small>':""}</td>${actions?`<td>${pending?`<button type="button" class="btn small gray" data-route="contratos" data-open-form="newContract" data-contract-date="${esc(x.event_date)}">Novo contrato</button>`:""}</td>`:""}</tr>`;
+ }).join("")}</table>`:'<div class="empty">Nenhum evento neste mês.</div>'}</div>`;
 }
 function bookingStatus(v){
  return ({new:["NOVA",""],approved:["APROVADA","paid"],rejected:["RECUSADA","late"],converted:["CONTRATO","paid"]})[v]||[String(v||"").toUpperCase(),""];

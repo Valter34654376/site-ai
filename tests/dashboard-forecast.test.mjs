@@ -80,8 +80,9 @@ test("projects recorded balances through the latest scheduled date without count
   assert.equal(forecast.lastDay, "2027-06-18");
   assert.deepEqual(model.cash, { received: 34000, spent: 7500 });
   assert.deepEqual(forecast.finance, {
-    opening: 26500, received: 120500, spent: 17000, result: 103500, closing: 130000,
+    opening: 26500, received: 120500, spent: 17000, result: 117500, closing: 144000,
     overdue: 6000, undated: 8000, afterEnd: 40000,
+    recovery: 14000, totalReceipts: 134500, scheduledClosing: 130000,
   });
   assert.equal(forecast.agendaOnlyDays, 2);
   const february = forecast.months.find(month => month.key === "2027-02");
@@ -90,8 +91,15 @@ test("projects recorded balances through the latest scheduled date without count
   assert.equal(february.days[0].events.length, 2);
   assert.equal(february.received, 3000);
   assert.equal(forecast.months.find(month => month.key === "2027-03").received, 7000);
-  assert.equal(forecast.months.at(-1).closing, forecast.finance.closing);
+  assert.equal(forecast.months.at(-1).closing, forecast.finance.scheduledClosing);
   assert.equal(model.activity.length, 3);
+
+  const afterRecovery = await loadDashboard(fakeClient({
+    ...records, so_payments: [...records.so_payments, receipt("f", "c", 60, "2026-11-27T14:00:00Z")],
+  }), now);
+  assert.equal(afterRecovery.forecast.finance.overdue, 0);
+  assert.equal(afterRecovery.forecast.finance.opening, 32500);
+  assert.equal(afterRecovery.forecast.finance.closing, forecast.finance.closing);
 });
 
 test("handles an incomplete calendar or incomplete finance and preserves the available data", async () => {
