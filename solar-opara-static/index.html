@@ -59,7 +59,7 @@ table input,table select{min-width:180px}
 <link rel="stylesheet" href="/dashboard.css">
 <link rel="stylesheet" href="/payments-online.css">
 <link rel="stylesheet" href="/expenses.css">
-<link rel="stylesheet" href="/panel-appearance.css">
+<link rel="stylesheet" href="/panel-appearance.css?v=2">
 </head>
 <body><div id="app"></div>
 <script type="module">
@@ -108,6 +108,7 @@ const paymentsApi=(action,body)=>paymentRequest(action,body,sessionToken);
 const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const dateBR=v=>v?new Date(v+"T12:00:00").toLocaleDateString("pt-BR"):"—";
 const dtBR=v=>v?new Date(v).toLocaleString("pt-BR"):"—";
+const saoPauloDay=new Intl.DateTimeFormat("sv-SE",{timeZone:"America/Sao_Paulo",dateStyle:"short"});
 const toast=t=>{let x=document.createElement("div");x.className="toast";x.textContent=t;document.body.appendChild(x);setTimeout(()=>x.remove(),2500)};
 const id=()=>crypto.randomUUID();
 const audit=async(action,entity,entity_id,details={})=>{await sb.from("so_audit").insert({action,entity,entity_id:String(entity_id||""),details})};
@@ -118,7 +119,7 @@ async function passwordDigest(username,password){
  return Array.from(new Uint8Array(bits),b=>b.toString(16).padStart(2,"0")).join("");
 }
 const navSections = [
- [["dashboard", "Início", "overview"], ["clientes", "Clientes", "person"], ["agenda", "Agenda", "calendar"],
+ [["dashboard", "Início", "overview"], ["clientes", "Clientes", "person"], ["agenda", "Agenda", "calendar"], ["planilha", "Planilha importada", "document"],
   ["solicitacoes", "Solicitações", "mail"], ["contratos", "Contratos", "document"]],
  [["receber", "Cobranças", "incoming"], ["recebimentos", "Pagamentos", "check"],
   ["recebimentosOnline", "Recebimentos online", "card"], ["despesas", "Despesas", "outgoing"], ["nfse", "Notas fiscais", "document"]],
@@ -245,7 +246,7 @@ async function load(){
  }
  me=data.user;profile=data.user;sb=sessionClient(sessionToken);render();
 }
-const screens={clientes,agenda,solicitacoes,contratos,receber,recebimentos,recebimentosOnline,despesas,nfse,usuarios,auditoria};
+const screens={clientes,agenda,planilha,solicitacoes,contratos,receber,recebimentos,recebimentosOnline,despesas,nfse,usuarios,auditoria};
 let renderRequest=0;
 async function render(){
  const request=++renderRequest, page=route;
@@ -287,6 +288,32 @@ async function ensureAgendaXLSX(){
  return window.XLSX;
 }
 function agendaNorm(v){return String(v??"").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")}
+async function planilha(){
+ const [events,notes,contracts]=await Promise.all([
+  readRows(sb,"so_legacy_events","id,event_date,description,source_sheet"),
+  readRows(sb,"so_legacy_notes","id,note_text,source_sheet"),
+  readRows(sb,"so_contracts","id,event_date,event_name,so_clients(name)",query=>query.in("status",["active","completed"]))
+ ]);
+ events.sort((a,b)=>String(a.event_date).localeCompare(String(b.event_date)));
+ const contractsByDate=new Map();
+ for(const contract of contracts){
+  const contractsOnDate=contractsByDate.get(contract.event_date)||[];
+  contractsOnDate.push([contract.so_clients?.name,contract.event_name].filter(Boolean).join(" · "));
+  contractsByDate.set(contract.event_date,contractsOnDate);
+ }
+ const count=(n,one,many)=>n+" "+(n===1?one:many);
+ return `<div class="top"><div><h1>Planilha importada</h1><p class="muted">${count(events.length,"compromisso","compromissos")} · ${count(notes.length,"anotação","anotações")}</p></div>
+  <button type="button" class="btn gray" data-route="receber">Ver cobranças</button></div>
+  <div class="card"><label>Pesquisar na planilha<input type="search" id="legacySearch" placeholder="Evento, valor ou data"></label><p class="muted" role="status" id="legacySearchStatus"></p></div>
+  <section class="card" aria-labelledby="legacyEventsTitle"><h2 id="legacyEventsTitle">Compromissos</h2>${events.length?`<table><thead><tr><th scope="col">Data do evento</th><th scope="col">Descrição original</th><th scope="col">Aba</th><th scope="col">Contratos vigentes na data</th></tr></thead>
+  <tbody>${events.map(row=>{
+   const sameDate=contractsByDate.get(row.event_date);
+   const reference=sameDate?`<span class="badge">Conferir correspondência</span>${sameDate.map(title=>`<div>${esc(title)}</div>`).join("")}`:"—";
+   return `<tr data-legacy-row><td>${dateBR(row.event_date)}</td><td>${esc(row.description)}</td><td>${esc(row.source_sheet||"Planilha")}</td><td>${reference}</td></tr>`;
+  }).join("")}</tbody></table>`:'<p class="muted">Nenhum compromisso importado.</p>'}</section>
+  <section class="card" aria-labelledby="legacyNotesTitle"><h2 id="legacyNotesTitle">Anotações originais</h2>${notes.length?`<table><thead><tr><th scope="col">Anotação</th><th scope="col">Aba</th></tr></thead>
+  <tbody>${notes.map(row=>`<tr data-legacy-row><td>${esc(row.note_text)}</td><td>${esc(row.source_sheet||"Planilha")}</td></tr>`).join("")}</tbody></table>`:'<p class="muted">Nenhuma anotação importada.</p>'}</section>`;
+}
 function agendaDate(v,X){
  if(v instanceof Date&&!isNaN(v))return v.toISOString().slice(0,10);
  if(typeof v==="number"){const p=X.SSF.parse_date_code(v);if(p)return p.y+"-"+String(p.m).padStart(2,"0")+"-"+String(p.d).padStart(2,"0")}
@@ -458,8 +485,10 @@ async function agenda(){
  <div id="agendaImportPreview"></div>
  <div class="card"><h2 style="text-transform:capitalize">${ref.toLocaleDateString("pt-BR",{month:"long",year:"numeric"})}</h2><div class="calendar">${["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"].map(d=>`<div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#8b877f;padding:4px">${d}</div>`).join("")}${cells.map(d=>{if(!d)return '<div class="day" style="opacity:.35"></div>';let iso=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;let dayEvents=monthEvents.filter(x=>x.event_date===iso);return `<div class="day"><b>${d}</b>${dayEvents.map(x=>`<div class="evt ${x.origin==="legacy"?"imported":""}">${esc(x.label)}<br><span class="muted">${x.origin==="system"?esc(x.subtitle):originName[x.origin]+" · "+esc(x.subtitle)}</span></div>`).join("")}</div>`}).join("")}</div></div>
  <div class="card"><h2>Eventos do mês</h2>${monthEvents.length?`<table><tr><th>Data</th><th>Evento</th><th>Origem</th>${actions?'<th>Ações</th>':""}</tr>${monthEvents.map(x=>{
-  const pending=reviewable&&x.origin==="legacy"&&!contractedDates.has(x.event_date);
-  return `<tr><td>${dateBR(x.event_date)}</td><td><b>${esc(x.label)}</b><br><span class="muted">${esc(x.subtitle)}</span></td><td>${originName[x.origin]}${pending?'<br><small class="muted">Sem contrato nesta data</small>':""}</td>${actions?`<td>${pending?`<button type="button" class="btn small gray" data-route="contratos" data-open-form="newContract" data-contract-date="${esc(x.event_date)}">Novo contrato</button>`:""}</td>`:""}</tr>`;
+  const importedRecord=reviewable&&x.origin==="legacy";
+  const sameDate=importedRecord&&contractedDates.has(x.event_date);
+  const note=importedRecord?`<br><small class="muted">${sameDate?"Há contrato na data. Confira a correspondência.":"Sem contrato nesta data"}</small>`:"";
+  return `<tr><td>${dateBR(x.event_date)}</td><td><b>${esc(x.label)}</b><br><span class="muted">${esc(x.subtitle)}</span></td><td>${originName[x.origin]}${note}</td>${actions?`<td>${importedRecord&&!sameDate?`<button type="button" class="btn small gray" data-route="contratos" data-open-form="newContract" data-contract-date="${esc(x.event_date)}">Novo contrato</button>`:""}</td>`:""}</tr>`;
  }).join("")}</table>`:'<div class="empty">Nenhum evento neste mês.</div>'}</div>`;
 }
 function bookingStatus(v){
@@ -599,7 +628,7 @@ function bindPaymentPlan(form){
   entry.setCustomValidity(hasEntry&&entryCents>total?"A entrada não pode ultrapassar o total do contrato.":"");
   entryDate.disabled=!hasEntry;
   entryDate.required=hasEntry;
-  if(hasEntry&&!entryDate.value)entryDate.value=new Intl.DateTimeFormat("sv-SE",{timeZone:"America/Sao_Paulo",dateStyle:"short"}).format(new Date());
+  if(hasEntry&&!entryDate.value)entryDate.value=saoPauloDay.format(new Date());
   balanceDue.disabled=entryOnly;
   form.querySelector("[data-balance-due]").hidden=entryOnly;
   const parcelled=["Pix parcelado","Boleto bancário","Cartão de crédito"].includes(method.value);
@@ -654,7 +683,6 @@ async function saveContractForm(form){
  finally{submit.disabled=false}
 }
 
-function isOverdue(date){return !!date&&String(date)<new Date().toISOString().slice(0,10)}
 function canRecordPayment(){return ["admin","operator"].includes(profile?.role)}
 function onlineStates(){
  return sb.from("so_online_checkouts").select("receivable_id,state").in("state",["preparing","open","review"]);
@@ -664,21 +692,31 @@ async function recebimentosOnline(){
  const status=await paymentsApi("status").catch(()=>null);
  return renderPaymentSetup(status,esc);
 }
+const expandedChargePlans=new Set();
 async function receber(){
- const [{data:r,error:re},{data:p,error:pe},{data:links}]=await Promise.all([
-  sb.from("so_receivables").select("*,so_contracts(event_name,status,payment_terms,so_clients(name))").order("due_date"),
-  sb.from("so_payments").select("receivable_id,amount").eq("reversed",false),
+ const [receivables,payments,{data:links}]=await Promise.all([
+  readRows(sb,"so_receivables","id,contract_id,description,amount,due_date,status,so_contracts(event_name,event_date,status,payment_terms,so_clients(name))"),
+  readRows(sb,"so_payments","id,receivable_id,amount",query=>query.eq("reversed",false)),
   onlineStates()
  ]);
- if(re||pe)return '<h1>A receber</h1><div class="warnbox">'+esc(re?.message||pe?.message||"Falha ao carregar cobranças")+'</div>';
  const protectedReceivables=new Set((links||[]).map(link=>link.receivable_id));
  const paidByReceivable=new Map();
- for(const item of p||[])paidByReceivable.set(item.receivable_id,(paidByReceivable.get(item.receivable_id)||0)+Math.round(Number(item.amount)*100));
- const rows=(r||[]).map(item=>{
+ for(const item of payments)paidByReceivable.set(item.receivable_id,(paidByReceivable.get(item.receivable_id)||0)+Math.round(Number(item.amount)*100));
+ const today=saoPauloDay.format(new Date());
+ receivables.sort((a,b)=>(a.due_date||"9999").localeCompare(b.due_date||"9999"));
+ const groups=new Map();
+ for(const item of receivables){
+  const key=item.contract_id||`cobranca-${item.id}`;
+  if(!groups.has(key))groups.set(key,{contract:item.so_contracts,rows:[],outstanding:0,overdue:0,cancelledCount:0});
+  const group=groups.get(key);
   const paid=paidByReceivable.get(item.id)||0, total=Math.round(Number(item.amount)*100);
   const full=total>0&&paid>=total, partial=paid>0&&!full;
   const cancelled=item.status==="cancelled"||item.so_contracts?.status==="cancelled";
-  const late=!full&&!cancelled&&isOverdue(item.due_date);
+  const balance=Math.max(0,total-paid);
+  const late=balance>0&&!cancelled&&!!item.due_date&&item.due_date<today;
+  if(cancelled)group.cancelledCount++;
+  else group.outstanding+=balance;
+  if(late)group.overdue++;
   const label=cancelled?"CANCELADO":full?"PAGO":late?(partial?"PARCIAL / ATRASADO":"ATRASADO"):partial?"PARCIAL":"PENDENTE";
   const cls=full?"paid":late?"late":"";
   const online=protectedReceivables.has(item.id);
@@ -689,14 +727,26 @@ async function receber(){
    canRecordPayment()&&!online&&!cancelled?'<button type="button" class="btn small'+(eligible?' gray':'')+'" data-pix="'+id+'">'+(full?"Ver pagamento":"Cobrar / confirmar")+'</button>':"",
    !online?'<button type="button" class="btn small gray" data-print-charge="'+id+'">Imprimir cobrança</button>':""
   ].join("");
-  return '<tr><td>'+esc(item.so_contracts?.so_clients?.name)+'<br><span class="muted">'+esc(item.so_contracts?.event_name)+'</span></td>'+
-   '<td>'+dateBR(item.due_date)+'</td><td>'+money(item.amount)+'<br><small class="muted">'+esc(item.description)+'</small></td>'+
+  group.rows.push('<tr><td>'+dateBR(item.due_date)+'</td><td>'+money(item.amount)+'<br><small class="muted">'+esc(item.description)+'</small></td>'+
    '<td>'+esc(item.so_contracts?.payment_terms||"PIX")+'</td><td><span class="badge '+cls+'">'+label+'</span>'+
    (partial?'<br><small class="muted">Recebido '+money(paid/100)+'</small>':"")+
-   (online?'<br><small class="muted">Cobrança online</small>':"")+'</td><td><div class="row">'+actions+'</div></td></tr>';
+   (online?'<br><small class="muted">Cobrança online</small>':"")+'</td><td><div class="row">'+actions+'</div></td></tr>');
+ }
+ const plans=Array.from(groups,([key,group])=>{
+  const {contract,rows,overdue,outstanding,cancelledCount}=group;
+  const activeCount=rows.length-cancelledCount;
+  const event=[contract?.event_name,contract?.event_date?dateBR(contract.event_date):""].filter(Boolean).join(" · ");
+  return `<details class="card charge-plan" data-charge-plan="${esc(key)}"${expandedChargePlans.has(key)?" open":""}>
+   <summary><span class="charge-identity"><strong>${esc(contract?.so_clients?.name||contract?.event_name||"Cobrança sem contrato")}</strong><small class="muted">${esc(event)}</small></span>
+   <span class="charge-count muted">${activeCount} ${activeCount===1?"cobrança":"cobranças"}${overdue?` · <strong class="charge-overdue">${overdue} ${overdue===1?"vencida":"vencidas"}</strong>`:""}${cancelledCount?` · ${cancelledCount} ${cancelledCount===1?"cancelada":"canceladas"}`:""}</span>
+   <span class="charge-balance"><strong>${money(outstanding/100)}</strong><small class="muted">Saldo em aberto</small></span></summary>
+   <div class="charge-table"><table><thead><tr><th scope="col">Vencimento</th><th scope="col">Parcela</th><th scope="col">Forma</th><th scope="col">Status</th><th scope="col">Ações</th></tr></thead><tbody>${rows.join("")}</tbody></table></div>
+  </details>`;
  }).join("");
- return '<h1>A receber</h1><table><tr><th>Cliente / evento</th><th>Venc.</th><th>Parcela</th><th>Forma</th><th>Status</th><th>Ações</th></tr>'+
-  rows+'</table><dialog id="pixModal" aria-labelledby="paymentTitle"></dialog><dialog id="onlinePaymentModal" aria-labelledby="onlinePaymentTitle"></dialog>';
+ return `<div class="top"><div><h1>Cobranças</h1><p class="muted">Abra um contrato para ver as parcelas e os pagamentos.</p></div>
+  <button type="button" class="btn gray" data-route="planilha">Ver planilha importada</button></div>
+  ${plans||'<div class="empty">Nenhuma cobrança cadastrada.</div>'}
+  <dialog id="pixModal" aria-labelledby="paymentTitle"></dialog><dialog id="onlinePaymentModal" aria-labelledby="onlinePaymentTitle"></dialog>`;
 }
 async function recebimentos(){
  const [{data,error},{data:markers}]=await Promise.all([
@@ -960,6 +1010,22 @@ async function showDoc(cid,manual=false){
  else w.document.write(`<meta charset=utf-8><title>Contrato Solar Opará</title><style>body{font-family:Arial;max-width:900px;margin:30px auto;line-height:1.5}table{width:100%;border-collapse:collapse}td{border:1px solid #aaa;padding:8px}</style><button onclick=print()>Imprimir / Salvar PDF</button><h1>CONTRATO DE LOCAÇÃO DE ESPAÇO PARA EVENTOS – SOLAR OPARÁ</h1><table><tr><td>LOCADOR</td><td>SOLAR OPARÁ TURISMO E HOTEIS — CNPJ 33.958.617/0001-73</td></tr><tr><td>REPRESENTANTE</td><td>FLAVIA TATIANA RIBEIRO DE OLIVEIRA</td></tr><tr><td>LOCATÁRIO</td><td>${esc(cl.name)}</td></tr><tr><td>CPF/CNPJ</td><td>${esc(cl.document)}</td></tr><tr><td>EVENTO</td><td>${esc(c.event_name)}</td></tr><tr><td>DATA</td><td>${dateBR(c.event_date)}</td></tr><tr><td>CAPACIDADE</td><td>${esc(c.capacity)}</td></tr><tr><td>LOCAÇÃO</td><td>${money(c.rental_value)}</td></tr><tr><td>LIMPEZA</td><td>${money(c.cleaning_fee)}</td></tr><tr><td>ADICIONAIS</td><td>${money(c.additional_value)} — ${esc(c.additional_services)}</td></tr><tr><td>TOTAL</td><td>${money(total)}</td></tr>${entry?`<tr><td>ENTRADA</td><td>${money(entry.amount)} · Vencimento ${dateBR(entry.due_date)}</td></tr><tr><td>SALDO CONTRATADO</td><td>${money(total-Number(entry.amount))}</td></tr>`:""}<tr><td>CAUÇÃO/GARANTIA</td><td>${esc(c.guarantee_text)}</td></tr><tr><td>PAGAMENTO</td><td>${esc(c.payment_terms)}</td></tr><tr><td>OBSERVAÇÕES</td><td>${esc(c.observations)}</td></tr></table><h2>Vistoria e checklist</h2><p>As condições do espaço, montagem, uso e devolução devem ser conferidas pelas partes conforme o evento.</p><h2>Disposições gerais</h2><p>Este documento registra as condições operacionais e financeiras informadas no cadastro do evento.</p><p>Chave Pix: ${PIX}</p>`);w.document.close()
 }
 function bindPage(){
+ document.querySelectorAll("[data-charge-plan]").forEach(plan=>plan.ontoggle=()=>{
+  if(plan.open)expandedChargePlans.add(plan.dataset.chargePlan);
+  else expandedChargePlans.delete(plan.dataset.chargePlan);
+ });
+ if($("#legacySearch")){
+  const rows=Array.from(document.querySelectorAll("[data-legacy-row]"),row=>({row,text:agendaNorm(row.innerText)}));
+  $("#legacySearch").oninput=event=>{
+   const search=agendaNorm(event.target.value);
+   let matches=0;
+   for(const {row,text} of rows){
+    row.hidden=!text.includes(search);
+    if(!row.hidden)matches++;
+   }
+   $("#legacySearchStatus").textContent=search?(matches?`${matches} de ${rows.length} registros`:`Nenhum registro encontrado.`):"";
+  };
+ }
  const setup=$(".pay-setup");
  if(setup)bindPaymentSetup(setup,paymentsApi,render);
  document.querySelectorAll("[data-online-payment]").forEach(button=>button.onclick=()=>openOnlinePayment($("#onlinePaymentModal"),button.dataset.onlinePayment,{
