@@ -612,15 +612,247 @@ button.dash-metric:hover {
   color: var(--dash-ink);
 }
 
+.dash-forecast {
+  margin-top: 14px;
+}
+
+.dash-forecast-head {
+  align-items: flex-end;
+}
+
+.dash-forecast-select {
+  display: grid;
+  gap: 4px;
+  color: var(--dash-muted);
+  font-size: .76rem;
+  font-weight: 700;
+}
+
+.dash-forecast-select select {
+  font-weight: 500;
+}
+
+.dash-forecast-totals {
+  display: grid;
+  grid-template-columns: minmax(0, 1.13fr) repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.dash-forecast-totals > div {
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid #eee5d9;
+  border-radius: 10px;
+  background: #f8f4ed;
+}
+
+.dash-forecast-totals .dash-forecast-result {
+  border-color: #284334;
+  background: #284334;
+  color: #f6f4e9;
+}
+
+.dash-forecast-totals .dash-forecast-loss {
+  border-color: #823731;
+  background: #823731;
+}
+
+.dash-forecast-totals dt,
+.dash-forecast-month-sums dt {
+  font-size: .76rem;
+  font-weight: 650;
+}
+
+.dash-forecast-totals dd,
+.dash-forecast-month-sums dd {
+  margin: 4px 0 0;
+  font-size: clamp(1.03rem, 1.9vw, 1.65rem);
+  font-weight: 750;
+  letter-spacing: -.035em;
+  overflow-wrap: anywhere;
+}
+
+.dash-forecast-totals small {
+  display: block;
+  color: var(--dash-muted);
+  font-size: .69rem;
+  font-weight: 500;
+  letter-spacing: normal;
+}
+
+.dash-forecast-subtitle {
+  margin-top: 9px;
+}
+
+.dash-forecast-graphs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 16px;
+}
+
+.dash-forecast-card {
+  min-width: 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--dash-border);
+}
+
+.dash-forecast-card h3,
+[data-forecast-detail] h3 {
+  margin: 0 0 4px;
+  font-size: clamp(1rem, 1.4vw, 1.22rem);
+}
+
+[data-forecast-detail] h3::first-letter {
+  text-transform: uppercase;
+}
+
+.dash-forecast-legend,
+.dash-forecast-context {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 15px;
+  margin: 0;
+  color: var(--dash-muted);
+  font-size: .75rem;
+}
+
+.dash-forecast-context {
+  margin-top: 13px;
+  padding: 9px 11px;
+  border: 1px solid #eee5d9;
+  border-radius: 8px;
+  background: #f8f4ed;
+}
+
+.dash-forecast-context strong,
+.dash-forecast-context b {
+  color: var(--dash-ink);
+}
+
+.dash-forecast-scroll {
+  margin-top: 9px;
+}
+
+.dash-forecast-chart {
+  --plot-height: 132px;
+  min-width: calc(53px + var(--months) * 36px);
+}
+
+.dash-forecast-chart .dash-zero-line {
+  border-top: 1px solid #bfb3a2;
+}
+
+.dash-forecast-line {
+  position: absolute;
+  z-index: 1;
+  inset: 0 0 auto;
+  width: 100%;
+  height: var(--plot-height);
+  pointer-events: none;
+}
+
+.dash-forecast-chart .dash-axis {
+  z-index: 2;
+}
+
+.dash-forecast-chart .dash-axis::after {
+  position: absolute;
+  inset: 100% 0 auto;
+  height: 25px;
+  background: var(--dash-surface);
+  content: "";
+}
+
+.dash-bars .dash-forecast-stack {
+  display: flex;
+  width: 58%;
+  max-width: 38px;
+  height: 100%;
+  flex-direction: column-reverse;
+}
+
+.dash-bars .dash-forecast-stack > span {
+  width: 100%;
+  max-width: none;
+  flex-shrink: 0;
+  border-radius: 0;
+}
+
+.dash-forecast-stack > span:last-child {
+  border-radius: 4px 4px 0 0;
+}
+
+.dash-forecast-month-sums {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px 10px;
+  margin: 7px 0 8px;
+}
+
+.dash-forecast-month-sums dd {
+  margin-top: 1px;
+  font-size: 1rem;
+}
+
+.dash-forecast-days {
+  margin: 9px 0 4px;
+  color: var(--dash-muted);
+  font-size: .76rem;
+}
+
+.dash-forecast-event-list,
+.dash-forecast-event-list ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dash-forecast-event-list {
+  max-height: 220px;
+  padding-right: 4px;
+  overflow-y: auto;
+}
+
+.dash-forecast-event-list > li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px 10px;
+  align-items: baseline;
+  padding: 6px 0;
+  border-top: 1px solid #efe9df;
+  font-size: .77rem;
+}
+
+.dash-forecast-event-list time {
+  color: var(--dash-muted);
+  font-weight: 700;
+}
+
+.dash-forecast-event-list ul > li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 8px;
+  padding-bottom: 4px;
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 1100px) {
   .dash-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .dash-columns { grid-template-columns: minmax(0, 1fr); }
 }
 
+@media (max-width: 725px) {
+  .dash-forecast-graphs { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .dash-forecast-totals { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 @media (max-width: 525px) {
   .dash-heading { align-items: flex-start; margin-bottom: 16px; }
   .dash-metrics, .dash-columns { gap: 9px; }
-  .dash-columns { margin-top: 9px; }
+  .dash-columns, .dash-forecast { margin-top: 9px; }
   .dash-metric { min-height: 110px; }
   .dash-chart { --plot-height: 116px; }
   .dash-list li { gap: 6px; }

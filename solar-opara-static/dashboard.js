@@ -1,3 +1,5 @@
+import { bindForecast, buildForecast, renderForecast } from "./dashboard-forecast.js";
+
 const timeZone = "America/Sao_Paulo";
 const localDay = new Intl.DateTimeFormat("sv-SE", { timeZone, dateStyle: "short" });
 const fullDay = new Intl.DateTimeFormat("pt-BR", { timeZone, dateStyle: "full" });
@@ -18,7 +20,7 @@ const addDays = (day, days) => isoDay(new Date(Date.parse(day) + days * dayMs));
 const byDate = (a, b) => a.date.localeCompare(b.date);
 const monthDate = key => new Date(`${key}-01T12:00:00Z`);
 
-async function readRows(client, table, columns, filter = query => query) {
+export async function readRows(client, table, columns, filter = query => query) {
   const rows = [];
   let total = null;
   while (total === null || rows.length < total) {
@@ -44,7 +46,7 @@ export async function loadDashboard(client, now = new Date()) {
       query => query.eq("reversed", false)],
     ["expenses", "Despesas", "so_expenses", "id,description,category,amount,expense_date"],
     ["legacy", "Agenda importada", "so_legacy_events", "id,event_date,description",
-      query => query.gte("event_date", today).lt("event_date", horizon)],
+      query => query.gte("event_date", today)],
     ["requests", "Solicitações", "so_booking_requests", "id,name,event_type,event_date,status,created_at",
       query => query.in("status", ["new", "approved"])],
   ];
@@ -80,25 +82,36 @@ export async function loadDashboard(client, now = new Date()) {
     subtitle: ["Despesa", item.category].filter(Boolean).join(" · "),
     type: "expense",
   }));
-  const activity = [...(payments || []), ...(expenses || [])].sort((a, b) => byDate(b, a) || b.timestamp - a.timestamp);
-  const cash = payments && expenses ? { received: sumValues(payments), spent: sumValues(expenses) } : null;
+  const realizedPayments = payments?.filter(item => item.date <= today);
+  const realizedExpenses = expenses?.filter(item => item.date <= today);
+  const activity = [...(realizedPayments || []), ...(realizedExpenses || [])].sort((a, b) => byDate(b, a) || b.timestamp - a.timestamp);
+  const cash = realizedPayments && realizedExpenses
+    ? { received: sumValues(realizedPayments), spent: sumValues(realizedExpenses) }
+    : null;
 
   const collections = records.receivables && records.contracts && payments
     ? summarizeCollections(records.receivables, contracts, payments, today)
     : null;
-  const scheduled = records.contracts?.filter(item =>
-    item.status === "active" && item.event_date >= today && item.event_date < horizon);
-  const events = [
+  const scheduled = records.contracts?.filter(item => item.status === "active" && item.event_date >= today);
+  const plannedContracts = new Set(records.receivables?.filter(item => item.status !== "cancelled" && toCents(item.amount) > 0)
+    .map(item => item.contract_id));
+  const calendar = [
     ...(scheduled || []).map(item => ({
       date: item.event_date,
       title: item.event_name || "Evento contratado",
       subtitle: [item.start_at && clock.format(new Date(item.start_at)), item.so_clients?.name].filter(Boolean).join(" · "),
       source: "Contrato",
+      hasParcels: records.receivables ? plannedContracts.has(item.id) : null,
     })),
     ...(records.legacy || []).map(item => ({
       date: item.event_date, title: item.description || "Compromisso", source: "Planilha",
     })),
+    ...(records.requests || []).filter(item => item.status === "approved" && item.event_date >= today).map(item => ({
+      date: item.event_date, title: item.event_type || "Reserva aprovada", subtitle: item.name, source: "Reserva",
+    })),
   ].sort(byDate);
+  const calendarAvailable = records.contracts && records.legacy && records.requests;
+  const forecast = buildForecast({ today, calendar: calendarAvailable ? calendar : null, collections, payments, expenses, cash, contracts, parcels });
 
   return {
     today,
@@ -109,11 +122,12 @@ export async function loadDashboard(client, now = new Date()) {
     activityAvailable: !!(payments || expenses),
     cash,
     collections,
-    events,
-    agendaAvailable: !!(records.contracts || records.legacy),
-    scheduledCount: scheduled?.length ?? null,
+    events: calendar.filter(item => item.date < horizon),
+    agendaAvailable: !!(records.contracts || records.legacy || records.requests),
+    scheduledCount: scheduled?.filter(item => item.event_date < horizon).length ?? null,
     contractCount: records.contracts?.length ?? null,
     requests: records.requests,
+    forecast,
   };
 }
 
@@ -123,7 +137,7 @@ function summarizeCollections(receivables, contracts, payments, today) {
     const id = item.receivableId;
     paidByParcel.set(id, (paidByParcel.get(id) || 0) + item.cents);
   }
-  const result = { total: 0, received: 0, lateCents: 0, onTimeCents: 0, undatedCents: 0, late: [], soon: [], openCount: 0 };
+  const result = { total: 0, received: 0, lateCents: 0, onTimeCents: 0, undatedCents: 0, late: [], soon: [], open: [], openCount: 0 };
   const nextWeek = addDays(today, 7);
   for (const item of receivables) {
     const contract = contracts.get(item.contract_id);
@@ -138,11 +152,13 @@ function summarizeCollections(receivables, contracts, payments, today) {
     const date = item.due_date;
     const charge = {
       id: item.id,
+      contractId: item.contract_id,
       date,
       cents: balance,
       title: contract?.so_clients?.name || contract?.event_name || "Cobrança",
       subtitle: item.description || contract?.event_name || "Parcela",
     };
+    result.open.push(charge);
     result.openCount++;
     if (!date) {
       result.undatedCents += balance;
@@ -344,6 +360,7 @@ export function renderDashboard(model, format) {
     </header>
     ${warning}
     <div class="dash-metrics">${metrics.join("")}</div>
+    ${renderForecast(model.forecast, format)}
 
     <div class="dash-columns">
       <section class="dash-panel" aria-labelledby="dash-cash-title">
@@ -403,6 +420,7 @@ function revealSelectedMonth(chart) {
 }
 
 export function bindDashboard(root, model, format, { refresh, confirmPayment, notify }) {
+  bindForecast(root, model.forecast, format);
   root.querySelector("[data-refresh-dashboard]").onclick = async event => {
     const button = event.currentTarget;
     const restoreFocus = document.activeElement === button;
